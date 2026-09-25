@@ -38,7 +38,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lang}>
-      <body>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
     </html>
   );
 }
