@@ -54,4 +54,32 @@
     --motion-default: 200ms;
     --motion-ui: 250ms;
     --motion-featured: 300ms;
+
+    /* Typography — font sizes */
+    --font-size-hero-desktop: 56px;
+    --font-size-hero-mobile: 36px;
+
+    --font-size-page-desktop: 42px;
+    --font-size-page-mobile: 32px;
+
+    --font-size-section-desktop: 28px;
+    --font-size-section-mobile: 22px;
+
+    --font-size-card-desktop: 20px;
+    --font-size-card-mobile: 18px;
+
+    --font-size-body: 16px;
+    --font-size-label: 12px;
+
+    /* Typography — weights */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+
+    /* Typography — line heights */
+    --line-height-hero: 1.1;
+    --line-height-title: 1.2;
+    --line-height-card: 1.3;
+    --line-height-body: 1.6;
+    --line-height-label: 1.4;
 }
