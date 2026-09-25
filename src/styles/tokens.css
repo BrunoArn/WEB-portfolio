@@ -43,4 +43,15 @@
     --panel-padding-mobile: var(--space-16);
 
     --related-gap: var(--space-8);
+
+    /* Geometry */
+    --radius-control: 4px;
+    --radius-card: 8px;
+    --radius-large: 12px;
+
+    /* Motion */
+    --motion-fast: 150ms;
+    --motion-default: 200ms;
+    --motion-ui: 250ms;
+    --motion-featured: 300ms;
 }
