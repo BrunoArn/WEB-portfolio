@@ -1,14 +1,46 @@
 :root {
-  --color-background: #0e1012;
+    /* Colors */
+    --color-background: #0e1012;
 
-  --color-surface: #171c20;
-  --color-surface-elevated: #20272d;
+    --color-surface: #171c20;
+    --color-surface-elevated: #20272d;
 
-  --color-accent: #a6d86e;
+    --color-accent: #a6d86e;
 
-  --color-text-primary: #f2f3f4;
-  --color-text-body: #c5cace;
-  --color-text-secondary: #a3acb1;
+    --color-text-primary: #f2f3f4;
+    --color-text-body: #c5cace;
+    --color-text-secondary: #a3acb1;
 
-  --color-border: #394148;
+    --color-border: #394148;
+
+    /* Spacing scale */
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-40: 40px;
+    --space-48: 48px;
+    --space-56: 56px;
+    --space-64: 64px;
+    --space-80: 80px;
+
+    /* Layout */
+    --layout-max-width: 1280px;
+    --layout-margin-desktop: 40px;
+    --layout-margin-mobile: 20px;
+
+    /* Semantic spacing */
+    --section-spacing-desktop: var(--space-80);
+    --section-spacing-mobile: var(--space-56);
+
+    --card-gap: var(--space-20);
+    --card-padding: var(--space-16);
+
+    --panel-padding: var(--space-24);
+    --panel-padding-mobile: var(--space-16);
+
+    --related-gap: var(--space-8);
 }
