@@ -1,0 +1,14 @@
+:root {
+  --color-background: #0e1012;
+
+  --color-surface: #171c20;
+  --color-surface-elevated: #20272d;
+
+  --color-accent: #a6d86e;
+
+  --color-text-primary: #f2f3f4;
+  --color-text-body: #c5cace;
+  --color-text-secondary: #a3acb1;
+
+  --color-border: #394148;
+}
