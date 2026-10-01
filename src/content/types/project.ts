@@ -1,69 +1,71 @@
+import type { Category } from "./category";
+
 export type ProjectStatus =
-  | "released"
-  | "prototype"
-  | "hackathon"
-  | "client"
-  | "development"
-  | "archived";
+    | "released"
+    | "prototype"
+    | "hackathon"
+    | "client"
+    | "development"
+    | "archived";
 
 export interface ProjectTeamMember {
-  name: string;
-  role: string;
+    name: string;
+    role: string;
 }
 
 export interface ProjectImage {
-  id: string;
-  type: "image";
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
+    id: string;
+    type: "image";
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
 }
 
 export interface ProjectVideo {
-  id: string;
-  type: "video";
-  src: string;
+    id: string;
+    type: "video";
+    src: string;
 }
 
 export type ProjectMedia = ProjectImage | ProjectVideo;
 
 export interface ProjectPlayable {
-  type: "unity-webgl";
-  source: string;
+    type: "unity-webgl";
+    source: string;
 }
 
 export interface ProjectSeo {
-  title?: string;
-  description?: string;
+    title?: string;
+    description?: string;
 }
 
 export interface Project {
-  title: string;
-  slug: string;
-  year: number;
+    title: string;
+    slug: string;
+    year: number;
 
-  description: string;
-  context?: string;
-  role: string;
+    description: string;
+    context?: string;
+    role: string;
 
-  status: ProjectStatus;
-  organization?: string;
+    status: ProjectStatus;
+    organization?: string;
 
-  categorySlugs: string[];
-  technologies: string[];
-  team: ProjectTeamMember[];
+    categories: Category[];
+    technologies: string[];
+    team: ProjectTeamMember[];
 
-  cover: ProjectImage;
-  media: ProjectMedia[];
+    cover: ProjectImage;
+    media: ProjectMedia[];
 
-  githubUrl?: string;
-  liveSiteUrl?: string;
+    githubUrl?: string;
+    liveSiteUrl?: string;
 
-  playable?: ProjectPlayable;
+    playable?: ProjectPlayable;
 
-  featured: boolean;
-  order: number;
+    featured: boolean;
+    order: number;
 
-  seo?: ProjectSeo;
+    seo?: ProjectSeo;
 }
