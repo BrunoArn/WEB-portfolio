@@ -3,7 +3,7 @@ import type { ContentLanguage } from "@/content/adapters/localization";
 import type { SanityProject } from "@/sanity/types/project";
 
 import { adaptProject } from "@/content/adapters/project";
-import { sanityClient  } from "@/sanity/client";
+import { sanityClient } from "@/sanity/client";
 import { projectProjection } from "@/sanity/queries/project";
 
 const projectsQuery = `
@@ -13,13 +13,33 @@ const projectsQuery = `
 `;
 
 export async function getProjects(
-  language: ContentLanguage,
+    language: ContentLanguage,
 ): Promise<Project[]> {
-  const projects = await sanityClient.fetch<SanityProject[]>(
-    projectsQuery,
-  );
+    const projects = await sanityClient.fetch<SanityProject[]>(
+        projectsQuery,
+    );
 
-  return projects.map((project) =>
-    adaptProject(project, language),
-  );
+    return projects.map((project) =>
+        adaptProject(project, language),
+    );
+}
+
+const projectBySlugQuery = `
+  *[_type == "project" && slug.current == $slug][0] {
+    ${projectProjection}
+  }
+`;
+
+export async function getProjectBySlug(
+    slug: string,
+    language: ContentLanguage,
+): Promise<Project | null> {
+    const project = await sanityClient.fetch<SanityProject | null>(
+        projectBySlugQuery,
+        { slug },
+    );
+
+    return project
+        ? adaptProject(project, language)
+        : null;
 }
