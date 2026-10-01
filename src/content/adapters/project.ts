@@ -49,7 +49,12 @@ export function adaptProject(
   project: SanityProject,
   language: ContentLanguage,
 ): Project {
-  if (!project.slug?.current) {
+  const slug = project.slug?.current;
+
+  if (
+    typeof slug !== "string" ||
+    slug.trim().length === 0
+  ) {
     throw new Error("Project is missing a valid slug.");
   }
 
@@ -78,7 +83,7 @@ export function adaptProject(
 
   return {
     title: resolveLocalizedValue(project.title, language),
-    slug: project.slug.current,
+    slug: slug,
     year: project.year,
 
     description: resolveLocalizedValue(

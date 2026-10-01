@@ -10,9 +10,18 @@ export function adaptCategory(
   category: SanityCategory,
   language: ContentLanguage,
 ): Category {
+  const slug = category.slug?.current;
+
+  if (
+    typeof slug !== "string" ||
+    slug.trim().length === 0
+  ) {
+    throw new Error("Category is missing a valid slug.");
+  }
+
   return {
     name: resolveLocalizedValue(category.name, language),
-    slug: category.slug.current,
+    slug,
     order: category.order,
   };
 }
