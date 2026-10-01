@@ -4,6 +4,7 @@ import {playableConfig} from './objects/playableConfig'
 import {projectImage} from './objects/projectImage'
 import {projectVideo} from './objects/projectVideo'
 import {teamMember} from './objects/teamMember'
+import {seo} from './objects/seo'
 
 export const schemaTypes = [
   localizedString,
@@ -12,4 +13,5 @@ export const schemaTypes = [
   projectImage,
   projectVideo,
   playableConfig,
+  seo,
 ]
