@@ -25,6 +25,14 @@ function adaptTeamMember(
   member: SanityProjectTeamMember,
   language: ContentLanguage,
 ): ProjectTeamMember {
+  if (
+    !member ||
+    typeof member.name !== "string" ||
+    member.name.trim().length === 0
+  ) {
+    throw new Error("Project has an invalid team member.");
+  }
+
   return {
     name: member.name,
     role: resolveLocalizedValue(member.role, language),
@@ -114,6 +122,32 @@ export function adaptProject(
     project.order < 0
   ) {
     throw new Error(`Project "${slug}" has an invalid order.`);
+  }
+
+  if (
+    !Array.isArray(project.technologies) ||
+    project.technologies.some(
+      (technology) =>
+        typeof technology !== "string" ||
+        technology.trim().length === 0,
+    )
+  ) {
+    throw new Error(
+      `Project "${slug}" has invalid technologies.`,
+    );
+  }
+
+  if (
+    project.playable &&
+    (
+      project.playable.type !== "unity-webgl" ||
+      typeof project.playable.source !== "string" ||
+      project.playable.source.trim().length === 0
+    )
+  ) {
+    throw new Error(
+      `Project "${slug}" has an invalid playable configuration.`,
+    );
   }
 
   return {
