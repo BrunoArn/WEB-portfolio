@@ -4,12 +4,12 @@ export interface SanityImageAsset {
   _id: string;
   url: string;
 
-  metadata?: {
-    dimensions?: {
+  metadata: {
+    dimensions: {
       width: number;
       height: number;
-    };
-  };
+    } | null;
+  } | null;
 }
 
 export interface SanityFileAsset {

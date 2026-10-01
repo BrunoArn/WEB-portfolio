@@ -17,8 +17,8 @@ export interface SanityProjectPlayable {
 }
 
 export interface SanityProjectSeo {
-    title?: LocalizedValue;
-    description?: LocalizedValue;
+    title: LocalizedValue | null;
+    description: LocalizedValue | null;
 }
 
 export interface SanityProject {
@@ -33,11 +33,11 @@ export interface SanityProject {
     year: number;
 
     description: LocalizedValue;
-    context?: LocalizedValue;
+    context: LocalizedValue | null;
     role: LocalizedValue;
 
     status: ProjectStatus;
-    organization?: LocalizedValue;
+    organization: LocalizedValue | null;
 
     categories: SanityCategory[];
     technologies: string[];
@@ -46,13 +46,13 @@ export interface SanityProject {
     cover: SanityProjectImage;
     media: SanityProjectMedia[];
 
-    github?: string;
-    liveSite?: string;
+    github: string | null;
+    liveSite: string | null;
 
-    playable?: SanityProjectPlayable;
+    playable: SanityProjectPlayable | null;
 
     featured: boolean;
     order: number;
 
-    seo?: SanityProjectSeo;
+    seo: SanityProjectSeo | null;
 }

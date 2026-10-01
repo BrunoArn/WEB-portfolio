@@ -87,14 +87,14 @@ export function adaptProject(
       adaptProjectMedia(item, language),
     ),
 
-    githubUrl: project.github,
-    liveSiteUrl: project.liveSite,
+    githubUrl: project.github ?? undefined,
+    liveSiteUrl: project.liveSite ?? undefined,
 
     playable: project.playable
       ? {
-          type: project.playable.type,
-          source: project.playable.source,
-        }
+        type: project.playable.type,
+        source: project.playable.source,
+      }
       : undefined,
 
     featured: project.featured,
