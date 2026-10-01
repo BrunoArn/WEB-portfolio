@@ -119,6 +119,24 @@ export const project = defineType({
                 { type: 'projectVideo' },
             ],
         }),
+
+        defineField({
+            name: 'github',
+            title: 'GitHub',
+            type: 'url',
+        }),
+
+        defineField({
+            name: 'liveSite',
+            title: 'Live Site',
+            type: 'url',
+        }),
+
+        defineField({
+            name: 'playable',
+            title: 'Playable',
+            type: 'playableConfig',
+        }),
     ],
 
     preview: {
