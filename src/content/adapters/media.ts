@@ -21,19 +21,37 @@ export function adaptProjectImage(
 ): ProjectImage {
   const asset = image?.image?.asset;
 
-  if (!asset?._id || !asset.url) {
+  if (
+    typeof asset?._id !== "string" ||
+    asset._id.trim().length === 0 ||
+    typeof asset.url !== "string" ||
+    asset.url.trim().length === 0
+  ) {
     throw new Error("Project image is missing a valid asset.");
   }
 
   const dimensions = asset.metadata?.dimensions;
+  const hasValidDimensions =
+    dimensions != null &&
+    typeof dimensions.width === "number" &&
+    Number.isFinite(dimensions.width) &&
+    dimensions.width > 0 &&
+    typeof dimensions.height === "number" &&
+    Number.isFinite(dimensions.height) &&
+    dimensions.height > 0;
 
   return {
     id: asset._id,
     type: "image",
     src: asset.url,
     alt: resolveLocalizedValue(image.alt, language),
-    width: dimensions?.width,
-    height: dimensions?.height,
+    width: hasValidDimensions
+      ? dimensions.width
+      : undefined,
+
+    height: hasValidDimensions
+      ? dimensions.height
+      : undefined,
   };
 }
 
@@ -42,7 +60,12 @@ export function adaptProjectVideo(
 ): ProjectVideo {
   const asset = video?.video?.asset;
 
-  if (!asset?._id || !asset.url) {
+  if (
+    typeof asset?._id !== "string" ||
+    asset._id.trim().length === 0 ||
+    typeof asset.url !== "string" ||
+    asset.url.trim().length === 0
+  ) {
     throw new Error("Project video is missing a valid asset.");
   }
 
@@ -66,8 +89,7 @@ export function adaptProjectMedia(
 
     default:
       throw new Error(
-        `Unsupported project media type: ${
-          (media as { _type?: string })?._type ?? "unknown"
+        `Unsupported project media type: ${(media as { _type?: string })?._type ?? "unknown"
         }.`,
       );
   }
