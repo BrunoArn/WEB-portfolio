@@ -19,6 +19,15 @@ export function adaptCategory(
     throw new Error("Category is missing a valid slug.");
   }
 
+  if (
+    !Number.isInteger(category.order) ||
+    category.order < 0
+  ) {
+    throw new Error(
+      `Category "${slug}" has an invalid order.`,
+    );
+  }
+
   return {
     name: resolveLocalizedValue(category.name, language),
     slug,

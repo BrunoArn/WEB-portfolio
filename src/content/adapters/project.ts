@@ -1,6 +1,7 @@
 import type {
   Project,
   ProjectSeo,
+  ProjectStatus,
   ProjectTeamMember,
 } from "@/content/types/project";
 
@@ -45,6 +46,15 @@ function adaptSeo(
   };
 }
 
+const PROJECT_STATUSES: ProjectStatus[] = [
+  "released",
+  "prototype",
+  "hackathon",
+  "client",
+  "development",
+  "archived",
+];
+
 export function adaptProject(
   project: SanityProject,
   language: ContentLanguage,
@@ -79,6 +89,31 @@ export function adaptProject(
     throw new Error(
       `Project "${project.slug.current}" has no valid categories.`,
     );
+  }
+
+  if (
+    !Number.isInteger(project.year) ||
+    project.year < 2000 ||
+    project.year > 2100
+  ) {
+    throw new Error(`Project "${slug}" has an invalid year.`);
+  }
+
+  if (!PROJECT_STATUSES.includes(project.status)) {
+    throw new Error(`Project "${slug}" has an invalid status.`);
+  }
+
+  if (typeof project.featured !== "boolean") {
+    throw new Error(
+      `Project "${slug}" has an invalid featured value.`,
+    );
+  }
+
+  if (
+    !Number.isInteger(project.order) ||
+    project.order < 0
+  ) {
+    throw new Error(`Project "${slug}" has an invalid order.`);
   }
 
   return {
