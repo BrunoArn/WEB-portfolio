@@ -1,0 +1,107 @@
+import type {
+  Project,
+  ProjectSeo,
+  ProjectTeamMember,
+} from "@/content/types/project";
+
+import type {
+  SanityProject,
+  SanityProjectSeo,
+  SanityProjectTeamMember,
+} from "@/sanity/types/project";
+
+import { adaptCategory } from "./category";
+import {
+  resolveLocalizedValue,
+  type ContentLanguage,
+} from "./localization";
+import {
+  adaptProjectImage,
+  adaptProjectMedia,
+} from "./media";
+
+function adaptTeamMember(
+  member: SanityProjectTeamMember,
+  language: ContentLanguage,
+): ProjectTeamMember {
+  return {
+    name: member.name,
+    role: resolveLocalizedValue(member.role, language),
+  };
+}
+
+function adaptSeo(
+  seo: SanityProjectSeo,
+  language: ContentLanguage,
+): ProjectSeo {
+  return {
+    title: seo.title
+      ? resolveLocalizedValue(seo.title, language)
+      : undefined,
+
+    description: seo.description
+      ? resolveLocalizedValue(seo.description, language)
+      : undefined,
+  };
+}
+
+export function adaptProject(
+  project: SanityProject,
+  language: ContentLanguage,
+): Project {
+  return {
+    title: resolveLocalizedValue(project.title, language),
+    slug: project.slug.current,
+    year: project.year,
+
+    description: resolveLocalizedValue(
+      project.description,
+      language,
+    ),
+
+    context: project.context
+      ? resolveLocalizedValue(project.context, language)
+      : undefined,
+
+    role: resolveLocalizedValue(project.role, language),
+
+    status: project.status,
+
+    organization: project.organization
+      ? resolveLocalizedValue(project.organization, language)
+      : undefined,
+
+    categories: project.categories.map((category) =>
+      adaptCategory(category, language),
+    ),
+
+    technologies: project.technologies,
+
+    team: project.team.map((member) =>
+      adaptTeamMember(member, language),
+    ),
+
+    cover: adaptProjectImage(project.cover, language),
+
+    media: project.media.map((item) =>
+      adaptProjectMedia(item, language),
+    ),
+
+    githubUrl: project.github,
+    liveSiteUrl: project.liveSite,
+
+    playable: project.playable
+      ? {
+          type: project.playable.type,
+          source: project.playable.source,
+        }
+      : undefined,
+
+    featured: project.featured,
+    order: project.order,
+
+    seo: project.seo
+      ? adaptSeo(project.seo, language)
+      : undefined,
+  };
+}
