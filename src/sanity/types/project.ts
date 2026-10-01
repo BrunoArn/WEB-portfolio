@@ -11,6 +11,16 @@ export interface SanityProjectTeamMember {
     role: LocalizedValue;
 }
 
+export interface SanityProjectPlayable {
+    type: "unity-webgl";
+    source: string;
+}
+
+export interface SanityProjectSeo {
+    title?: LocalizedValue;
+    description?: LocalizedValue;
+}
+
 export interface SanityProject {
     _id: string;
 
@@ -35,4 +45,14 @@ export interface SanityProject {
 
     cover: SanityProjectImage;
     media: SanityProjectMedia[];
+
+    github?: string;
+    liveSite?: string;
+
+    playable?: SanityProjectPlayable;
+
+    featured: boolean;
+    order: number;
+
+    seo?: SanityProjectSeo;
 }
