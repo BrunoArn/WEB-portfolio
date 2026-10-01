@@ -1,0 +1,178 @@
+import { defineField, defineType } from 'sanity'
+
+export const project = defineType({
+    name: 'project',
+    title: 'Project',
+    type: 'document',
+
+    fields: [
+        defineField({
+            name: 'title',
+            title: 'Title',
+            type: 'localizedString',
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'slug',
+            title: 'Slug',
+            type: 'slug',
+            options: {
+                source: 'title.en',
+                maxLength: 96,
+            },
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'year',
+            title: 'Year',
+            type: 'number',
+            validation: (rule) =>
+                rule.required().integer().min(2000).max(2100),
+        }),
+
+        defineField({
+            name: 'description',
+            title: 'Description',
+            type: 'localizedText',
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'context',
+            title: 'Context',
+            type: 'localizedText',
+        }),
+
+        defineField({
+            name: 'role',
+            title: 'Role',
+            type: 'localizedString',
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'status',
+            title: 'Status',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Released', value: 'released' },
+                    { title: 'Prototype', value: 'prototype' },
+                    { title: 'Hackathon', value: 'hackathon' },
+                    { title: 'Client', value: 'client' },
+                    { title: 'Development', value: 'development' },
+                    { title: 'Archived', value: 'archived' },
+                ],
+                layout: 'dropdown',
+            },
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'organization',
+            title: 'Organization',
+            type: 'localizedString',
+        }),
+
+        defineField({
+            name: 'categories',
+            title: 'Categories',
+            type: 'array',
+            of: [
+                {
+                    type: 'reference',
+                    to: [{ type: 'category' }],
+                },
+            ],
+            validation: (rule) => rule.required().min(1),
+        }),
+
+        defineField({
+            name: 'technologies',
+            title: 'Technologies',
+            type: 'array',
+            of: [{ type: 'string' }],
+        }),
+
+        defineField({
+            name: 'team',
+            title: 'Team',
+            type: 'array',
+            of: [{ type: 'teamMember' }],
+        }),
+
+        defineField({
+            name: 'cover',
+            title: 'Cover',
+            type: 'projectImage',
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'media',
+            title: 'Media',
+            type: 'array',
+            of: [
+                { type: 'projectImage' },
+                { type: 'projectVideo' },
+            ],
+        }),
+
+        defineField({
+            name: 'github',
+            title: 'GitHub',
+            type: 'url',
+        }),
+
+        defineField({
+            name: 'liveSite',
+            title: 'Live Site',
+            type: 'url',
+        }),
+
+        defineField({
+            name: 'playable',
+            title: 'Playable',
+            type: 'playableConfig',
+        }),
+
+        defineField({
+            name: 'featured',
+            title: 'Featured',
+            type: 'boolean',
+            initialValue: false,
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'order',
+            title: 'Order',
+            type: 'number',
+            initialValue: 0,
+            validation: (rule) =>
+                rule.required().integer().min(0),
+        }),
+
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+        }),
+    ],
+
+    preview: {
+        select: {
+            title: 'title.en',
+            subtitle: 'year',
+        },
+
+        prepare({ title, subtitle }) {
+            return {
+                title,
+                subtitle: subtitle ? String(subtitle) : undefined,
+            }
+        },
+    },
+})
