@@ -39,7 +39,7 @@ export interface SanityProject {
     status: ProjectStatus;
     organization: LocalizedValue | null;
 
-    categories: SanityCategory[];
+    categories: Array<SanityCategory | null>;
     technologies: string[];
     team: SanityProjectTeamMember[];
 

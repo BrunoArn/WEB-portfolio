@@ -49,6 +49,33 @@ export function adaptProject(
   project: SanityProject,
   language: ContentLanguage,
 ): Project {
+  if (!project.slug?.current) {
+    throw new Error("Project is missing a valid slug.");
+  }
+
+  if (!project.cover) {
+    throw new Error(
+      `Project "${project.slug.current}" is missing a cover.`,
+    );
+  }
+
+  if (!Array.isArray(project.categories)) {
+    throw new Error(
+      `Project "${project.slug.current}" has invalid categories.`,
+    );
+  }
+
+  const validCategories = project.categories.filter(
+    (category): category is NonNullable<typeof category> =>
+      Boolean(category),
+  );
+
+  if (validCategories.length === 0) {
+    throw new Error(
+      `Project "${project.slug.current}" has no valid categories.`,
+    );
+  }
+
   return {
     title: resolveLocalizedValue(project.title, language),
     slug: project.slug.current,
@@ -71,7 +98,7 @@ export function adaptProject(
       ? resolveLocalizedValue(project.organization, language)
       : undefined,
 
-    categories: project.categories.map((category) =>
+    categories: validCategories.map((category) =>
       adaptCategory(category, language),
     ),
 
