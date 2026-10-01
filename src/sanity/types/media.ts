@@ -1,9 +1,20 @@
+import type { LocalizedValue } from "@/content/adapters/localization";
+
 export interface SanityImageAsset {
-  _ref: string;
+  _id: string;
+  url: string;
+
+  metadata?: {
+    dimensions?: {
+      width: number;
+      height: number;
+    };
+  };
 }
 
 export interface SanityFileAsset {
-  _ref: string;
+  _id: string;
+  url: string;
 }
 
 export interface SanityProjectImage {
@@ -13,10 +24,7 @@ export interface SanityProjectImage {
     asset: SanityImageAsset;
   };
 
-  alt: {
-    pt: string;
-    en: string;
-  };
+  alt: LocalizedValue;
 }
 
 export interface SanityProjectVideo {
