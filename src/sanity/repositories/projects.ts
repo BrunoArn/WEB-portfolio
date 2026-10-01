@@ -43,3 +43,24 @@ export async function getProjectBySlug(
         ? adaptProject(project, language)
         : null;
 }
+
+const featuredProjectsQuery = `
+  *[
+    _type == "project" &&
+    featured == true
+  ] | order(order asc) {
+    ${projectProjection}
+  }
+`;
+
+export async function getFeaturedProjects(
+    language: ContentLanguage,
+): Promise<Project[]> {
+    const projects = await sanityClient.fetch<SanityProject[]>(
+        featuredProjectsQuery,
+    );
+
+    return projects.map((project) =>
+        adaptProject(project, language),
+    );
+}
