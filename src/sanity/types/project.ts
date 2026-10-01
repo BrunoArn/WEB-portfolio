@@ -1,6 +1,10 @@
 import type { LocalizedValue } from "@/content/adapters/localization";
 import type { ProjectStatus } from "@/content/types/project";
 import type { SanityCategory } from "./category";
+import type {
+    SanityProjectImage,
+    SanityProjectMedia,
+} from "./media";
 
 export interface SanityProjectTeamMember {
     name: string;
@@ -28,4 +32,7 @@ export interface SanityProject {
     categories: SanityCategory[];
     technologies: string[];
     team: SanityProjectTeamMember[];
+
+    cover: SanityProjectImage;
+    media: SanityProjectMedia[];
 }
