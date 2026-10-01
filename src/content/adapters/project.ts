@@ -70,13 +70,13 @@ export function adaptProject(
 
   if (!project.cover) {
     throw new Error(
-      `Project "${project.slug.current}" is missing a cover.`,
+      `Project "${slug}" is missing a cover.`,
     );
   }
 
   if (!Array.isArray(project.categories)) {
     throw new Error(
-      `Project "${project.slug.current}" has invalid categories.`,
+      `Project "${slug}" has invalid categories.`,
     );
   }
 
@@ -87,7 +87,7 @@ export function adaptProject(
 
   if (validCategories.length === 0) {
     throw new Error(
-      `Project "${project.slug.current}" has no valid categories.`,
+      `Project "${slug}" has no valid categories.`,
     );
   }
 
@@ -118,7 +118,7 @@ export function adaptProject(
 
   return {
     title: resolveLocalizedValue(project.title, language),
-    slug: slug,
+    slug,
     year: project.year,
 
     description: resolveLocalizedValue(
