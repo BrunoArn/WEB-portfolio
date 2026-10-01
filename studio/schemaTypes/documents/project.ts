@@ -137,6 +137,29 @@ export const project = defineType({
             title: 'Playable',
             type: 'playableConfig',
         }),
+
+        defineField({
+            name: 'featured',
+            title: 'Featured',
+            type: 'boolean',
+            initialValue: false,
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'order',
+            title: 'Order',
+            type: 'number',
+            initialValue: 0,
+            validation: (rule) =>
+                rule.required().integer().min(0),
+        }),
+
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+        }),
     ],
 
     preview: {
