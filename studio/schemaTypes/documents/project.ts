@@ -86,7 +86,7 @@ export const project = defineType({
                     to: [{ type: 'category' }],
                 },
             ],
-            validation: (rule) => rule.min(1),
+            validation: (rule) => rule.required().min(1),
         }),
 
         defineField({

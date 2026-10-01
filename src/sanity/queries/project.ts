@@ -12,19 +12,25 @@ export const projectProjection = `
   status,
   organization,
 
+"categories": coalesce(
   categories[]->{
     _id,
     name,
     slug,
     order
   },
+  []
+),
 
-  technologies,
+  "technologies": coalesce(technologies, []),
 
+  "team": coalesce(
   team[]{
     name,
     role
   },
+  []
+),
 
   cover{
     _type,
@@ -45,6 +51,7 @@ export const projectProjection = `
     alt
   },
 
+  "media": coalesce(
   media[]{
     _type,
 
@@ -74,6 +81,8 @@ export const projectProjection = `
       }
     }
   },
+  []
+),
 
   github,
   liveSite,
