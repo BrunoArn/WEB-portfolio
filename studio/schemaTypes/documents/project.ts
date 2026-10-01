@@ -102,6 +102,23 @@ export const project = defineType({
             type: 'array',
             of: [{ type: 'teamMember' }],
         }),
+
+        defineField({
+            name: 'cover',
+            title: 'Cover',
+            type: 'projectImage',
+            validation: (rule) => rule.required(),
+        }),
+
+        defineField({
+            name: 'media',
+            title: 'Media',
+            type: 'array',
+            of: [
+                { type: 'projectImage' },
+                { type: 'projectVideo' },
+            ],
+        }),
     ],
 
     preview: {
