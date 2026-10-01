@@ -6,8 +6,19 @@ export interface LocalizedValue {
 export type ContentLanguage = keyof LocalizedValue;
 
 export function resolveLocalizedValue(
-  value: LocalizedValue,
+  value: LocalizedValue | null | undefined,
   language: ContentLanguage,
 ): string {
-  return value[language];
+  const localizedValue = value?.[language];
+
+  if (
+    typeof localizedValue !== "string" ||
+    localizedValue.trim().length === 0
+  ) {
+    throw new Error(
+      `Missing localized value for language "${language}".`,
+    );
+  }
+
+  return localizedValue;
 }
