@@ -69,21 +69,31 @@ export function NavbarMobile({
         }
 
         const desktopMediaQuery = window.matchMedia("(min-width: 48rem)");
-        const previousOverflow = document.body.style.overflow;
 
-        const syncScrollLock = () => {
-            document.body.style.overflow = desktopMediaQuery.matches
-                ? previousOverflow
-                : "hidden";
+        const handleBreakpointChange = (event: MediaQueryListEvent) => {
+            if (!event.matches) {
+                return;
+            }
+
+            setIsOpen(false);
+
+            requestAnimationFrame(() => {
+                const activeDesktopLink =
+                    document.querySelector<HTMLElement>(
+                        '[data-primary-navigation="desktop"] [aria-current="page"]',
+                    );
+
+                activeDesktopLink?.focus();
+            });
         };
 
-        syncScrollLock();
-
-        desktopMediaQuery.addEventListener("change", syncScrollLock);
+        desktopMediaQuery.addEventListener("change", handleBreakpointChange);
 
         return () => {
-            desktopMediaQuery.removeEventListener("change", syncScrollLock);
-            document.body.style.overflow = previousOverflow;
+            desktopMediaQuery.removeEventListener(
+                "change",
+                handleBreakpointChange,
+            );
         };
     }, [isOpen]);
 
@@ -172,11 +182,9 @@ export function NavbarMobile({
 
         setIsOpen(false);
 
-        if (pathname === destination) {
-            requestAnimationFrame(() => {
-                menuButtonRef.current?.focus();
-            });
-        }
+        requestAnimationFrame(() => {
+            menuButtonRef.current?.focus();
+        });
     };
 
     useEffect(() => {
