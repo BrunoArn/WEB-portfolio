@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { Container } from "@/components/layout/Container";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { isLocale } from "@/i18n/config";
 
@@ -18,9 +19,11 @@ export default async function Home({
 
   return (
     <main>
-      <p>{dictionary.navigation.home}</p>
-      <p>{dictionary.navigation.projects}</p>
-      <p>{dictionary.navigation.about}</p>
+      <Container>
+        <p>{dictionary.navigation.home}</p>
+        <p>{dictionary.navigation.projects}</p>
+        <p>{dictionary.navigation.about}</p>
+      </Container>
     </main>
   );
 }
