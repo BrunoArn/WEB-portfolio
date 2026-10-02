@@ -5,6 +5,8 @@ import { isLocale, locales } from "@/i18n/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { NavbarMobile } from "@/components/layout/NavbarMobile";
 import { getDictionary } from "@/i18n/get-dictionary";
+import { Footer } from "@/components/layout/Footer";
+
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -61,8 +63,18 @@ export default async function RootLayout({
           currentLocale={lang}
         />
 
-        <div className="pt-[calc(var(--space-40)+var(--space-20))] md:pt-[calc(var(--space-32)+var(--space-20))]">
-          {children}
+        <div className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-20))] md:pt-[calc(var(--space-32)+var(--space-20))]">
+          <div className="flex-1">
+            {children}
+          </div>
+
+          <Footer
+            name="Bruno Arnaud"
+            professionalLinks={{
+              github: "https://github.com/BrunoArn",
+              linkedin: "https://www.linkedin.com/in/bruno-arnaud-2bb586164/",
+            }}
+          />
         </div>
       </body>
     </html>
