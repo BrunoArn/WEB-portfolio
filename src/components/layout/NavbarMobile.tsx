@@ -76,6 +76,22 @@ export function NavbarMobile({
         };
     }, [isOpen]);
 
+    useEffect(() => {
+        const desktopMediaQuery = window.matchMedia("(min-width: 48rem)");
+
+        const handleBreakpointChange = (event: MediaQueryListEvent) => {
+            if (event.matches) {
+                setIsOpen(false);
+            }
+        };
+
+        desktopMediaQuery.addEventListener("change", handleBreakpointChange);
+
+        return () => {
+            desktopMediaQuery.removeEventListener("change", handleBreakpointChange);
+        };
+    }, []);
+
     return (
         <>
             <header className="fixed inset-x-0 top-0 z-50 border-b border-app-border bg-app-background md:hidden">
