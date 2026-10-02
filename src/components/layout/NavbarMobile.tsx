@@ -8,6 +8,7 @@ type NavbarMobileProps = {
     name: string;
     openMenuLabel: string;
     closeMenuLabel: string;
+    currentLocale: string;
     labels: {
         home: string;
         projects: string;
@@ -19,6 +20,7 @@ export function NavbarMobile({
     name,
     openMenuLabel,
     closeMenuLabel,
+    currentLocale,
     labels,
 }: NavbarMobileProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -120,8 +122,8 @@ export function NavbarMobile({
                 id="mobile-navigation-panel"
                 aria-hidden={!isOpen}
                 className={`fixed inset-0 z-40 bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
-                        ? "pointer-events-auto translate-y-0 opacity-100"
-                        : "pointer-events-none -translate-y-2 opacity-0"
+                    ? "pointer-events-auto translate-y-0 opacity-100"
+                    : "pointer-events-none -translate-y-2 opacity-0"
                     }`}
             >
                 <Container>
@@ -142,6 +144,29 @@ export function NavbarMobile({
                                 {labels.about}
                             </li>
                         </ul>
+                        <div className="mt-auto flex items-center gap-(--space-8) pb-(--space-24) text-(length:--font-size-label) font-medium">
+                            <span
+                                className={
+                                    currentLocale === "pt"
+                                        ? "text-app-text-primary"
+                                        : "text-app-text-secondary"
+                                }
+                            >
+                                PT
+                            </span>
+
+                            <span className="text-app-text-secondary">/</span>
+
+                            <span
+                                className={
+                                    currentLocale === "en"
+                                        ? "text-app-text-primary"
+                                        : "text-app-text-secondary"
+                                }
+                            >
+                                EN
+                            </span>
+                        </div>
                     </nav>
                 </Container>
             </div>

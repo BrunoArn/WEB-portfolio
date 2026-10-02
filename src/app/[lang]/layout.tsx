@@ -51,6 +51,7 @@ export default async function RootLayout({
           openMenuLabel={dictionary.navigation.openMenu}
           closeMenuLabel={dictionary.navigation.closeMenu}
           labels={dictionary.navigation}
+          currentLocale={lang}
         />
 
         <div className="pt-[calc(var(--space-40)+var(--space-20))] md:pt-[calc(var(--space-32)+var(--space-20))]">
