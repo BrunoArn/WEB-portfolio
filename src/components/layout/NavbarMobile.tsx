@@ -68,6 +68,10 @@ export function NavbarMobile({
             return;
         }
 
+        const body = document.body;
+        const previousOverflow = body.style.overflow;
+        body.style.overflow = "hidden";
+
         const desktopMediaQuery = window.matchMedia("(min-width: 48rem)");
 
         const handleBreakpointChange = (event: MediaQueryListEvent) => {
@@ -94,6 +98,7 @@ export function NavbarMobile({
                 "change",
                 handleBreakpointChange,
             );
+            body.style.overflow = previousOverflow;
         };
     }, [isOpen]);
 
@@ -186,33 +191,6 @@ export function NavbarMobile({
             menuButtonRef.current?.focus();
         });
     };
-
-    useEffect(() => {
-        const desktopMediaQuery = window.matchMedia("(min-width: 48rem)");
-
-        const handleBreakpointChange = (event: MediaQueryListEvent) => {
-            if (!event.matches) {
-                return;
-            }
-
-            setIsOpen(false);
-
-            requestAnimationFrame(() => {
-                const activeDesktopLink =
-                    document.querySelector<HTMLElement>(
-                        '[data-primary-navigation="desktop"] [aria-current="page"]',
-                    );
-
-                activeDesktopLink?.focus();
-            });
-        };
-
-        desktopMediaQuery.addEventListener("change", handleBreakpointChange);
-
-        return () => {
-            desktopMediaQuery.removeEventListener("change", handleBreakpointChange);
-        };
-    }, []);
 
     useEffect(() => {
         if (!isOpen) {
