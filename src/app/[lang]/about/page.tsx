@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
@@ -7,6 +8,22 @@ import { getDictionary } from "@/i18n/get-dictionary";
 type AboutPageProps = {
     params: Promise<{ lang: string }>;
 };
+
+export async function generateMetadata({
+    params,
+}: AboutPageProps): Promise<Metadata> {
+    const { lang } = await params;
+
+    if (!isLocale(lang)) {
+        notFound();
+    }
+
+    const dictionary = await getDictionary(lang);
+
+    return {
+        title: dictionary.navigation.about,
+    };
+}
 
 export default async function AboutPage({
     params,
