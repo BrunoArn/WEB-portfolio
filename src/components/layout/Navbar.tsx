@@ -40,7 +40,10 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
     return (
         <header className="fixed inset-x-0 top-0 z-50 hidden border-b border-app-border bg-app-background md:block">
             <Container>
-                <nav className="flex items-center justify-between">
+                <nav
+                    data-primary-navigation="desktop"
+                    className="flex items-center justify-between"
+                >
                     <ul className="flex items-center gap-(--space-24) py-(--space-16)">
                         <li>
                             <Link
