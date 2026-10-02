@@ -202,9 +202,9 @@ export function NavbarMobile({
                 id="mobile-navigation-panel"
                 inert={!isOpen}
                 aria-hidden={!isOpen}
-                className={`fixed inset-0 z-40 bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
-                    ? "pointer-events-auto translate-y-0 opacity-100"
-                    : "pointer-events-none -translate-y-2 opacity-0"
+                className={`fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
+                        ? "pointer-events-auto translate-y-0 opacity-100"
+                        : "pointer-events-none -translate-y-2 opacity-0"
                     }`}
             >
                 <Container>
