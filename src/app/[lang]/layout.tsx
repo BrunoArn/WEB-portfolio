@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
+import { Navbar } from "@/components/layout/Navbar";
+import { getDictionary } from "@/i18n/get-dictionary";
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -36,9 +38,17 @@ export default async function RootLayout({
     notFound();
   }
 
+  const dictionary = await getDictionary(lang);
+
   return (
     <html lang={lang}>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <Navbar labels={dictionary.navigation} />
+
+        <div className="pt-[calc(var(--space-32)+var(--space-20))]">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
