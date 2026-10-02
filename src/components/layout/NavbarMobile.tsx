@@ -37,6 +37,10 @@ export function NavbarMobile({
     const menuButtonRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
+    const homePath = `/${currentLocale}`;
+    const projectsPath = `/${currentLocale}/projects`;
+    const aboutPath = `/${currentLocale}/about`;
+
     useEffect(() => {
         if (!isOpen) {
             return;
@@ -194,20 +198,32 @@ export function NavbarMobile({
                         <ul className="flex flex-col gap-(--space-20)">
                             <li>
                                 <Link
-                                    href={`/${currentLocale}`}
+                                    href={homePath}
                                     onClick={() => setIsOpen(false)}
-                                    className="block text-(length:--font-size-page-mobile) font-semibold text-app-text-primary"
+                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
                                 >
                                     {labels.home}
                                 </Link>
                             </li>
 
-                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                {labels.projects}
+                            <li>
+                                <Link
+                                    href={projectsPath}
+                                    onClick={() => setIsOpen(false)}
+                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                >
+                                    {labels.projects}
+                                </Link>
                             </li>
 
-                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                {labels.about}
+                            <li>
+                                <Link
+                                    href={aboutPath}
+                                    onClick={() => setIsOpen(false)}
+                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                >
+                                    {labels.about}
+                                </Link>
                             </li>
                         </ul>
 
