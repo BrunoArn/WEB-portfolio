@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
@@ -141,8 +142,14 @@ export function NavbarMobile({
                         className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-40))]"
                     >
                         <ul className="flex flex-col gap-(--space-20)">
-                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                {labels.home}
+                            <li>
+                                <Link
+                                    href={`/${currentLocale}`}
+                                    onClick={() => setIsOpen(false)}
+                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                >
+                                    {labels.home}
+                                </Link>
                             </li>
 
                             <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
