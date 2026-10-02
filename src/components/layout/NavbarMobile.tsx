@@ -35,6 +35,7 @@ export function NavbarMobile({
 }: NavbarMobileProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuButtonRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -65,19 +66,66 @@ export function NavbarMobile({
             return;
         }
 
+        const panel = panelRef.current;
+        const menuButton = menuButtonRef.current;
+
+        if (!panel || !menuButton) {
+            return;
+        }
+
+        const focusableSelector =
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+        const getPanelFocusableElements = () =>
+            Array.from(
+                panel.querySelectorAll<HTMLElement>(focusableSelector),
+            );
+
+        const focusFirstPanelElement = () => {
+            const [firstElement] = getPanelFocusableElements();
+            firstElement?.focus();
+        };
+
+        requestAnimationFrame(focusFirstPanelElement);
+
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key !== "Escape") {
+            if (event.key === "Escape") {
+                setIsOpen(false);
+
+                requestAnimationFrame(() => {
+                    menuButton.focus();
+                });
+
                 return;
             }
 
-            setIsOpen(false);
+            if (event.key !== "Tab") {
+                return;
+            }
 
-            const isDesktop = window.matchMedia("(min-width: 48rem)").matches;
+            const panelElements = getPanelFocusableElements();
 
-            if (!isDesktop) {
-                requestAnimationFrame(() => {
-                    menuButtonRef.current?.focus();
-                });
+            if (panelElements.length === 0) {
+                event.preventDefault();
+                menuButton.focus();
+                return;
+            }
+
+            const focusableElements = [menuButton, ...panelElements];
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+            const activeElement = document.activeElement;
+
+            if (event.shiftKey && activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+                return;
+            }
+
+            if (!event.shiftKey && activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
             }
         };
 
@@ -129,7 +177,9 @@ export function NavbarMobile({
             </header>
 
             <div
+                ref={panelRef}
                 id="mobile-navigation-panel"
+                inert={!isOpen}
                 aria-hidden={!isOpen}
                 className={`fixed inset-0 z-40 bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
                     ? "pointer-events-auto translate-y-0 opacity-100"
@@ -146,7 +196,7 @@ export function NavbarMobile({
                                 <Link
                                     href={`/${currentLocale}`}
                                     onClick={() => setIsOpen(false)}
-                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                    className="block text-(length:--font-size-page-mobile) font-semibold text-app-text-primary"
                                 >
                                     {labels.home}
                                 </Link>
