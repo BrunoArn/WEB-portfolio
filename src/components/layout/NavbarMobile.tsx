@@ -116,33 +116,35 @@ export function NavbarMobile({
                 </Container>
             </header>
 
-            {isOpen && (
-                <div
-                    id="mobile-navigation-panel"
-                    className="fixed inset-0 z-40 bg-app-background md:hidden"
-                >
-                    <Container>
-                        <nav
-                            aria-label={openMenuLabel}
-                            className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-40))]"
-                        >
-                            <ul className="flex flex-col gap-(--space-20)">
-                                <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                    {labels.home}
-                                </li>
+            <div
+                id="mobile-navigation-panel"
+                aria-hidden={!isOpen}
+                className={`fixed inset-0 z-40 bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
+                        ? "pointer-events-auto translate-y-0 opacity-100"
+                        : "pointer-events-none -translate-y-2 opacity-0"
+                    }`}
+            >
+                <Container>
+                    <nav
+                        aria-label={openMenuLabel}
+                        className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-40))]"
+                    >
+                        <ul className="flex flex-col gap-(--space-20)">
+                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
+                                {labels.home}
+                            </li>
 
-                                <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                    {labels.projects}
-                                </li>
+                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
+                                {labels.projects}
+                            </li>
 
-                                <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
-                                    {labels.about}
-                                </li>
-                            </ul>
-                        </nav>
-                    </Container>
-                </div>
-            )}
+                            <li className="text-(length:--font-size-page-mobile) font-semibold text-app-text-primary">
+                                {labels.about}
+                            </li>
+                        </ul>
+                    </nav>
+                </Container>
+            </div>
         </>
     );
 }
