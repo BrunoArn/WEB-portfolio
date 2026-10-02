@@ -44,7 +44,10 @@ export default async function RootLayout({
   return (
     <html lang={lang}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Navbar labels={dictionary.navigation} />
+        <Navbar
+          currentLocale={lang}
+          labels={dictionary.navigation}
+        />
 
         <NavbarMobile
           name="Bruno Arnaud"
