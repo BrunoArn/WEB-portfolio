@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
 import { Navbar } from "@/components/layout/Navbar";
+import { NavbarMobile } from "@/components/layout/NavbarMobile";
 import { getDictionary } from "@/i18n/get-dictionary";
 import "@/styles/globals.css";
 
@@ -45,7 +46,14 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Navbar labels={dictionary.navigation} />
 
-        <div className="pt-[calc(var(--space-32)+var(--space-20))]">
+        <NavbarMobile
+          name="Bruno Arnaud"
+          openMenuLabel={dictionary.navigation.openMenu}
+          closeMenuLabel={dictionary.navigation.closeMenu}
+          labels={dictionary.navigation}
+        />
+
+        <div className="pt-[calc(var(--space-40)+var(--space-20))] md:pt-[calc(var(--space-32)+var(--space-20))]">
           {children}
         </div>
       </body>
