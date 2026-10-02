@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    type MouseEvent,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -157,13 +162,41 @@ export function NavbarMobile({
         };
     }, [isOpen]);
 
+    const handleInternalNavigation = (
+        event: MouseEvent<HTMLAnchorElement>,
+        destination: string,
+    ) => {
+        if (pathname === destination) {
+            event.preventDefault();
+        }
+
+        setIsOpen(false);
+
+        if (pathname === destination) {
+            requestAnimationFrame(() => {
+                menuButtonRef.current?.focus();
+            });
+        }
+    };
+
     useEffect(() => {
         const desktopMediaQuery = window.matchMedia("(min-width: 48rem)");
 
         const handleBreakpointChange = (event: MediaQueryListEvent) => {
-            if (event.matches) {
-                setIsOpen(false);
+            if (!event.matches) {
+                return;
             }
+
+            setIsOpen(false);
+
+            requestAnimationFrame(() => {
+                const activeDesktopLink =
+                    document.querySelector<HTMLElement>(
+                        '[data-primary-navigation="desktop"] [aria-current="page"]',
+                    );
+
+                activeDesktopLink?.focus();
+            });
         };
 
         desktopMediaQuery.addEventListener("change", handleBreakpointChange);
@@ -172,6 +205,26 @@ export function NavbarMobile({
             desktopMediaQuery.removeEventListener("change", handleBreakpointChange);
         };
     }, []);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const appContent = document.querySelector<HTMLElement>(
+            "[data-app-shell-content]",
+        );
+
+        if (!appContent) {
+            return;
+        }
+
+        appContent.inert = true;
+
+        return () => {
+            appContent.inert = false;
+        };
+    }, [isOpen]);
 
     return (
         <>
@@ -203,8 +256,8 @@ export function NavbarMobile({
                 inert={!isOpen}
                 aria-hidden={!isOpen}
                 className={`fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
-                        ? "pointer-events-auto translate-y-0 opacity-100"
-                        : "pointer-events-none -translate-y-2 opacity-0"
+                    ? "pointer-events-auto translate-y-0 opacity-100"
+                    : "pointer-events-none -translate-y-2 opacity-0"
                     }`}
             >
                 <Container>
@@ -216,7 +269,7 @@ export function NavbarMobile({
                             <li>
                                 <Link
                                     href={homePath}
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={(event) => handleInternalNavigation(event, homePath)}
                                     aria-current={isHomeActive ? "page" : undefined}
                                     className={mobileNavLinkClass(isHomeActive)}
                                 >
@@ -227,7 +280,7 @@ export function NavbarMobile({
                             <li>
                                 <Link
                                     href={projectsPath}
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={(event) => handleInternalNavigation(event, projectsPath)}
                                     aria-current={pathname === projectsPath ? "page" : undefined}
                                     className={mobileNavLinkClass(isProjectsActive)}
                                 >
@@ -238,7 +291,7 @@ export function NavbarMobile({
                             <li>
                                 <Link
                                     href={aboutPath}
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={(event) => handleInternalNavigation(event, aboutPath)}
                                     aria-current={pathname === aboutPath ? "page" : undefined}
                                     className={mobileNavLinkClass(isAboutActive)}
                                 >

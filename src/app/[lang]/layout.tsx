@@ -65,7 +65,10 @@ export default async function RootLayout({
 
         {/* Header padding + text line box + bottom border; desktop also has link padding.
             The mobile menu button inherits body typography through globals.css. */}
-        <div className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-20)+1px)]">
+        <div
+          data-app-shell-content
+          className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-20)+1px)]"
+        >
           <div className="flex-1">
             {children}
           </div>
