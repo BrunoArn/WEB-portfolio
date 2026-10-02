@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
@@ -37,9 +38,25 @@ export function NavbarMobile({
     const menuButtonRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
+    const pathname = usePathname();
+
     const homePath = `/${currentLocale}`;
     const projectsPath = `/${currentLocale}/projects`;
     const aboutPath = `/${currentLocale}/about`;
+
+    const isHomeActive = pathname === homePath;
+    const isProjectsActive =
+        pathname === projectsPath || pathname.startsWith(`${projectsPath}/`);
+    const isAboutActive =
+        pathname === aboutPath || pathname.startsWith(`${aboutPath}/`);
+
+    const mobileNavLinkClass = (isActive: boolean) =>
+        `block text-[length:var(--font-size-page-mobile)] font-semibold transition-colors duration-[var(--motion-fast)] ${isActive
+            ? "text-app-accent"
+            : "text-app-text-primary hover:text-app-accent"
+        }`;
+
+
 
     useEffect(() => {
         if (!isOpen) {
@@ -200,7 +217,8 @@ export function NavbarMobile({
                                 <Link
                                     href={homePath}
                                     onClick={() => setIsOpen(false)}
-                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                    aria-current={isHomeActive ? "page" : undefined}
+                                    className={mobileNavLinkClass(isHomeActive)}
                                 >
                                     {labels.home}
                                 </Link>
@@ -210,7 +228,8 @@ export function NavbarMobile({
                                 <Link
                                     href={projectsPath}
                                     onClick={() => setIsOpen(false)}
-                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                    aria-current={pathname === projectsPath ? "page" : undefined}
+                                    className={mobileNavLinkClass(isProjectsActive)}
                                 >
                                     {labels.projects}
                                 </Link>
@@ -220,7 +239,8 @@ export function NavbarMobile({
                                 <Link
                                     href={aboutPath}
                                     onClick={() => setIsOpen(false)}
-                                    className="block text-[length:var(--font-size-page-mobile)] font-semibold text-[var(--color-text-primary)]"
+                                    aria-current={pathname === aboutPath ? "page" : undefined}
+                                    className={mobileNavLinkClass(isAboutActive)}
                                 >
                                     {labels.about}
                                 </Link>

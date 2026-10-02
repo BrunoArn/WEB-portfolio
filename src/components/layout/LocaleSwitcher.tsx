@@ -29,16 +29,16 @@ export function LocaleSwitcher({
   const pathname = usePathname();
 
   return (
-    <div className="flex items-center gap-[var(--space-8)] text-[length:var(--font-size-label)] font-medium">
+    <div className="flex items-center gap-(--space-8) text-(length:--font-size-label) font-medium">
       {locales.map((locale, index) => {
         const isCurrent = locale === currentLocale;
 
         return (
-          <span key={locale} className="flex items-center gap-[var(--space-8)]">
+          <span key={locale} className="flex items-center gap-(--space-8)">
             {index > 0 && (
               <span
                 aria-hidden="true"
-                className="text-[var(--color-text-secondary)]"
+                className="text-app-text-secondary"
               >
                 /
               </span>
@@ -47,14 +47,14 @@ export function LocaleSwitcher({
             {isCurrent ? (
               <span
                 aria-current="page"
-                className="text-[var(--color-accent)]"
+                className="text-app-accent"
               >
                 {locale.toUpperCase()}
               </span>
             ) : (
               <Link
                 href={getLocalizedPath(pathname, locale)}
-                className="text-[var(--color-text-secondary)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-text-primary)]"
+                className="text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-text-primary"
               >
                 {locale.toUpperCase()}
               </Link>
