@@ -2,6 +2,8 @@ import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { locales } from "@/i18n/config";
 
+import Link from "next/link";
+
 type Locale = (typeof locales)[number];
 
 type NavbarProps = {
@@ -19,8 +21,13 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
             <Container>
                 <nav className="flex items-center justify-between">
                     <ul className="flex items-center gap-(--space-24) py-(--space-16)">
-                        <li className="relative py-(--space-4) text-(length:--font-size-label) font-medium text-app-text-primary after:absolute after:inset-x-0 after:-bottom-(--space-4) after:h-0.5 after:bg-app-accent">
-                            {labels.home}
+                        <li>
+                            <Link
+                                href={`/${currentLocale}`}
+                                className="relative block py-(--space-4) font-medium text-app-text-primary transition-colors duration-(--motion-fast) after:absolute after:inset-x-0 after:-bottom-(--space-4) after:h-0.5 after:bg-app-accent"
+                            >
+                                {labels.home}
+                            </Link>
                         </li>
 
                         <li className="text-(length:--font-size-label) font-medium text-app-text-secondary">
