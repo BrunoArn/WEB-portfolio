@@ -51,6 +51,10 @@ export default async function RootLayout({
           openMenuLabel={dictionary.navigation.openMenu}
           closeMenuLabel={dictionary.navigation.closeMenu}
           labels={dictionary.navigation}
+          professionalLinks={{
+            github: "https://github.com/BrunoArn",
+            linkedin: "https://www.linkedin.com/in/bruno-arnaud-2bb586164/",
+          }}
           currentLocale={lang}
         />
 
