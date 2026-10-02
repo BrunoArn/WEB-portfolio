@@ -30,12 +30,22 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
                             </Link>
                         </li>
 
-                        <li className="text-(length:--font-size-label) font-medium text-app-text-secondary">
-                            {labels.projects}
+                        <li>
+                            <Link
+                                href={`/${currentLocale}/projects`}
+                                className="text-(length:--font-size-label) font-medium text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-text-primary"
+                            >
+                                {labels.projects}
+                            </Link>
                         </li>
 
-                        <li className="text-(length:--font-size-label) font-medium text-app-text-secondary">
-                            {labels.about}
+                        <li>
+                            <Link
+                                href={`/${currentLocale}/about`}
+                                className="text-(length:--font-size-label) font-medium text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-text-primary"
+                            >
+                                {labels.about}
+                            </Link>
                         </li>
                     </ul>
 
