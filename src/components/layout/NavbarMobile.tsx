@@ -3,12 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Container } from "@/components/layout/Container";
+import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { locales } from "@/i18n/config";
+
+type Locale = (typeof locales)[number];
 
 type NavbarMobileProps = {
     name: string;
     openMenuLabel: string;
     closeMenuLabel: string;
-    currentLocale: string;
+    currentLocale: Locale;
+    professionalLinks: {
+        github?: string;
+        linkedin?: string;
+    };
     labels: {
         home: string;
         projects: string;
@@ -21,6 +29,7 @@ export function NavbarMobile({
     openMenuLabel,
     closeMenuLabel,
     currentLocale,
+    professionalLinks,
     labels,
 }: NavbarMobileProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -144,28 +153,35 @@ export function NavbarMobile({
                                 {labels.about}
                             </li>
                         </ul>
-                        <div className="mt-auto flex items-center gap-(--space-8) pb-(--space-24) text-(length:--font-size-label) font-medium">
-                            <span
-                                className={
-                                    currentLocale === "pt"
-                                        ? "text-app-text-primary"
-                                        : "text-app-text-secondary"
-                                }
-                            >
-                                PT
-                            </span>
 
-                            <span className="text-app-text-secondary">/</span>
+                        <div className="mt-auto flex flex-col gap-(--space-20) pb-(--space-24)">
+                            <LocaleSwitcher currentLocale={currentLocale} />
 
-                            <span
-                                className={
-                                    currentLocale === "en"
-                                        ? "text-app-text-primary"
-                                        : "text-app-text-secondary"
-                                }
-                            >
-                                EN
-                            </span>
+                            {(professionalLinks.github || professionalLinks.linkedin) && (
+                                <div className="flex gap-(--space-20) text-(length:--font-size-label) font-medium">
+                                    {professionalLinks.github && (
+                                        <a
+                                            href={professionalLinks.github}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-app-text-secondary"
+                                        >
+                                            GITHUB ↗
+                                        </a>
+                                    )}
+
+                                    {professionalLinks.linkedin && (
+                                        <a
+                                            href={professionalLinks.linkedin}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-app-text-secondary"
+                                        >
+                                            LINKEDIN ↗
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </nav>
                 </Container>
