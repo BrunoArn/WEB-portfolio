@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Container } from "@/components/layout/Container";
 
@@ -22,6 +22,7 @@ export function NavbarMobile({
     labels,
 }: NavbarMobileProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -47,6 +48,34 @@ export function NavbarMobile({
         };
     }, [isOpen]);
 
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            setIsOpen(false);
+
+            const isDesktop = window.matchMedia("(min-width: 48rem)").matches;
+
+            if (!isDesktop) {
+                requestAnimationFrame(() => {
+                    menuButtonRef.current?.focus();
+                });
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isOpen]);
+
     return (
         <>
             <header className="fixed inset-x-0 top-0 z-50 border-b border-app-border bg-app-background md:hidden">
@@ -57,6 +86,7 @@ export function NavbarMobile({
                         </span>
 
                         <button
+                            ref={menuButtonRef}
                             type="button"
                             className="text-(length:--font-size-label) font-medium text-app-text-primary"
                             aria-label={isOpen ? closeMenuLabel : openMenuLabel}
