@@ -34,7 +34,13 @@ export default async function HomePage({ params }: HomePageProps) {
           ctaHref={`/${lang}/projects`}
         />
 
-        <FeaturedProjects projects={featuredProjects} />
+        <FeaturedProjects
+          projects={featuredProjects}
+          eyebrow={dictionary.home.featured.eyebrow}
+          title={dictionary.home.featured.title}
+          viewAllLabel={dictionary.home.featured.viewAll}
+          viewAllHref={`/${lang}/projects`}
+        />
       </Container>
     </main>
   );

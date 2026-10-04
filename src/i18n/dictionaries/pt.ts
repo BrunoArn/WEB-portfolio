@@ -14,6 +14,11 @@ const pt = {
         "Desenvolvimento de jogos, experiências VR e aplicações web, unindo execução técnica e sensibilidade de design.",
       cta: "EXPLORAR PROJETOS",
     },
+    featured: {
+      eyebrow: "TRABALHOS SELECIONADOS",
+      title: "Projetos em destaque",
+      viewAll: "VER TODOS",
+    },
   },
 } as const;
 

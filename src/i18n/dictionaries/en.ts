@@ -14,6 +14,11 @@ const en = {
         "Game development, VR experiences and web applications, combining technical execution with design sensibility.",
       cta: "EXPLORE PROJECTS",
     },
+    featured: {
+      eyebrow: "SELECTED WORK",
+      title: "Featured Projects",
+      viewAll: "VIEW ALL",
+    },
   },
 } as const;
 
