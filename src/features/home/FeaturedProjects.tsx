@@ -21,7 +21,7 @@ export function FeaturedProjects({
   viewAllLabel,
   viewAllHref,
 }: FeaturedProjectsProps) {
-  
+
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (projects.length === 0) {
@@ -50,10 +50,10 @@ export function FeaturedProjects({
           </Link>
         </div>
       </header>
-
+      {/* cover */}
       <article className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface">
-        <div className="grid md:grid-cols-[2fr_1fr]">
-          <div className="relative min-h-64 overflow-hidden bg-app-surface-elevated md:min-h-90">
+        <div className="grid md:h-100 md:grid-cols-[2fr_1fr]">
+          <div className="relative min-h-64 overflow-hidden bg-app-surface-elevated md:min-h-0">
             <Image
               src={project.cover.src}
               alt={project.cover.alt}
@@ -62,8 +62,8 @@ export function FeaturedProjects({
               className="object-cover"
             />
           </div>
-
-          <div className="p-(--panel-padding-mobile) md:p-(--panel-padding)">
+          {/* painel */}
+          <div className="flex flex-col p-(--panel-padding-mobile) md:p-(--panel-padding)">
             <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
               {project.categories[0]?.name}
             </p>
@@ -79,9 +79,9 @@ export function FeaturedProjects({
             <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
               {project.technologies.join(" · ")} · {project.year}
             </p>
-
+            {/* thumbnails */}
             {projects.length > 1 && (
-              <div className="mt-(--space-24) flex gap-(--space-8) overflow-x-auto snap-x snap-mandatory">
+              <div className="mt-auto flex gap-(--space-8) overflow-x-auto pt-(--space-24) snap-x snap-mandatory">
                 {projects.map((featuredProject, index) => {
                   const isActive = index === activeIndex;
 
