@@ -1,7 +1,10 @@
+"use client";
+
 import type { Project } from "@/content/types/project";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 type FeaturedProjectsProps = {
   projects: Project[];
@@ -18,11 +21,14 @@ export function FeaturedProjects({
   viewAllLabel,
   viewAllHref,
 }: FeaturedProjectsProps) {
+  
+  const [activeIndex, setActiveIndex] = useState(0);
 
   if (projects.length === 0) {
     return null;
   }
-  const project = projects[0];
+
+  const project = projects[activeIndex];
 
   return (
     <section className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
@@ -73,6 +79,36 @@ export function FeaturedProjects({
             <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
               {project.technologies.join(" · ")} · {project.year}
             </p>
+
+            {projects.length > 1 && (
+              <div className="mt-(--space-24) flex gap-(--space-8) overflow-x-auto snap-x snap-mandatory">
+                {projects.map((featuredProject, index) => {
+                  const isActive = index === activeIndex;
+
+                  return (
+                    <button
+                      key={featuredProject.slug}
+                      type="button"
+                      onClick={() => setActiveIndex(index)}
+                      aria-label={`Selecionar ${featuredProject.title}`}
+                      aria-pressed={isActive}
+                      className={`relative h-14 w-20 shrink-0 snap-start overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) ${isActive
+                        ? "border-app-accent"
+                        : "border-app-border hover:border-app-text-secondary"
+                        }`}
+                    >
+                      <Image
+                        src={featuredProject.cover.src}
+                        alt=""
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </article>
