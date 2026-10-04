@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
+import { FeaturedProjects } from "@/features/home/FeaturedProjects";
 import { HomeHero } from "@/features/home/HomeHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { isLocale } from "@/i18n/config";
+import { getFeaturedProjects } from "@/sanity/repositories/projects";
 
 type HomePageProps = {
   params: Promise<{
@@ -19,6 +21,7 @@ export default async function HomePage({ params }: HomePageProps) {
   }
 
   const dictionary = await getDictionary(lang);
+  const featuredProjects = await getFeaturedProjects(lang);
 
   return (
     <main>
@@ -30,6 +33,8 @@ export default async function HomePage({ params }: HomePageProps) {
           ctaLabel={dictionary.home.hero.cta}
           ctaHref={`/${lang}/projects`}
         />
+
+        <FeaturedProjects projects={featuredProjects} />
       </Container>
     </main>
   );
