@@ -20,6 +20,9 @@ const pt = {
       viewAll: "VER TODOS",
       selectProject: "Selecionar projeto",
     },
+    moreProjects: {
+      title: "Mais projetos",
+    },
   },
 } as const;
 

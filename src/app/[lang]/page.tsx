@@ -5,7 +5,8 @@ import { FeaturedProjects } from "@/features/home/FeaturedProjects";
 import { HomeHero } from "@/features/home/HomeHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { isLocale } from "@/i18n/config";
-import { getFeaturedProjects } from "@/sanity/repositories/projects";
+import { getFeaturedProjects, getProjects, } from "@/sanity/repositories/projects";
+import { MoreProjects } from "@/features/home/MoreProjects";
 
 type HomePageProps = {
   params: Promise<{
@@ -22,6 +23,12 @@ export default async function HomePage({ params }: HomePageProps) {
 
   const dictionary = await getDictionary(lang);
   const featuredProjects = await getFeaturedProjects(lang);
+
+  const projects = await getProjects(lang);
+
+  const moreProjects = projects
+    .filter((project) => !project.featured)
+    .slice(0, 6);
 
   return (
     <main>
@@ -41,6 +48,13 @@ export default async function HomePage({ params }: HomePageProps) {
           viewAllLabel={dictionary.home.featured.viewAll}
           viewAllHref={`/${lang}/projects`}
           selectProjectLabel={dictionary.home.featured.selectProject}
+        />
+
+        <MoreProjects
+          projects={moreProjects}
+          title={dictionary.home.moreProjects.title}
+          viewAllLabel={dictionary.home.featured.viewAll}
+          viewAllHref={`/${lang}/projects`}
         />
       </Container>
     </main>

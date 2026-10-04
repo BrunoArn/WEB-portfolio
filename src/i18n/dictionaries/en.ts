@@ -20,6 +20,9 @@ const en = {
       viewAll: "VIEW ALL",
       selectProject: "Select project",
     },
+    moreProjects: {
+      title: "More Projects",
+    },
   },
 } as const;
 
