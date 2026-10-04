@@ -42,3 +42,23 @@ html {
 a {
   text-decoration: none;
 }
+
+@keyframes featured-project-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.featured-project-enter {
+  animation: featured-project-enter var(--motion-featured) ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-project-enter {
+    animation: none;
+  }
+}

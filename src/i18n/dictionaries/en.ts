@@ -18,6 +18,7 @@ const en = {
       eyebrow: "SELECTED WORK",
       title: "Featured Projects",
       viewAll: "VIEW ALL",
+      selectProject: "Select project",
     },
   },
 } as const;

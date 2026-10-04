@@ -18,6 +18,7 @@ const pt = {
       eyebrow: "TRABALHOS SELECIONADOS",
       title: "Projetos em destaque",
       viewAll: "VER TODOS",
+      selectProject: "Selecionar projeto",
     },
   },
 } as const;

@@ -12,6 +12,7 @@ type FeaturedProjectsProps = {
   title: string;
   viewAllLabel: string;
   viewAllHref: string;
+  selectProjectLabel: string;
 };
 
 export function FeaturedProjects({
@@ -20,6 +21,7 @@ export function FeaturedProjects({
   title,
   viewAllLabel,
   viewAllHref,
+  selectProjectLabel,
 }: FeaturedProjectsProps) {
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -53,7 +55,9 @@ export function FeaturedProjects({
       {/* cover */}
       <article className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface">
         <div className="grid md:h-100 md:grid-cols-[2fr_1fr]">
-          <div className="relative min-h-64 overflow-hidden bg-app-surface-elevated md:min-h-0">
+          <div key={`cover-${project.slug}`}
+            className="relative min-h-64 overflow-hidden bg-app-surface-elevated md:min-h-0"
+          >
             <Image
               src={project.cover.src}
               alt={project.cover.alt}
@@ -64,21 +68,27 @@ export function FeaturedProjects({
           </div>
           {/* painel */}
           <div className="flex flex-col p-(--panel-padding-mobile) md:p-(--panel-padding)">
-            <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
-              {project.categories[0]?.name}
-            </p>
+            <div
+              key={`details-${project.slug}`}
+              className="featured-project-enter"
+            >
 
-            <h3 className="mt-(--space-12) text-(length:--font-size-card-mobile) font-semibold leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
-              {project.title}
-            </h3>
+              <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
+                {project.categories[0]?.name}
+              </p>
 
-            <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
-              {project.description}
-            </p>
+              <h3 className="mt-(--space-12) text-(length:--font-size-card-mobile) font-semibold leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                {project.title}
+              </h3>
 
-            <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
-              {project.technologies.join(" · ")} · {project.year}
-            </p>
+              <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                {project.description}
+              </p>
+
+              <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
+                {project.technologies.join(" · ")} · {project.year}
+              </p>
+            </div>
             {/* thumbnails */}
             {projects.length > 1 && (
               <div className="mt-auto flex gap-(--space-8) overflow-x-auto pt-(--space-24) snap-x snap-mandatory">
@@ -90,7 +100,7 @@ export function FeaturedProjects({
                       key={featuredProject.slug}
                       type="button"
                       onClick={() => setActiveIndex(index)}
-                      aria-label={`Selecionar ${featuredProject.title}`}
+                      aria-label={`${selectProjectLabel}: ${featuredProject.title}`}
                       aria-pressed={isActive}
                       className={`relative h-14 w-20 shrink-0 snap-start overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) ${isActive
                         ? "border-app-accent"

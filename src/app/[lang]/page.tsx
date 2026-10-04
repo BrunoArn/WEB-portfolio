@@ -40,6 +40,7 @@ export default async function HomePage({ params }: HomePageProps) {
           title={dictionary.home.featured.title}
           viewAllLabel={dictionary.home.featured.viewAll}
           viewAllHref={`/${lang}/projects`}
+          selectProjectLabel={dictionary.home.featured.selectProject}
         />
       </Container>
     </main>
