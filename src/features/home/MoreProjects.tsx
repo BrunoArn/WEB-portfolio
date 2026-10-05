@@ -40,7 +40,7 @@ export function MoreProjects({
                 {projects.slice(0, 6).map((project) => (
                     <article
                         key={project.slug}
-                        className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface"
+                        className="group overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface transition-colors duration-(--motion-ui) hover:border-app-text-secondary"
                     >
                         <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
                             <Image
@@ -48,7 +48,7 @@ export function MoreProjects({
                                 alt={project.cover.alt}
                                 fill
                                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                                className="object-cover"
+                                className="object-cover transition-transform duration-(--motion-ui) group-hover:scale-[1.03]"
                             />
                         </div>
 

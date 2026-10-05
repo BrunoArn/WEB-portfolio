@@ -54,9 +54,9 @@ export function FeaturedProjects({
       </header>
       {/* cover */}
       <article className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface">
-        <div className="grid md:h-100 md:grid-cols-[2fr_1fr]">
+        <div className="grid lg:h-105 lg:grid-cols-[3fr_2fr] xl:h-100 xl:grid-cols-[2fr_1fr]">
           <div key={`cover-${project.slug}`}
-            className="relative min-h-64 overflow-hidden bg-app-surface-elevated md:min-h-0"
+            className="relative h-64 overflow-hidden bg-app-surface-elevated lg:h-auto"
           >
             <Image
               src={project.cover.src}
@@ -67,7 +67,7 @@ export function FeaturedProjects({
             />
           </div>
           {/* painel */}
-          <div className="flex flex-col p-(--panel-padding-mobile) md:p-(--panel-padding)">
+          <div className="flex min-h-[400px] flex-col p-(--panel-padding-mobile) sm:min-h-[300px] md:p-(--panel-padding) lg:min-h-0">
             <div
               key={`details-${project.slug}`}
               className="featured-project-enter"
@@ -102,7 +102,7 @@ export function FeaturedProjects({
                       onClick={() => setActiveIndex(index)}
                       aria-label={`${selectProjectLabel}: ${featuredProject.title}`}
                       aria-pressed={isActive}
-                      className={`relative h-14 w-20 shrink-0 snap-start overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) ${isActive
+                      className={`relative h-14 w-20 shrink-0 snap-start overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent ${isActive
                         ? "border-app-accent"
                         : "border-app-border hover:border-app-text-secondary"
                         }`}
