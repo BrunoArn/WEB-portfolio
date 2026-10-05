@@ -36,7 +36,27 @@ export const project = defineType({
             name: 'description',
             title: 'Description',
             type: 'localizedText',
-            validation: (rule) => rule.required(),
+            validation: (rule) =>
+                rule.required().custom((value) => {
+                    const description = value as
+                        | {
+                            pt?: string
+                            en?: string
+                        }
+                        | undefined
+
+                    const maxLength = 280
+
+                    if (description?.pt && description.pt.length > maxLength) {
+                        return `Português: máximo de ${maxLength} caracteres.`
+                    }
+
+                    if (description?.en && description.en.length > maxLength) {
+                        return `English: máximo de ${maxLength} caracteres.`
+                    }
+
+                    return true
+                }),
         }),
 
         defineField({

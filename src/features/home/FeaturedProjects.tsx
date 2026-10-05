@@ -54,44 +54,55 @@ export function FeaturedProjects({
       </header>
       {/* cover */}
       <article className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface">
-        <div className="grid lg:h-105 lg:grid-cols-[3fr_2fr] xl:h-100 xl:grid-cols-[2fr_1fr]">
+        <div className="grid lg:min-h-105 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] xl:min-h-100 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div key={`cover-${project.slug}`}
-            className="relative h-64 overflow-hidden bg-app-surface-elevated lg:h-auto"
+            className="featured-project-enter relative h-64 overflow-hidden bg-app-surface-elevated lg:h-auto"
           >
             <Image
               src={project.cover.src}
               alt={project.cover.alt}
               fill
-              sizes="(min-width: 768px) 66vw, 100vw"
+              sizes="(min-width: 1280px) 800px, (min-width: 1024px) calc(60vw - 48px), (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
               className="object-cover"
             />
           </div>
           {/* painel */}
-          <div className="flex min-h-[400px] flex-col p-(--panel-padding-mobile) sm:min-h-[300px] md:p-(--panel-padding) lg:min-h-0">
-            <div
-              key={`details-${project.slug}`}
-              className="featured-project-enter"
-            >
+          <div className="flex min-h-100 min-w-0 flex-col p-(--panel-padding-mobile) sm:min-h-85 md:p-(--panel-padding) lg:min-h-105 xl:min-h-100">
+            <div className="grid">
+              {projects.map((featuredProject, index) => {
+                const isActive = index === activeIndex;
 
-              <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
-                {project.categories[0]?.name}
-              </p>
+                return (
+                  <div
+                    key={`details-${featuredProject.slug}`}
+                    aria-hidden={!isActive}
+                    className={`col-start-1 row-start-1 transition-opacity duration-(--motion-featured) motion-reduce:transition-none ${isActive
+                      ? "visible opacity-100"
+                      : "invisible pointer-events-none opacity-0"
+                      }`}
+                  >
+                    <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
+                      {featuredProject.categories[0]?.name}
+                    </p>
 
-              <h3 className="mt-(--space-12) text-(length:--font-size-card-mobile) font-semibold leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
-                {project.title}
-              </h3>
+                    <h3 className="mt-(--space-12) text-(length:--font-size-card-mobile) font-semibold leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                      {featuredProject.title}
+                    </h3>
 
-              <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
-                {project.description}
-              </p>
+                    <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                      {featuredProject.description}
+                    </p>
 
-              <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
-                {project.technologies.join(" · ")} · {project.year}
-              </p>
+                    <p className="mt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
+                      {featuredProject.technologies.join(" · ")} · {featuredProject.year}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
             {/* thumbnails */}
             {projects.length > 1 && (
-              <div className="mt-auto flex gap-(--space-8) overflow-x-auto pt-(--space-24) snap-x snap-mandatory">
+              <div className="mt-auto flex min-w-0 max-w-full shrink-0 gap-(--space-8) overflow-x-auto px-1 pb-1 pt-(--space-24)">
                 {projects.map((featuredProject, index) => {
                   const isActive = index === activeIndex;
 
@@ -102,9 +113,10 @@ export function FeaturedProjects({
                       onClick={() => setActiveIndex(index)}
                       aria-label={`${selectProjectLabel}: ${featuredProject.title}`}
                       aria-pressed={isActive}
-                      className={`relative h-14 w-20 shrink-0 snap-start overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent ${isActive
-                        ? "border-app-accent"
-                        : "border-app-border hover:border-app-text-secondary"
+                      className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) 
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
+                          ? "border-app-accent"
+                          : "border-app-border hover:border-app-text-secondary"
                         }`}
                     >
                       <Image
