@@ -4,10 +4,9 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { ProjectsFilters } from "@/features/projects/ProjectsFilters";
 import { getCategories } from "@/sanity/repositories/categories";
 import { getProjects } from "@/sanity/repositories/projects";
-import { ProjectsGrid } from "@/features/projects/ProjectsGrid";
+import { ProjectsListing } from "@/features/projects/ProjectsListing";
 
 type ProjectsPageProps = {
     params: Promise<{ lang: string }>;
@@ -60,17 +59,15 @@ export default async function ProjectsPage({
                                 </p>
                             </div>
 
-                            <ProjectsFilters
+                            <ProjectsListing
+                                projects={projects}
                                 categories={categories}
                                 allLabel={dictionary.projects.filters.all}
-                                ariaLabel={dictionary.projects.filters.label}
+                                filtersLabel={dictionary.projects.filters.label}
+                                emptyLabel={dictionary.projects.filters.empty}
                             />
                         </div>
                     </header>
-
-                    <div className="mt-(--space-32)">
-                        <ProjectsGrid projects={projects} />
-                    </div>
                 </section>
             </Container>
         </main>

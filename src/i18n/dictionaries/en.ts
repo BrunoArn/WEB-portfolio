@@ -32,6 +32,7 @@ const en = {
     filters: {
       all: "All",
       label: "Filter projects",
+      empty: "No projects found in this category.",
     },
   },
 } as const;

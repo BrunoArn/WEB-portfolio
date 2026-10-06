@@ -32,6 +32,7 @@ const pt = {
     filters: {
       all: "Todos",
       label: "Filtrar projetos",
+      empty: "Nenhum projeto encontrado nesta categoria.",
     },
   },
 } as const;
