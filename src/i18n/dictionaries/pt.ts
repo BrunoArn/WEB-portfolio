@@ -24,6 +24,17 @@ const pt = {
       title: "Mais projetos",
     },
   },
+  projects: {
+    title: "Projetos",
+    description:
+      "Projetos em games, web, VR e experiências interativas, reunindo trabalhos profissionais, pessoais e experimentais.",
+
+    filters: {
+      all: "Todos",
+      label: "Filtrar projetos",
+      empty: "Nenhum projeto encontrado nesta categoria.",
+    },
+  },
 } as const;
 
 export default pt;
