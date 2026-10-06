@@ -18,7 +18,7 @@ export function ProjectsGrid({
             {projects.map((project) => (
                 <article
                     key={project.slug}
-                    className="group overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface transition-colors duration-(--motion-ui) hover:border-app-text-secondary"
+                    className="group overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary"
                 >
                     <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
                         <Image
