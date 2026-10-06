@@ -24,6 +24,11 @@ const pt = {
       title: "Mais projetos",
     },
   },
+  projects: {
+    title: "Projetos",
+    description:
+      "Projetos em games, web, VR e experiências interativas, reunindo trabalhos profissionais, pessoais e experimentais.",
+  },
 } as const;
 
 export default pt;

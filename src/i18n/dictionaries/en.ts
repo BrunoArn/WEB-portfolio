@@ -24,6 +24,11 @@ const en = {
       title: "More Projects",
     },
   },
+  projects: {
+    title: "Projects",
+    description:
+      "Projects across games, web, VR and interactive experiences, bringing together professional, personal and experimental work.",
+  },
 } as const;
 
 export default en;
