@@ -28,6 +28,11 @@ const pt = {
     title: "Projetos",
     description:
       "Projetos em games, web, VR e experiências interativas, reunindo trabalhos profissionais, pessoais e experimentais.",
+
+    filters: {
+      all: "Todos",
+      label: "Filtrar projetos",
+    },
   },
 } as const;
 
