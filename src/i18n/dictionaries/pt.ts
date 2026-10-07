@@ -35,6 +35,33 @@ const pt = {
       empty: "Nenhum projeto encontrado nesta categoria.",
     },
   },
+  projectDetail: {
+    about: "Sobre o projeto",
+
+    actions: {
+      github: "GITHUB",
+      liveSite: "VER SITE",
+    },
+
+    info: {
+      title: "Informações do projeto",
+      role: "Função",
+      year: "Ano",
+      team: "Equipe",
+      technologies: "Tecnologias",
+      organization: "Organização",
+      status: "Status",
+
+      statuses: {
+        released: "Lançado",
+        prototype: "Protótipo",
+        hackathon: "Hackathon",
+        client: "Cliente",
+        development: "Em desenvolvimento",
+        archived: "Arquivado",
+      },
+    },
+  },
 } as const;
 
 export default pt;

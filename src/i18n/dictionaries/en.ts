@@ -35,6 +35,33 @@ const en = {
       empty: "No projects found in this category.",
     },
   },
+  projectDetail: {
+    about: "About the Project",
+
+    actions: {
+      github: "GITHUB",
+      liveSite: "LIVE SITE",
+    },
+
+    info: {
+      title: "Project Info",
+      role: "Role",
+      year: "Year",
+      team: "Team",
+      technologies: "Technologies",
+      organization: "Organization",
+      status: "Status",
+
+      statuses: {
+        released: "Released",
+        prototype: "Prototype",
+        hackathon: "Hackathon",
+        client: "Client",
+        development: "In Development",
+        archived: "Archived",
+      },
+    },
+  },
 } as const;
 
 export default en;

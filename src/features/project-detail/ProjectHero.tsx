@@ -1,0 +1,119 @@
+import type { Project } from "@/content/types/project";
+
+import Image from "next/image";
+
+type ProjectHeroProps = {
+    project: Project;
+    actions: Readonly<{
+        github: string;
+        liveSite: string;
+    }>;
+};
+
+export function ProjectHero({
+    project,
+    actions,
+}: ProjectHeroProps) {
+
+    return (
+        <section>
+            <div className="overflow-hidden rounded-(--radius-large) border border-app-border bg-app-surface">
+                <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
+                    <Image
+                        src={project.cover.src}
+                        alt={project.cover.alt}
+                        fill
+                        priority
+                        sizes="(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+                        className="object-cover"
+                    />
+
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-0 hidden bg-linear-to-t from-app-background/95 via-app-background/30 to-transparent md:block"
+                    />
+
+                    <div className="absolute inset-x-0 bottom-0 hidden p-(--space-40) md:block">
+                        <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
+                            {project.categories[0]?.name}
+                        </p>
+
+                        <h1 className="mt-(--space-8) max-w-4xl text-(length:--font-size-hero-desktop) font-semibold leading-(--line-height-hero) text-app-text-primary">
+                            {project.title}
+                        </h1>
+
+                        <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                            {project.role} · {project.year}
+                        </p>
+
+                        {(project.githubUrl || project.liveSiteUrl) && (
+                            <div className="mt-(--space-24) flex flex-wrap gap-(--space-8)">
+                                {project.liveSiteUrl && (
+                                    <a
+                                        href={project.liveSiteUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    >
+                                        {actions.liveSite} ↗
+                                    </a>
+                                )}
+
+                                {project.githubUrl && (
+                                    <a
+                                        href={project.githubUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    >
+                                        {actions.github} ↗
+                                    </a>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="p-(--panel-padding-mobile) md:hidden">
+                    <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
+                        {project.categories[0]?.name}
+                    </p>
+
+                    <h1 className="mt-(--space-8) text-(length:--font-size-hero-mobile) font-semibold leading-(--line-height-hero) text-app-text-primary">
+                        {project.title}
+                    </h1>
+
+                    <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                        {project.role} · {project.year}
+                    </p>
+
+                    {(project.githubUrl || project.liveSiteUrl) && (
+                        <div className="mt-(--space-24) flex flex-wrap gap-(--space-8)">
+                            {project.liveSiteUrl && (
+                                <a
+                                    href={project.liveSiteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                >
+                                    {actions.liveSite} ↗
+                                </a>
+                            )}
+
+                            {project.githubUrl && (
+                                <a
+                                    href={project.githubUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                >
+                                    {actions.github} ↗
+                                </a>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+}
