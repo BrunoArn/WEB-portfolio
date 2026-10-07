@@ -71,6 +71,9 @@ const pt = {
       title: "Jogar projeto",
       frameTitle: "Jogo interativo",
     },
+    related: {
+      title: "Você também pode gostar",
+    },
   },
 } as const;
 

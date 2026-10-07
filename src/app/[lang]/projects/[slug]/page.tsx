@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
-import { getProjectBySlug } from "@/sanity/repositories/projects";
+import { getProjectBySlug, getProjects, } from "@/sanity/repositories/projects";
 import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
@@ -11,6 +11,7 @@ import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 import { ProjectGallery } from "@/features/project-detail/ProjectGallery";
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
+import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
 
 type ProjectPageProps = {
     params: Promise<{
@@ -55,6 +56,33 @@ export default async function ProjectPage({
     if (!project) {
         notFound();
     }
+
+    const projects = await getProjects(lang);
+
+    const currentCategorySlugs = new Set(
+        project.categories.map((category) => category.slug),
+    );
+
+    const relatedByCategory = projects.filter(
+        (candidate) =>
+            candidate.slug !== project.slug &&
+            candidate.categories.some((category) =>
+                currentCategorySlugs.has(category.slug),
+            ),
+    );
+
+    const fallbackProjects = projects.filter(
+        (candidate) =>
+            candidate.slug !== project.slug &&
+            !relatedByCategory.some(
+                (related) => related.slug === candidate.slug,
+            ),
+    );
+
+    const relatedProjects = [
+        ...relatedByCategory,
+        ...fallbackProjects,
+    ].slice(0, 6);
 
     const devPlayableWidth = Number(
         process.env.PLAYABLE_DEV_WIDTH,
@@ -132,6 +160,16 @@ export default async function ProjectPage({
                             width={resolvedPlayable.width}
                             height={resolvedPlayable.height}
                             labels={dictionary.projectDetail.playable}
+                        />
+                    </div>
+                )}
+                
+                {relatedProjects.length > 0 && (
+                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                        <RelatedProjects
+                            projects={relatedProjects}
+                            title={dictionary.projectDetail.related.title}
+                            locale={lang}
                         />
                     </div>
                 )}

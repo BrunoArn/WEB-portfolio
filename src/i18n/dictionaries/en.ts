@@ -71,6 +71,9 @@ const en = {
       title: "Play Project",
       frameTitle: "Interactive game",
     },
+    related: {
+      title: "You May Also Like",
+    },
   },
 } as const;
 
