@@ -22,7 +22,8 @@ export function ProjectHero({
     return (
         <section>
             <div className="overflow-hidden rounded-(--radius-large) border border-app-border bg-app-surface">
-                <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
+                {/* The shared grid cell keeps 16:9 as a minimum while allowing the overlay to grow. */}
+                <div className="relative aspect-video overflow-hidden bg-app-surface-elevated md:grid md:aspect-auto md:before:col-start-1 md:before:row-start-1 md:before:pt-[56.25%]">
                     <Image
                         src={project.cover.src}
                         alt={project.cover.alt}
@@ -37,7 +38,7 @@ export function ProjectHero({
                         className="absolute inset-0 hidden bg-linear-to-t from-app-background/95 via-app-background/30 to-transparent md:block"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 hidden p-(--space-40) md:block">
+                    <div className="relative hidden p-(--space-40) md:col-start-1 md:row-start-1 md:block md:self-end">
                         <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {project.categories[0]?.name}
                         </p>
