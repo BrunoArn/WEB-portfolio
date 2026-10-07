@@ -2,7 +2,7 @@
 
 import type { ProjectMedia } from "@/content/types/project";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -26,6 +26,9 @@ export function ProjectMediaPreview({
 
     const [activeIndex, setActiveIndex] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const openerRef = useRef<HTMLButtonElement>(null);
     const activeMedia = media[activeIndex] ?? media[0];
 
     const showPreviousMedia = () => {
@@ -49,9 +52,111 @@ export function ProjectMediaPreview({
             return;
         }
 
+        const dialog = dialogRef.current;
+
+        if (!dialog) {
+            return;
+        }
+
+        const preview = dialog.previousElementSibling;
+        const opener = openerRef.current;
+        const previousOverflow = document.body.style.overflow;
+        const background: { element: HTMLElement; wasInert: boolean }[] = [];
+
+        // Isolate sibling branches without making the nested dialog itself inert.
+        let branch: HTMLElement = dialog;
+
+        while (branch.parentElement) {
+            for (const sibling of branch.parentElement.children) {
+                if (sibling !== branch && sibling instanceof HTMLElement) {
+                    background.push({ element: sibling, wasInert: sibling.inert });
+                    sibling.inert = true;
+                }
+            }
+
+            branch = branch.parentElement;
+
+            if (branch === document.body) {
+                break;
+            }
+        }
+
+        const handleFocusIn = (event: FocusEvent) => {
+            if (event.target instanceof Node && !dialog.contains(event.target)) {
+                closeButtonRef.current?.focus({ preventScroll: true });
+            }
+        };
+
+        document.body.style.overflow = "hidden";
+        document.addEventListener("focusin", handleFocusIn);
+        closeButtonRef.current?.focus({ preventScroll: true });
+
+        return () => {
+            document.removeEventListener("focusin", handleFocusIn);
+            document.body.style.overflow = previousOverflow;
+
+            for (const { element, wasInert } of background) {
+                element.inert = wasInert;
+            }
+
+            // Switching to video can unmount the original image button.
+            const focusTarget = opener?.isConnected
+                ? opener
+                : preview?.querySelector<HTMLButtonElement>(
+                    'button:not([aria-pressed]), button[aria-pressed="true"]',
+                );
+
+            focusTarget?.focus({ preventScroll: true });
+        };
+    }, [isExpanded]);
+
+    useEffect(() => {
+        if (!isExpanded) {
+            return;
+        }
+
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
+                event.preventDefault();
                 setIsExpanded(false);
+                return;
+            }
+
+            if (event.key === "Tab") {
+                const dialog = dialogRef.current;
+                const focusableElements = Array.from(
+                    dialog?.querySelectorAll<HTMLElement>(
+                        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), video[controls], audio[controls], [tabindex]:not([tabindex="-1"])',
+                    ) ?? [],
+                ).filter((element) =>
+                    element.tabIndex >= 0 &&
+                    !element.hasAttribute("data-lightbox-focus-guard") &&
+                    element.getClientRects().length > 0 &&
+                    !element.closest("[inert]") &&
+                    getComputedStyle(element).visibility !== "hidden",
+                );
+                const first = focusableElements[0];
+                const last = focusableElements[focusableElements.length - 1];
+                const active = document.activeElement;
+
+                // Native media controls retarget focus to the media element.
+                // Let them complete their tab sequence before the trailing guard.
+                if (active instanceof HTMLMediaElement) {
+                    return;
+                }
+
+                if (!first || !last) {
+                    event.preventDefault();
+                    closeButtonRef.current?.focus({ preventScroll: true });
+                } else if (event.shiftKey && (active === first || !dialog?.contains(active))) {
+                    event.preventDefault();
+                    last.focus({ preventScroll: true });
+                } else if (!event.shiftKey && (active === last || !dialog?.contains(active))) {
+                    event.preventDefault();
+                    first.focus({ preventScroll: true });
+                }
+
+                return;
             }
 
             if (event.key === "ArrowLeft") {
@@ -71,13 +176,9 @@ export function ProjectMediaPreview({
             }
         };
 
-        const previousOverflow = document.body.style.overflow;
-
-        document.body.style.overflow = "hidden";
         window.addEventListener("keydown", handleKeyDown);
 
         return () => {
-            document.body.style.overflow = previousOverflow;
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [isExpanded, media.length]);
@@ -99,7 +200,10 @@ export function ProjectMediaPreview({
                     {activeMedia.type === "image" ? (
                         <button
                             type="button"
-                            onClick={() => setIsExpanded(true)}
+                            onClick={(event) => {
+                                openerRef.current = event.currentTarget;
+                                setIsExpanded(true);
+                            }}
                             aria-label={labels.expand}
                             className="relative block aspect-video w-full cursor-zoom-in overflow-hidden"
                         >
@@ -162,12 +266,14 @@ export function ProjectMediaPreview({
             </div>
             {isExpanded && (
                 <div
+                    ref={dialogRef}
                     role="dialog"
                     aria-modal="true"
                     aria-label={labels.expand}
                     className="fixed inset-0 z-50 flex items-center justify-center bg-app-background/95 p-(--space-20) md:p-(--space-40)"
                 >
                     <button
+                        ref={closeButtonRef}
                         type="button"
                         onClick={() => setIsExpanded(false)}
                         className="absolute right-(--space-20) top-(--space-20) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
@@ -216,6 +322,12 @@ export function ProjectMediaPreview({
                             />
                         )}
                     </div>
+                    <span
+                        data-lightbox-focus-guard
+                        tabIndex={0}
+                        onFocus={() => closeButtonRef.current?.focus({ preventScroll: true })}
+                        className="sr-only"
+                    />
                 </div>
             )}
         </section>
