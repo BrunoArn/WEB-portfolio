@@ -8,6 +8,7 @@ import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
 import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
+import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 
 type ProjectPageProps = {
     params: Promise<{
@@ -72,6 +73,13 @@ export default async function ProjectPage({
                             project={project}
                             labels={dictionary.projectDetail.info}
                         />
+
+                        {project.media.length > 0 && (
+                            <ProjectMediaPreview
+                                media={project.media}
+                                selectMediaLabel={dictionary.projectDetail.media.select}
+                            />
+                        )}
                     </div>
                 </div>
             </Container>

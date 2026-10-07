@@ -61,6 +61,9 @@ const pt = {
         archived: "Arquivado",
       },
     },
+    media: {
+      select: "Selecionar mídia",
+    },
   },
 } as const;
 

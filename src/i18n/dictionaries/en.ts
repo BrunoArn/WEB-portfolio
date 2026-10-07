@@ -61,6 +61,9 @@ const en = {
         archived: "Archived",
       },
     },
+    media: {
+      select: "Select media",
+    },
   },
 } as const;
 
