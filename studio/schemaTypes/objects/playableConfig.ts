@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const playableConfig = defineType({
   name: 'playableConfig',
@@ -28,6 +28,21 @@ export const playableConfig = defineType({
       type: 'string',
       description: 'Path or URL used by the frontend to load the playable build.',
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'width',
+      title: 'Native Width',
+      type: 'number',
+      description: 'Native canvas width used to preserve the playable aspect ratio.',
+      validation: (rule) => rule.required().integer().positive(),
+    }),
+
+    defineField({
+      name: 'height',
+      title: 'Native Height',
+      type: 'number',
+      description: 'Native canvas height used to preserve the playable aspect ratio.',
+      validation: (rule) => rule.required().integer().positive(),
     }),
   ],
 })

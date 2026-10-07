@@ -56,15 +56,32 @@ export default async function ProjectPage({
         notFound();
     }
 
-    const developmentPlayableSource =
+    const devPlayableWidth = Number(
+        process.env.PLAYABLE_DEV_WIDTH,
+    );
+
+    const devPlayableHeight = Number(
+        process.env.PLAYABLE_DEV_HEIGHT,
+    );
+
+    const developmentPlayable =
         process.env.NODE_ENV === "development" &&
-            process.env.PLAYABLE_DEV_SLUG === project.slug
-            ? process.env.PLAYABLE_DEV_URL
+            process.env.PLAYABLE_DEV_SLUG === project.slug &&
+            process.env.PLAYABLE_DEV_URL &&
+            Number.isInteger(devPlayableWidth) &&
+            devPlayableWidth > 0 &&
+            Number.isInteger(devPlayableHeight) &&
+            devPlayableHeight > 0
+            ? {
+                source: process.env.PLAYABLE_DEV_URL,
+                width: devPlayableWidth,
+                height: devPlayableHeight,
+            }
             : undefined;
 
-    const playableSource =
-        developmentPlayableSource ??
-        project.playable?.source;
+    const resolvedPlayable =
+        developmentPlayable ??
+        project.playable;
 
 
     return (
@@ -86,34 +103,38 @@ export default async function ProjectPage({
                             project={project}
                             labels={dictionary.projectDetail.info}
                         />
-
-                        {project.media.length > 0 && (
-                            <ProjectMediaPreview
-                                media={project.media}
-                                selectMediaLabel={dictionary.projectDetail.media.select}
-                            />
-                        )}
-
-                        {project.media.length > 0 && (
-                            <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                                <ProjectGallery
-                                    media={project.media}
-                                    title={dictionary.projectDetail.gallery.title}
-                                />
-                            </div>
-                        )}
-
-                        {playableSource && (
-                            <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                                <ProjectPlayable
-                                    source={playableSource}
-                                    projectTitle={project.title}
-                                    labels={dictionary.projectDetail.playable}
-                                />
-                            </div>
-                        )}
                     </div>
                 </div>
+
+                {project.media.length > 0 && (
+                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                        <ProjectMediaPreview
+                            media={project.media}
+                            selectMediaLabel={dictionary.projectDetail.media.select}
+                        />
+                    </div>
+                )}
+
+                {project.media.length > 0 && (
+                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                        <ProjectGallery
+                            media={project.media}
+                            title={dictionary.projectDetail.gallery.title}
+                        />
+                    </div>
+                )}
+
+                {resolvedPlayable && (
+                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                        <ProjectPlayable
+                            source={resolvedPlayable.source}
+                            projectTitle={project.title}
+                            width={resolvedPlayable.width}
+                            height={resolvedPlayable.height}
+                            labels={dictionary.projectDetail.playable}
+                        />
+                    </div>
+                )}
             </Container>
         </main>
     );

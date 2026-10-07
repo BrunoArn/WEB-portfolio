@@ -33,6 +33,8 @@ export type ProjectMedia = ProjectImage | ProjectVideo;
 export interface ProjectPlayable {
     type: "unity-webgl";
     source: string;
+    width: number;
+    height: number;
 }
 
 export interface ProjectSeo {

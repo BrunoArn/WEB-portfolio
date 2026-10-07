@@ -1,6 +1,8 @@
 type ProjectPlayableProps = {
     source: string;
     projectTitle: string;
+    width: number;
+    height: number;
 
     labels: Readonly<{
         title: string;
@@ -11,8 +13,11 @@ type ProjectPlayableProps = {
 export function ProjectPlayable({
     source,
     projectTitle,
+    width,
+    height,
     labels,
 }: ProjectPlayableProps) {
+
     return (
         <section>
             <h2 className="text-(length:--font-size-section-mobile) font-semibold leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
@@ -25,7 +30,10 @@ export function ProjectPlayable({
                     title={`${labels.frameTitle}: ${projectTitle}`}
                     allow="fullscreen; gamepad"
                     allowFullScreen
-                    className="aspect-video w-full border-0"
+                    style={{
+                        aspectRatio: `${width} / ${height}`,
+                    }}
+                    className="block w-full border-0"
                 />
             </div>
         </section>
