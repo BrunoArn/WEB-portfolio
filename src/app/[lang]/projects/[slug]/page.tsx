@@ -10,6 +10,7 @@ import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
 import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 import { ProjectGallery } from "@/features/project-detail/ProjectGallery";
+import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 
 type ProjectPageProps = {
     params: Promise<{
@@ -55,6 +56,17 @@ export default async function ProjectPage({
         notFound();
     }
 
+    const developmentPlayableSource =
+        process.env.NODE_ENV === "development" &&
+            process.env.PLAYABLE_DEV_SLUG === project.slug
+            ? process.env.PLAYABLE_DEV_URL
+            : undefined;
+
+    const playableSource =
+        developmentPlayableSource ??
+        project.playable?.source;
+
+
     return (
         <main>
             <Container>
@@ -87,6 +99,16 @@ export default async function ProjectPage({
                                 <ProjectGallery
                                     media={project.media}
                                     title={dictionary.projectDetail.gallery.title}
+                                />
+                            </div>
+                        )}
+
+                        {playableSource && (
+                            <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                                <ProjectPlayable
+                                    source={playableSource}
+                                    projectTitle={project.title}
+                                    labels={dictionary.projectDetail.playable}
                                 />
                             </div>
                         )}

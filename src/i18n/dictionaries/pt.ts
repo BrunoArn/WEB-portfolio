@@ -67,6 +67,10 @@ const pt = {
     gallery: {
       title: "Galeria",
     },
+    playable: {
+      title: "Jogar projeto",
+      frameTitle: "Jogo interativo",
+    },
   },
 } as const;
 

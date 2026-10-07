@@ -67,6 +67,10 @@ const en = {
     gallery: {
       title: "Gallery",
     },
+    playable: {
+      title: "Play Project",
+      frameTitle: "Interactive game",
+    },
   },
 } as const;
 
