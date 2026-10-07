@@ -99,7 +99,7 @@ export function ProjectMediaPreview({
                 element.inert = wasInert;
             }
 
-            // Switching to video can unmount the original image button.
+            // Switching media types can unmount the original opener.
             const focusTarget = opener?.isConnected
                 ? opener
                 : preview?.querySelector<HTMLButtonElement>(
@@ -158,6 +158,24 @@ export function ProjectMediaPreview({
 
                 return;
             }
+
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                return;
+            }
+
+            const target = event.target;
+
+            // Native media controls retarget keyboard events to the video/audio element.
+            if (event.defaultPrevented ||
+                !(target instanceof Element) ||
+                !dialogRef.current?.contains(target) ||
+                target.closest(
+                    'video, audio, input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="spinbutton"], [role="combobox"], [role="listbox"], [role="textbox"]',
+                )) {
+                return;
+            }
+
+            event.preventDefault();
 
             if (event.key === "ArrowLeft") {
                 setActiveIndex((currentIndex) =>
@@ -224,6 +242,19 @@ export function ProjectMediaPreview({
                         />
                     )}
                 </div>
+
+                {activeMedia.type === "video" && (
+                    <button
+                        type="button"
+                        onClick={(event) => {
+                            openerRef.current = event.currentTarget;
+                            setIsExpanded(true);
+                        }}
+                        className="mt-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                    >
+                        {labels.expand} ↗
+                    </button>
+                )}
 
                 {media.length > 1 && (
                     <div className="mt-(--space-12) flex gap-(--space-8) overflow-x-auto pb-(--space-4)">
