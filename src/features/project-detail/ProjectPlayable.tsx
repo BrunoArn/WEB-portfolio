@@ -3,7 +3,7 @@
 import type { ProjectImage } from "@/content/types/project";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ProjectPlayableProps = {
     source: string;
@@ -29,6 +29,19 @@ export function ProjectPlayable({
     labels,
 }: ProjectPlayableProps) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const playButtonRef = useRef<HTMLButtonElement>(null);
+    const hasStartedRef = useRef(false);
+
+    // Move focus only after PLAY/CLOSE, leaving the initial page focus alone.
+    useEffect(() => {
+        if (isPlaying) {
+            hasStartedRef.current = true;
+            closeButtonRef.current?.focus();
+        } else if (hasStartedRef.current) {
+            playButtonRef.current?.focus();
+        }
+    }, [isPlaying]);
 
     return (
         <section id="playable" className="scroll-mt-(--space-80)">
@@ -39,9 +52,10 @@ export function ProjectPlayable({
 
                 {isPlaying && (
                     <button
+                        ref={closeButtonRef}
                         type="button"
                         onClick={() => setIsPlaying(false)}
-                        className="shrink-0 text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                        className="-my-(--space-12) -mr-(--space-12) min-h-(--space-48) min-w-(--space-48) shrink-0 px-(--space-12) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
                         {labels.close}
                     </button>
@@ -79,6 +93,7 @@ export function ProjectPlayable({
 
                         <div className="absolute inset-0 flex items-center justify-center p-(--space-20)">
                             <button
+                                ref={playButtonRef}
                                 type="button"
                                 onClick={() => setIsPlaying(true)}
                                 className="rounded-(--radius-control) bg-app-accent px-(--space-24) py-(--space-12) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
