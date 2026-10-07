@@ -1,3 +1,5 @@
+"use client";
+
 import type { Project } from "@/content/types/project";
 
 import Image from "next/image";
@@ -29,6 +31,24 @@ export function RelatedProjects({
                     <Link
                         key={project.slug}
                         href={`/${locale}/projects/${project.slug}`}
+                        onFocus={(event) => {
+                            const card = event.currentTarget;
+                            const rail = card.parentElement;
+
+                            if (!rail) {
+                                return;
+                            }
+
+                            const cardBounds = card.getBoundingClientRect();
+                            const railBounds = rail.getBoundingClientRect();
+
+                            if (cardBounds.left < railBounds.left || cardBounds.right > railBounds.right) {
+                                rail.scrollTo({
+                                    left: rail.scrollLeft + cardBounds.left - railBounds.left,
+                                    behavior: "instant",
+                                });
+                            }
+                        }}
                         className="group w-[82%] shrink-0 snap-start overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent sm:w-[60%] md:w-[40%] lg:w-[calc((100%-60px)/4)]"
                     >
                         <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">

@@ -82,10 +82,17 @@ export function NavbarMobile({
             setIsOpen(false);
 
             requestAnimationFrame(() => {
+                const desktopNavigation = document.querySelector<HTMLElement>(
+                    '[data-primary-navigation="desktop"]',
+                );
                 const activeDesktopLink =
-                    document.querySelector<HTMLElement>(
-                        '[data-primary-navigation="desktop"] [aria-current="page"]',
-                    );
+                    desktopNavigation?.querySelector<HTMLAnchorElement>(
+                        'a[aria-current="page"]',
+                    ) ??
+                    desktopNavigation?.querySelector<HTMLAnchorElement>(
+                        `a[href="${projectsPath}"]`,
+                    ) ??
+                    desktopNavigation?.querySelector<HTMLAnchorElement>("a[href]");
 
                 activeDesktopLink?.focus();
             });
@@ -100,7 +107,7 @@ export function NavbarMobile({
             );
             body.style.overflow = previousOverflow;
         };
-    }, [isOpen]);
+    }, [isOpen, projectsPath]);
 
     useEffect(() => {
         if (!isOpen) {
