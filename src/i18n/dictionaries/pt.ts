@@ -39,6 +39,7 @@ const pt = {
     about: "Sobre o projeto",
 
     actions: {
+      play: "JOGAR",
       github: "GITHUB",
       liveSite: "VER SITE",
     },
@@ -62,14 +63,18 @@ const pt = {
       },
     },
     media: {
+      title: "Mídia do projeto",
       select: "Selecionar mídia",
-    },
-    gallery: {
-      title: "Galeria",
+      expand: "Ampliar mídia",
+      close: "Fechar",
+      previous: "Mídia anterior",
+      next: "Próxima mídia",
     },
     playable: {
       title: "Jogar projeto",
       frameTitle: "Jogo interativo",
+      start: "Jogar",
+      close: "Fechar jogo",
     },
     related: {
       title: "Você também pode gostar",

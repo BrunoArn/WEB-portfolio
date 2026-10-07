@@ -9,7 +9,6 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
 import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
-import { ProjectGallery } from "@/features/project-detail/ProjectGallery";
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
 
@@ -115,10 +114,13 @@ export default async function ProjectPage({
     return (
         <main>
             <Container>
-                <ProjectHero
-                    project={project}
-                    actions={dictionary.projectDetail.actions}
-                />
+                <div className="pt-(--space-24) md:pt-(--space-32)">
+                    <ProjectHero
+                        project={project}
+                        actions={dictionary.projectDetail.actions}
+                        hasPlayable={Boolean(resolvedPlayable)}
+                    />
+                </div>
 
                 <div className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <div className="grid gap-(--space-40) md:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
@@ -138,19 +140,11 @@ export default async function ProjectPage({
                     <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
                         <ProjectMediaPreview
                             media={project.media}
-                            selectMediaLabel={dictionary.projectDetail.media.select}
+                            labels={dictionary.projectDetail.media}
                         />
                     </div>
                 )}
 
-                {project.media.length > 0 && (
-                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                        <ProjectGallery
-                            media={project.media}
-                            title={dictionary.projectDetail.gallery.title}
-                        />
-                    </div>
-                )}
 
                 {resolvedPlayable && (
                     <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
@@ -160,10 +154,11 @@ export default async function ProjectPage({
                             width={resolvedPlayable.width}
                             height={resolvedPlayable.height}
                             labels={dictionary.projectDetail.playable}
+                            poster={project.cover}
                         />
                     </div>
                 )}
-                
+
                 {relatedProjects.length > 0 && (
                     <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
                         <RelatedProjects

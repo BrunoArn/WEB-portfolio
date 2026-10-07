@@ -39,6 +39,7 @@ const en = {
     about: "About the Project",
 
     actions: {
+      play: "PLAY",
       github: "GITHUB",
       liveSite: "LIVE SITE",
     },
@@ -62,14 +63,18 @@ const en = {
       },
     },
     media: {
+      title: "Project Media",
       select: "Select media",
-    },
-    gallery: {
-      title: "Gallery",
+      expand: "Expand media",
+      close: "Close",
+      previous: "Previous media",
+      next: "Next media",
     },
     playable: {
       title: "Play Project",
       frameTitle: "Interactive game",
+      start: "Play",
+      close: "Close game",
     },
     related: {
       title: "You May Also Like",

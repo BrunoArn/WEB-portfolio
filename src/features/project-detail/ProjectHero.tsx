@@ -5,14 +5,18 @@ import Image from "next/image";
 type ProjectHeroProps = {
     project: Project;
     actions: Readonly<{
+        play: string;
         github: string;
         liveSite: string;
     }>;
+
+    hasPlayable: boolean;
 };
 
 export function ProjectHero({
     project,
     actions,
+    hasPlayable,
 }: ProjectHeroProps) {
 
     return (
@@ -46,14 +50,23 @@ export function ProjectHero({
                             {project.role} · {project.year}
                         </p>
 
-                        {(project.githubUrl || project.liveSiteUrl) && (
+                        {(hasPlayable || project.liveSiteUrl || project.githubUrl) && (
                             <div className="mt-(--space-24) flex flex-wrap gap-(--space-8)">
+                                {hasPlayable && (
+                                    <a
+                                        href="#playable"
+                                        className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    >
+                                        ▶ {actions.play}
+                                    </a>
+                                )}
+
                                 {project.liveSiteUrl && (
                                     <a
                                         href={project.liveSiteUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                        className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                     >
                                         {actions.liveSite} ↗
                                     </a>
@@ -87,14 +100,23 @@ export function ProjectHero({
                         {project.role} · {project.year}
                     </p>
 
-                    {(project.githubUrl || project.liveSiteUrl) && (
+                    {(hasPlayable || project.liveSiteUrl || project.githubUrl) && (
                         <div className="mt-(--space-24) flex flex-wrap gap-(--space-8)">
+                            {hasPlayable && (
+                                <a
+                                    href="#playable"
+                                    className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                >
+                                    ▶ {actions.play}
+                                </a>
+                            )}
+
                             {project.liveSiteUrl && (
                                 <a
                                     href={project.liveSiteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="rounded-(--radius-control) bg-app-accent px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                 >
                                     {actions.liveSite} ↗
                                 </a>
