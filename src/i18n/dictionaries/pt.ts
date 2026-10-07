@@ -64,6 +64,9 @@ const pt = {
     media: {
       select: "Selecionar mídia",
     },
+    gallery: {
+      title: "Galeria",
+    },
   },
 } as const;
 

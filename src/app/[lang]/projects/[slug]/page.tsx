@@ -9,6 +9,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
 import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
+import { ProjectGallery } from "@/features/project-detail/ProjectGallery";
 
 type ProjectPageProps = {
     params: Promise<{
@@ -79,6 +80,15 @@ export default async function ProjectPage({
                                 media={project.media}
                                 selectMediaLabel={dictionary.projectDetail.media.select}
                             />
+                        )}
+
+                        {project.media.length > 0 && (
+                            <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                                <ProjectGallery
+                                    media={project.media}
+                                    title={dictionary.projectDetail.gallery.title}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>

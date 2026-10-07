@@ -64,6 +64,9 @@ const en = {
     media: {
       select: "Select media",
     },
+    gallery: {
+      title: "Gallery",
+    },
   },
 } as const;
 
