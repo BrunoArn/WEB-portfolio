@@ -37,7 +37,31 @@ export function ProjectPlayable({
     useEffect(() => {
         if (isPlaying) {
             hasStartedRef.current = true;
-            closeButtonRef.current?.focus();
+            const closeButton = closeButtonRef.current;
+            closeButton?.focus({ preventScroll: true });
+
+            if (closeButton) {
+                const bounds = closeButton.getBoundingClientRect();
+                const navbarBottom = Array.from(document.querySelectorAll("header"))
+                    .reduce((bottom, header) => {
+                        const headerBounds = header.getBoundingClientRect();
+                        return getComputedStyle(header).position === "fixed" && headerBounds.height > 0
+                            ? Math.max(bottom, headerBounds.bottom)
+                            : bottom;
+                    }, 0);
+                const gap = parseFloat(getComputedStyle(closeButton).getPropertyValue("--space-8")) || 0;
+
+                // Move only an obscured/offscreen control; leave visible focus in place.
+                const scrollOffset = bounds.top < navbarBottom
+                    ? bounds.top - navbarBottom - gap
+                    : bounds.bottom > window.innerHeight
+                        ? bounds.bottom - window.innerHeight + gap
+                        : 0;
+
+                if (scrollOffset !== 0) {
+                    window.scrollBy({ top: scrollOffset, behavior: "instant" });
+                }
+            }
         } else if (hasStartedRef.current) {
             playButtonRef.current?.focus();
         }
