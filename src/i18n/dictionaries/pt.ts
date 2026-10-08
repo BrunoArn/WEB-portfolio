@@ -43,6 +43,7 @@ const pt = {
     skills: "Competências",
     languages: "Idiomas",
     links: "Links profissionais",
+    achievements: "Conquistas e destaques",
   },
 
   projectDetail: {

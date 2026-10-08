@@ -43,6 +43,7 @@ const en = {
     skills: "Skills",
     languages: "Languages",
     links: "Professional Links",
+    achievements: "Achievements & Highlights",
   },
 
   projectDetail: {

@@ -10,6 +10,7 @@ import { AboutEducation } from "@/features/about/AboutEducation";
 import { AboutSkills } from "@/features/about/AboutSkills";
 import { AboutLanguages } from "@/features/about/AboutLanguages";
 import { AboutLinks } from "@/features/about/AboutLinks";
+import { AboutAchievements } from "@/features/about/AboutAchievements";
 
 type AboutPageProps = {
     params: Promise<{ lang: string }>;
@@ -92,36 +93,46 @@ export default async function AboutPage({
 
                     </div>
                 </section>
-                <AboutExperience
-                    experiences={about.experience}
-                    title={dictionary.about.experience}
-                    presentLabel={dictionary.about.present}
-                />
+                <div className="grid gap-(--space-20) md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] md:items-start">
+                    <div className="min-w-0">
+                        <AboutExperience
+                            experiences={about.experience}
+                            title={dictionary.about.experience}
+                            presentLabel={dictionary.about.present}
+                        />
 
-                <AboutEducation
-                    education={about.education}
-                    title={dictionary.about.education}
-                />
+                        <AboutEducation
+                            education={about.education}
+                            title={dictionary.about.education}
+                        />
+                    </div>
 
 
-                <div className="flex flex-col gap-(--space-20) pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                    <AboutSkills
-                        groups={about.skillGroups}
-                        title={dictionary.about.skills}
-                    />
+                    <div className="flex min-w-0 flex-col gap-(--space-20)">
+                        <AboutSkills
+                            groups={about.skillGroups}
+                            title={dictionary.about.skills}
+                        />
 
-                    <AboutLanguages
-                        languages={about.languages}
-                        title={dictionary.about.languages}
-                    />
+                        <AboutLanguages
+                            languages={about.languages}
+                            title={dictionary.about.languages}
+                        />
 
-                    <AboutLinks
-                        githubUrl={about.githubUrl}
-                        linkedinUrl={about.linkedinUrl}
-                        itchUrl={about.itchUrl}
-                        title={dictionary.about.links}
-                    />
+                        <AboutLinks
+                            githubUrl={about.githubUrl}
+                            linkedinUrl={about.linkedinUrl}
+                            itchUrl={about.itchUrl}
+                            title={dictionary.about.links}
+                        />
+
+                    </div>
                 </div>
+
+                <AboutAchievements
+                    achievements={about.achievements}
+                    title={dictionary.about.achievements}
+                />
 
             </Container>
         </main>
