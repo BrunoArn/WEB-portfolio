@@ -40,6 +40,9 @@ const en = {
     experience: "Professional Experience",
     present: "Present",
     education: "Education",
+    skills: "Skills",
+    languages: "Languages",
+    links: "Professional Links",
   },
 
   projectDetail: {

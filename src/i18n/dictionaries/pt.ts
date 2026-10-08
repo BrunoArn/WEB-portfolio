@@ -40,6 +40,9 @@ const pt = {
     experience: "Experiência profissional",
     present: "Presente",
     education: "Formação acadêmica",
+    skills: "Competências",
+    languages: "Idiomas",
+    links: "Links profissionais",
   },
 
   projectDetail: {

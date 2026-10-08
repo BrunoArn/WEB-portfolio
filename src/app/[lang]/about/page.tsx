@@ -7,6 +7,9 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { getAbout } from "@/sanity/repositories/about";
 import { AboutExperience } from "@/features/about/AboutExperience";
 import { AboutEducation } from "@/features/about/AboutEducation";
+import { AboutSkills } from "@/features/about/AboutSkills";
+import { AboutLanguages } from "@/features/about/AboutLanguages";
+import { AboutLinks } from "@/features/about/AboutLinks";
 
 type AboutPageProps = {
     params: Promise<{ lang: string }>;
@@ -94,11 +97,32 @@ export default async function AboutPage({
                     title={dictionary.about.experience}
                     presentLabel={dictionary.about.present}
                 />
-                
+
                 <AboutEducation
                     education={about.education}
                     title={dictionary.about.education}
                 />
+
+
+                <div className="flex flex-col gap-(--space-20) pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                    <AboutSkills
+                        groups={about.skillGroups}
+                        title={dictionary.about.skills}
+                    />
+
+                    <AboutLanguages
+                        languages={about.languages}
+                        title={dictionary.about.languages}
+                    />
+
+                    <AboutLinks
+                        githubUrl={about.githubUrl}
+                        linkedinUrl={about.linkedinUrl}
+                        itchUrl={about.itchUrl}
+                        title={dictionary.about.links}
+                    />
+                </div>
+
             </Container>
         </main>
     );
