@@ -17,7 +17,7 @@ export function AboutAchievements({
     return (
         <section
             aria-labelledby="about-achievements-title"
-            className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)"
+            className="pt-(--section-spacing-mobile) pb-(--section-spacing-mobile) md:pt-(--section-spacing-desktop) md:pb-(--section-spacing-desktop)"
         >
             <h2
                 id="about-achievements-title"

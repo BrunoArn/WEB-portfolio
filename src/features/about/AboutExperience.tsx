@@ -19,7 +19,7 @@ export function AboutExperience({
     return (
         <section
             aria-labelledby="about-experience-title"
-            className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)"
+            className="pt-0"
         >
             <h2
                 id="about-experience-title"

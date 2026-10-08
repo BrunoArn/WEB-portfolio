@@ -94,7 +94,7 @@ export default async function AboutPage({
                     </div>
                 </section>
                 <div className="grid gap-(--space-20) md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] md:items-start">
-                    <div className="min-w-0">
+                    <div className="flex min-w-0 flex-col gap-(--space-40)">
                         <AboutExperience
                             experiences={about.experience}
                             title={dictionary.about.experience}
