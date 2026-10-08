@@ -68,6 +68,9 @@ export const aboutQuery = `
     cvPt{
       asset->{
         _id,
+        _type,
+        mimeType,
+        extension,
         url
       }
     },
@@ -75,6 +78,9 @@ export const aboutQuery = `
     cvEn{
       asset->{
         _id,
+        _type,
+        mimeType,
+        extension,
         url
       }
     }

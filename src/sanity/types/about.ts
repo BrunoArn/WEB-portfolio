@@ -41,6 +41,9 @@ export interface SanityAboutAchievement {
 export interface SanityAboutFile {
     asset: {
         _id: string;
+        _type: "sanity.fileAsset";
+        mimeType: string | null;
+        extension: string | null;
         url: string;
     } | null;
 }
