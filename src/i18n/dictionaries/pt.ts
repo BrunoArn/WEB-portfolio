@@ -35,6 +35,13 @@ const pt = {
       empty: "Nenhum projeto encontrado nesta categoria.",
     },
   },
+
+  about: {
+    experience: "Experiência profissional",
+    present: "Presente",
+    education: "Formação acadêmica",
+  },
+
   projectDetail: {
     about: "Sobre o projeto",
 

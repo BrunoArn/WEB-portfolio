@@ -35,6 +35,13 @@ const en = {
       empty: "No projects found in this category.",
     },
   },
+
+  about: {
+    experience: "Professional Experience",
+    present: "Present",
+    education: "Education",
+  },
+
   projectDetail: {
     about: "About the Project",
 
