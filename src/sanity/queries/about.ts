@@ -50,6 +50,16 @@ export const aboutQuery = `
       []
     ),
 
+    "achievements": coalesce(
+      achievements[]{
+        _key,
+        title,
+        year,
+        description
+      },
+      []
+    ),
+
     email,
     githubUrl,
     linkedinUrl,

@@ -204,6 +204,57 @@ export const aboutPage = defineType({
             ],
         }),
 
+
+        defineField({
+            name: 'achievements',
+            title: 'Achievements & Highlights',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    name: 'achievementEntry',
+                    title: 'Achievement',
+                    fields: [
+                        defineField({
+                            name: 'title',
+                            title: 'Title',
+                            type: 'localizedString',
+                            validation: (rule) => rule.required(),
+                        }),
+                        defineField({
+                            name: 'year',
+                            title: 'Year',
+                            type: 'number',
+                            validation: (rule) =>
+                                rule.required().integer().min(1950).max(2100),
+                        }),
+                        defineField({
+                            name: 'description',
+                            title: 'Description',
+                            type: 'localizedText',
+                            validation: (rule) => rule.required(),
+                        }),
+                    ],
+                    preview: {
+                        select: {
+                            title: 'title.en',
+                            subtitle: 'year',
+                        },
+                        prepare({ title, subtitle }) {
+                            return {
+                                title,
+                                subtitle:
+                                    typeof subtitle === 'number'
+                                        ? String(subtitle)
+                                        : undefined,
+                            }
+                        },
+                    },
+                },
+            ],
+        }),
+
+
         defineField({
             name: 'email',
             title: 'Contact Email',

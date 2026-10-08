@@ -29,6 +29,13 @@ export interface AboutLanguage {
     proficiency: string;
 }
 
+export interface AboutAchievement {
+    id: string;
+    title: string;
+    year: number;
+    description: string;
+}
+
 export interface About {
     name: string;
     headline: string;
@@ -38,6 +45,7 @@ export interface About {
     education: AboutEducation[];
     skillGroups: AboutSkillGroup[];
     languages: AboutLanguage[];
+    achievements: AboutAchievement[];
 
     email: string;
 

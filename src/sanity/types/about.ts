@@ -31,6 +31,13 @@ export interface SanityAboutLanguage {
     proficiency: LocalizedValue;
 }
 
+export interface SanityAboutAchievement {
+    _key: string;
+    title: LocalizedValue;
+    year: number;
+    description: LocalizedValue;
+}
+
 export interface SanityAboutFile {
     asset: {
         _id: string;
@@ -49,6 +56,7 @@ export interface SanityAbout {
     education: SanityAboutEducation[];
     skillGroups: SanityAboutSkillGroup[];
     languages: SanityAboutLanguage[];
+    achievements: SanityAboutAchievement[];
 
     email: string;
 

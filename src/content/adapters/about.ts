@@ -5,6 +5,7 @@ import type {
     AboutEducation,
     AboutSkillGroup,
     AboutLanguage,
+    AboutAchievement,
 } from "@/content/types/about";
 
 import type {
@@ -13,6 +14,7 @@ import type {
     SanityAboutEducation,
     SanityAboutSkillGroup,
     SanityAboutLanguage,
+    SanityAboutAchievement,
 } from "@/sanity/types/about";
 
 import {
@@ -72,6 +74,17 @@ function adaptLanguage(
         proficiency: resolveLocalizedValue(entry.proficiency, language),
     };
 }
+function adaptAchievement(
+    entry: SanityAboutAchievement,
+    language: ContentLanguage,
+): AboutAchievement {
+    return {
+        id: entry._key,
+        title: resolveLocalizedValue(entry.title, language),
+        year: entry.year,
+        description: resolveLocalizedValue(entry.description, language),
+    };
+}
 
 export function adaptAbout(
     about: SanityAbout,
@@ -107,6 +120,9 @@ export function adaptAbout(
 
         languages: about.languages.map((entry) =>
             adaptLanguage(entry, language),
+        ),
+        achievements: (about.achievements ?? []).map((entry) =>
+            adaptAchievement(entry, language),
         ),
 
         email: about.email,
