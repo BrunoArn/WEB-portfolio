@@ -2,7 +2,7 @@
 
 import type { ProjectMedia } from "@/content/types/project";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -19,6 +19,38 @@ type ProjectMediaPreviewProps = {
     }>;
 };
 
+type VideoPosition = { source: string; time: number };
+
+function pauseVideo(video: HTMLVideoElement | null): VideoPosition | null {
+    if (!video) return null;
+
+    const position = {
+        source: video.getAttribute("src") ?? "",
+        time: Number.isFinite(video.currentTime) ? Math.max(0, video.currentTime) : 0,
+    };
+    video.pause();
+    return position;
+}
+
+function restoreVideoPosition(
+    video: HTMLVideoElement | null,
+    pending: { current: VideoPosition | null },
+) {
+    const position = pending.current;
+    if (!video || !position || video.getAttribute("src") !== position.source || video.readyState === 0) {
+        return;
+    }
+
+    try {
+        video.currentTime = Number.isFinite(video.duration)
+            ? Math.min(position.time, Math.max(0, video.duration))
+            : position.time;
+        pending.current = null;
+    } catch {
+        // Some media cannot seek yet; retry on canplay without a timer.
+    }
+}
+
 export function ProjectMediaPreview({
     media,
     labels,
@@ -29,9 +61,27 @@ export function ProjectMediaPreview({
     const dialogRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const openerRef = useRef<HTMLButtonElement>(null);
+    const inlineVideoRef = useRef<HTMLVideoElement>(null);
+    const expandedVideoRef = useRef<HTMLVideoElement>(null);
+    const modalStartRef = useRef<VideoPosition | null>(null);
+    const inlineReturnRef = useRef<VideoPosition | null>(null);
     const activeMedia = media[activeIndex] ?? media[0];
 
+    const stopExpandedVideo = useCallback(() => {
+        pauseVideo(expandedVideoRef.current);
+        modalStartRef.current = null;
+    }, []);
+
+    const closeLightbox = useCallback(() => {
+        inlineReturnRef.current = pauseVideo(expandedVideoRef.current);
+        pauseVideo(inlineVideoRef.current);
+        restoreVideoPosition(inlineVideoRef.current, inlineReturnRef);
+        modalStartRef.current = null;
+        setIsExpanded(false);
+    }, []);
+
     const showPreviousMedia = () => {
+        stopExpandedVideo();
         setActiveIndex((currentIndex) =>
             currentIndex === 0
                 ? media.length - 1
@@ -40,6 +90,7 @@ export function ProjectMediaPreview({
     };
 
     const showNextMedia = () => {
+        stopExpandedVideo();
         setActiveIndex((currentIndex) =>
             currentIndex === media.length - 1
                 ? 0
@@ -118,7 +169,7 @@ export function ProjectMediaPreview({
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 event.preventDefault();
-                setIsExpanded(false);
+                closeLightbox();
                 return;
             }
 
@@ -175,7 +226,13 @@ export function ProjectMediaPreview({
                 return;
             }
 
+            if (media.length < 2) {
+                return;
+            }
+
             event.preventDefault();
+
+            stopExpandedVideo();
 
             if (event.key === "ArrowLeft") {
                 setActiveIndex((currentIndex) =>
@@ -199,7 +256,7 @@ export function ProjectMediaPreview({
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isExpanded, media.length]);
+    }, [isExpanded, media.length, closeLightbox, stopExpandedVideo]);
 
     if (!activeMedia) {
         return null;
@@ -235,6 +292,10 @@ export function ProjectMediaPreview({
                         </button>
                     ) : (
                         <video
+                            ref={inlineVideoRef}
+                            key={activeMedia.src}
+                            onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
+                            onCanPlay={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
                             src={activeMedia.src}
                             controls
                             preload="metadata"
@@ -248,6 +309,8 @@ export function ProjectMediaPreview({
                         type="button"
                         onClick={(event) => {
                             openerRef.current = event.currentTarget;
+                            inlineReturnRef.current = null;
+                            modalStartRef.current = pauseVideo(inlineVideoRef.current);
                             setIsExpanded(true);
                         }}
                         className="mt-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
@@ -306,7 +369,7 @@ export function ProjectMediaPreview({
                     <button
                         ref={closeButtonRef}
                         type="button"
-                        onClick={() => setIsExpanded(false)}
+                        onClick={closeLightbox}
                         className="absolute right-(--space-20) top-(--space-20) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
                         {labels.close} ×
@@ -346,6 +409,10 @@ export function ProjectMediaPreview({
                             />
                         ) : (
                             <video
+                                ref={expandedVideoRef}
+                                key={activeMedia.src}
+                                onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
+                                onCanPlay={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
                                 src={activeMedia.src}
                                 controls
                                 autoPlay
