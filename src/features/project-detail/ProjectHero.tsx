@@ -47,7 +47,7 @@ export function ProjectHero({
                             {project.title}
                         </h1>
 
-                        <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                        <p className="mt-(--space-12) [overflow-wrap:anywhere] text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
                             {project.role} · {project.year}
                         </p>
 
@@ -97,7 +97,7 @@ export function ProjectHero({
                         {project.title}
                     </h1>
 
-                    <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                    <p className="mt-(--space-12) [overflow-wrap:anywhere] text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
                         {project.role} · {project.year}
                     </p>
 
