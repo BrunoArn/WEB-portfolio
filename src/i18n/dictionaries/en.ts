@@ -35,6 +35,51 @@ const en = {
       empty: "No projects found in this category.",
     },
   },
+  projectDetail: {
+    about: "About the Project",
+
+    actions: {
+      play: "PLAY",
+      github: "GITHUB",
+      liveSite: "LIVE SITE",
+    },
+
+    info: {
+      title: "Project Info",
+      role: "Role",
+      year: "Year",
+      team: "Team",
+      technologies: "Technologies",
+      organization: "Organization",
+      status: "Status",
+
+      statuses: {
+        released: "Released",
+        prototype: "Prototype",
+        hackathon: "Hackathon",
+        client: "Client",
+        development: "In Development",
+        archived: "Archived",
+      },
+    },
+    media: {
+      title: "Project Media",
+      select: "Select media",
+      expand: "Expand media",
+      close: "Close",
+      previous: "Previous media",
+      next: "Next media",
+    },
+    playable: {
+      title: "Play Project",
+      frameTitle: "Interactive game",
+      start: "Play",
+      close: "Close game",
+    },
+    related: {
+      title: "You May Also Like",
+    },
+  },
 } as const;
 
 export default en;

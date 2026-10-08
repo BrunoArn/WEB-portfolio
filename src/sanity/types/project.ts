@@ -14,6 +14,8 @@ export interface SanityProjectTeamMember {
 export interface SanityProjectPlayable {
     type: "unity-webgl";
     source: string;
+    width: number;
+    height: number;
 }
 
 export interface SanityProjectSeo {

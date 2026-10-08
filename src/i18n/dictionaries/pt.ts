@@ -35,6 +35,51 @@ const pt = {
       empty: "Nenhum projeto encontrado nesta categoria.",
     },
   },
+  projectDetail: {
+    about: "Sobre o projeto",
+
+    actions: {
+      play: "JOGAR",
+      github: "GITHUB",
+      liveSite: "VER SITE",
+    },
+
+    info: {
+      title: "Informações do projeto",
+      role: "Função",
+      year: "Ano",
+      team: "Equipe",
+      technologies: "Tecnologias",
+      organization: "Organização",
+      status: "Status",
+
+      statuses: {
+        released: "Lançado",
+        prototype: "Protótipo",
+        hackathon: "Hackathon",
+        client: "Cliente",
+        development: "Em desenvolvimento",
+        archived: "Arquivado",
+      },
+    },
+    media: {
+      title: "Mídia do projeto",
+      select: "Selecionar mídia",
+      expand: "Ampliar mídia",
+      close: "Fechar",
+      previous: "Mídia anterior",
+      next: "Próxima mídia",
+    },
+    playable: {
+      title: "Jogar projeto",
+      frameTitle: "Jogo interativo",
+      start: "Jogar",
+      close: "Fechar jogo",
+    },
+    related: {
+      title: "Você também pode gostar",
+    },
+  },
 } as const;
 
 export default pt;
