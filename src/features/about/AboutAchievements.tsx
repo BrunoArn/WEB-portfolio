@@ -17,7 +17,7 @@ export function AboutAchievements({
     return (
         <section
             aria-labelledby="about-achievements-title"
-            className="pt-(--section-spacing-mobile) pb-(--section-spacing-mobile) md:pt-(--section-spacing-desktop) md:pb-(--section-spacing-desktop)"
+            className="pt-(--section-spacing-mobile) md:pt-(--section-spacing-desktop)"
         >
             <h2
                 id="about-achievements-title"
@@ -37,7 +37,7 @@ export function AboutAchievements({
                         </span>
 
                         <div className="min-w-0">
-                            <h3 className="text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {achievement.title}
                             </h3>
 

@@ -33,7 +33,7 @@ export function AboutEducation({
                         className="border-t border-app-border py-(--space-24)"
                     >
                         <div className="flex flex-col gap-(--space-8) md:flex-row md:items-baseline md:justify-between md:gap-(--space-24)">
-                            <h3 className="text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="min-w-0 wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {entry.degree}
                             </h3>
 
@@ -46,12 +46,12 @@ export function AboutEducation({
                             )}
                         </div>
 
-                        <p className="mt-(--space-8) text-(length:--font-size-body) text-app-accent">
+                        <p className="wrap-break-word mt-(--space-8) text-(length:--font-size-body) text-app-accent">
                             {entry.institution}
                         </p>
 
                         {entry.description && (
-                            <p className="mt-(--space-16) max-w-3xl whitespace-pre-line text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                            <p className="wrap-break-word mt-(--space-16) max-w-3xl whitespace-pre-line text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
                                 {entry.description}
                             </p>
                         )}

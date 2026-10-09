@@ -32,11 +32,11 @@ export function AboutLanguages({
                         key={language.id}
                         className="flex flex-wrap items-baseline justify-between gap-x-(--space-16) gap-y-(--space-4)"
                     >
-                        <dt className="text-(length:--font-size-body) font-medium text-app-text-primary">
+                        <dt className="min-w-0 wrap-break-word text-(length:--font-size-body) font-medium text-app-text-primary">
                             {language.name}
                         </dt>
 
-                        <dd className="text-(length:--font-size-body) text-app-text-secondary">
+                        <dd className="min-w-0 wrap-break-word text-(length:--font-size-body) text-app-text-secondary">
                             {language.proficiency}
                         </dd>
                     </div>

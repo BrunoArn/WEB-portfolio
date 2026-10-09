@@ -50,7 +50,7 @@ export default async function AboutPage({
 
 
     return (
-        <main>
+        <main className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <div className="max-w-4xl">
@@ -58,15 +58,15 @@ export default async function AboutPage({
                             {dictionary.navigation.about}
                         </p>
 
-                        <h1 className="mt-(--space-16) text-(length:--font-size-hero-mobile) font-semibold leading-(--line-height-hero) text-app-text-primary md:text-(length:--font-size-hero-desktop)">
+                        <h1 className="wrap-break-word mt-(--space-16) text-(length:--font-size-hero-mobile) font-semibold leading-(--line-height-hero) text-app-text-primary md:text-(length:--font-size-hero-desktop)">
                             {about.name}
                         </h1>
 
-                        <p className="mt-(--space-16) text-(length:--font-size-body) font-medium leading-(--line-height-body) text-app-accent">
+                        <p className="wrap-break-word mt-(--space-16) text-(length:--font-size-body) font-medium leading-(--line-height-body) text-app-accent">
                             {about.headline}
                         </p>
 
-                        <p className="mt-(--space-16) max-w-3xl whitespace-pre-line text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                        <p className="wrap-break-word mt-(--space-16) max-w-3xl whitespace-pre-line text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
                             {about.introduction}
                         </p>
 
@@ -76,7 +76,7 @@ export default async function AboutPage({
                                 href={`mailto:${about.email}`}
                                 className="inline-flex min-h-10 items-center justify-center rounded-(--radius-control) bg-app-accent px-(--space-16) text-(length:--font-size-label) font-medium uppercase text-app-background transition-opacity duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
-                                EMAIL ↗
+                                {dictionary.about.emailLabel}<span aria-hidden="true">&nbsp;↗</span>
                             </a>
 
                             {about.cvUrl && (
@@ -86,7 +86,7 @@ export default async function AboutPage({
                                     rel="noopener noreferrer"
                                     className="inline-flex min-h-10 items-center justify-center rounded-(--radius-control) border border-app-border bg-app-surface px-(--space-16) text-(length:--font-size-label) font-medium uppercase text-app-text-primary transition-colors duration-(--motion-fast) hover:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                 >
-                                    DOWNLOAD CV ↓
+                                    {dictionary.about.cvLabel}<span aria-hidden="true">&nbsp;↗</span>
                                 </a>
                             )}
                         </div>

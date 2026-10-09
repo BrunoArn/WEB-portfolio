@@ -37,6 +37,8 @@ const en = {
   },
 
   about: {
+    emailLabel: "SEND EMAIL",
+    cvLabel: "VIEW RÉSUMÉ",
     experience: "Professional Experience",
     present: "Present",
     education: "Education",

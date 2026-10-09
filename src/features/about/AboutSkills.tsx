@@ -29,7 +29,7 @@ export function AboutSkills({
             <div className="mt-(--space-24) flex flex-col gap-(--space-24)">
                 {groups.map((group) => (
                     <div key={group.id}>
-                        <h3 className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) tracking-wide text-app-text-secondary">
+                        <h3 className="wrap-break-word text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) tracking-wide text-app-text-secondary">
                             {group.title}
                         </h3>
 
@@ -37,7 +37,7 @@ export function AboutSkills({
                             {group.skills.map((skill, index) => (
                                 <li
                                     key={`${group.id}-${index}`}
-                                    className="rounded-(--radius-control) border border-app-border px-(--space-8) py-(--space-4) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-body"
+                                    className="min-w-0 wrap-break-word rounded-(--radius-control) border border-app-border px-(--space-8) py-(--space-4) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-body"
                                 >
                                     {skill}
                                 </li>
