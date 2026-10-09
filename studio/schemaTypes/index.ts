@@ -7,7 +7,8 @@ import { teamMember } from './objects/teamMember'
 import { seo } from './objects/seo'
 
 import { category } from './documents/category'
-import {project} from './documents/project'
+import { project } from './documents/project'
+import { aboutPage } from './documents/aboutPage'
 
 export const schemaTypes = [
   localizedString,
@@ -19,4 +20,5 @@ export const schemaTypes = [
   seo,
   category,
   project,
+  aboutPage,
 ]

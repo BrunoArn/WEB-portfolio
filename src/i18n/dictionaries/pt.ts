@@ -35,6 +35,19 @@ const pt = {
       empty: "Nenhum projeto encontrado nesta categoria.",
     },
   },
+
+  about: {
+    emailLabel: "ENVIAR E-MAIL",
+    cvLabel: "VER CURRÍCULO",
+    experience: "Experiência profissional",
+    present: "Presente",
+    education: "Formação acadêmica",
+    skills: "Competências",
+    languages: "Idiomas",
+    links: "Links profissionais",
+    achievements: "Conquistas e destaques",
+  },
+
   projectDetail: {
     about: "Sobre o projeto",
 

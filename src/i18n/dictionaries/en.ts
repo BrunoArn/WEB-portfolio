@@ -35,6 +35,19 @@ const en = {
       empty: "No projects found in this category.",
     },
   },
+
+  about: {
+    emailLabel: "SEND EMAIL",
+    cvLabel: "VIEW RÉSUMÉ",
+    experience: "Professional Experience",
+    present: "Present",
+    education: "Education",
+    skills: "Skills",
+    languages: "Languages",
+    links: "Professional Links",
+    achievements: "Achievements & Highlights",
+  },
+
   projectDetail: {
     about: "About the Project",
 
