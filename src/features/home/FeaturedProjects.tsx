@@ -1,6 +1,7 @@
 "use client";
 
 import type { Project } from "@/content/types/project";
+import type { Locale } from "@/i18n/config";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { useState } from "react";
 
 type FeaturedProjectsProps = {
   projects: Project[];
+  locale: Locale;
   eyebrow: string;
   title: string;
   viewAllLabel: string;
@@ -17,6 +19,7 @@ type FeaturedProjectsProps = {
 
 export function FeaturedProjects({
   projects,
+  locale,
   eyebrow,
   title,
   viewAllLabel,
@@ -55,17 +58,20 @@ export function FeaturedProjects({
       {/* cover */}
       <article className="overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface">
         <div className="grid lg:min-h-105 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] xl:min-h-100 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <div key={`cover-${project.slug}`}
-            className="featured-project-enter relative h-64 overflow-hidden bg-app-surface-elevated lg:h-auto"
+          <Link
+            key={`cover-${project.slug}`}
+            href={`/${locale}/projects/${project.slug}`}
+            aria-label={project.title}
+            className="featured-project-enter relative block h-64 overflow-hidden bg-app-surface-elevated focus-visible:outline-none after:pointer-events-none after:absolute after:inset-1 after:z-10 after:content-[''] focus-visible:after:outline-4 focus-visible:after:outline-offset-0 focus-visible:after:outline-app-accent lg:h-auto"
           >
             <Image
               src={project.cover.src}
-              alt={project.cover.alt}
+              alt=""
               fill
               sizes="(min-width: 1280px) 800px, (min-width: 1024px) calc(60vw - 48px), (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
               className="object-cover"
             />
-          </div>
+          </Link>
           {/* painel */}
           <div className="flex min-h-100 min-w-0 flex-col p-(--panel-padding-mobile) sm:min-h-85 md:p-(--panel-padding) lg:min-h-105 xl:min-h-100">
             <div className="grid">
@@ -86,7 +92,12 @@ export function FeaturedProjects({
                     </p>
 
                     <h3 className="mt-(--space-12) text-(length:--font-size-card-mobile) font-semibold leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
-                      {featuredProject.title}
+                      <Link
+                        href={`/${locale}/projects/${featuredProject.slug}`}
+                        className="rounded-(--radius-control) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                      >
+                        {featuredProject.title}
+                      </Link>
                     </h3>
 
                     <p className="mt-(--space-12) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
@@ -114,7 +125,7 @@ export function FeaturedProjects({
                       aria-label={`${selectProjectLabel}: ${featuredProject.title}`}
                       aria-pressed={isActive}
                       className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-(--radius-control) border transition-colors duration-(--motion-fast) 
-                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
+                        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent ${isActive
                           ? "border-app-accent"
                           : "border-app-border hover:border-app-text-secondary"
                         }`}

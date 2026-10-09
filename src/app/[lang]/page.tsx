@@ -43,6 +43,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
         <FeaturedProjects
           projects={featuredProjects}
+          locale={lang}
           eyebrow={dictionary.home.featured.eyebrow}
           title={dictionary.home.featured.title}
           viewAllLabel={dictionary.home.featured.viewAll}
@@ -52,6 +53,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
         <MoreProjects
           projects={moreProjects}
+          locale={lang}
           title={dictionary.home.moreProjects.title}
           viewAllLabel={dictionary.home.featured.viewAll}
           viewAllHref={`/${lang}/projects`}
