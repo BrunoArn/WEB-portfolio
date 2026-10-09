@@ -3,6 +3,95 @@ const en = {
     home: "Home",
     projects: "Projects",
     about: "About",
+    openMenu: "Open navigation menu",
+    closeMenu: "Close navigation menu",
+  },
+  home: {
+    hero: {
+      eyebrow: "DESIGNER / DEVELOPER · GAME DEVELOPER",
+      title: "Creating games and digital experiences.",
+      description:
+        "Game development, VR experiences and web applications, combining technical execution with design sensibility.",
+      cta: "EXPLORE PROJECTS",
+    },
+    featured: {
+      eyebrow: "SELECTED WORK",
+      title: "Featured Projects",
+      viewAll: "VIEW ALL",
+      selectProject: "Select project",
+    },
+    moreProjects: {
+      title: "More Projects",
+    },
+  },
+  projects: {
+    title: "Projects",
+    description:
+      "Projects across games, web, VR and interactive experiences, bringing together professional, personal and experimental work.",
+
+    filters: {
+      all: "All",
+      label: "Filter projects",
+      empty: "No projects found in this category.",
+    },
+  },
+
+  about: {
+    emailLabel: "SEND EMAIL",
+    cvLabel: "VIEW RÉSUMÉ",
+    experience: "Professional Experience",
+    present: "Present",
+    education: "Education",
+    skills: "Skills",
+    languages: "Languages",
+    links: "Professional Links",
+    achievements: "Achievements & Highlights",
+  },
+
+  projectDetail: {
+    about: "About the Project",
+
+    actions: {
+      play: "PLAY",
+      github: "GITHUB",
+      liveSite: "LIVE SITE",
+    },
+
+    info: {
+      title: "Project Info",
+      role: "Role",
+      year: "Year",
+      team: "Team",
+      technologies: "Technologies",
+      organization: "Organization",
+      status: "Status",
+
+      statuses: {
+        released: "Released",
+        prototype: "Prototype",
+        hackathon: "Hackathon",
+        client: "Client",
+        development: "In Development",
+        archived: "Archived",
+      },
+    },
+    media: {
+      title: "Project Media",
+      select: "Select media",
+      expand: "Expand media",
+      close: "Close",
+      previous: "Previous media",
+      next: "Next media",
+    },
+    playable: {
+      title: "Play Project",
+      frameTitle: "Interactive game",
+      start: "Play",
+      close: "Close game",
+    },
+    related: {
+      title: "You May Also Like",
+    },
   },
 } as const;
 

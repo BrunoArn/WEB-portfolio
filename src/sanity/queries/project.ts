@@ -87,10 +87,12 @@ export const projectProjection = `
   github,
   liveSite,
 
-  playable{
-    type,
-    source
-  },
+ playable{
+  type,
+  source,
+  width,
+  height
+},
 
   featured,
   order,

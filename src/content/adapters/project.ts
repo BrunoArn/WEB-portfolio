@@ -142,7 +142,11 @@ export function adaptProject(
     (
       project.playable.type !== "unity-webgl" ||
       typeof project.playable.source !== "string" ||
-      project.playable.source.trim().length === 0
+      project.playable.source.trim().length === 0 ||
+      !Number.isInteger(project.playable.width) ||
+      project.playable.width <= 0 ||
+      !Number.isInteger(project.playable.height) ||
+      project.playable.height <= 0
     )
   ) {
     throw new Error(
@@ -195,6 +199,8 @@ export function adaptProject(
       ? {
         type: project.playable.type,
         source: project.playable.source,
+        width: project.playable.width,
+        height: project.playable.height,
       }
       : undefined,
 
