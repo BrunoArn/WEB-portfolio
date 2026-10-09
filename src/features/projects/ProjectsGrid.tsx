@@ -1,14 +1,19 @@
 import type { Project } from "@/content/types/project";
+import type { Locale } from "@/i18n/config";
+import Link from "next/link";
 
 import Image from "next/image";
 
 type ProjectsGridProps = {
     projects: Project[];
+    locale: Locale;
 };
 
 export function ProjectsGrid({
     projects,
+    locale,
 }: ProjectsGridProps) {
+
     if (projects.length === 0) {
         return null;
     }
@@ -16,9 +21,10 @@ export function ProjectsGrid({
     return (
         <div className="grid grid-cols-1 gap-(--card-gap) md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-                <article
+                <Link
                     key={project.slug}
-                    className="group overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary"
+                    href={`/${locale}/projects/${project.slug}`}
+                    className="group block overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                 >
                     <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
                         <Image
@@ -43,7 +49,7 @@ export function ProjectsGrid({
                             {project.role} · {project.year}
                         </p>
                     </div>
-                </article>
+                </Link>
             ))}
         </div>
     );

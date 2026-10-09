@@ -62,6 +62,7 @@ export default async function ProjectsPage({
                             <ProjectsListing
                                 projects={projects}
                                 categories={categories}
+                                locale={lang}
                                 allLabel={dictionary.projects.filters.all}
                                 filtersLabel={dictionary.projects.filters.label}
                                 emptyLabel={dictionary.projects.filters.empty}
