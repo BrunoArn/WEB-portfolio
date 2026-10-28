@@ -17,7 +17,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
   let animations: Animation[] = [];
   let selection: { item: HTMLElement; trigger: HTMLButtonElement; thumb: HTMLElement; slot: HTMLElement; overflow: string; padding: string; scroll: number } | undefined;
   const stop = () => { animations.forEach(animation => animation.cancel()); animations = []; };
-  function animate(node: HTMLElement, frames: Keyframe[], duration = 720, delay = 0) {
+  function animate(node: HTMLElement, frames: Keyframe[], duration = 400, delay = 0) {
     const animation = node.animate(frames, { duration: reduced.matches ? 0 : duration, delay: reduced.matches ? 0 : delay, easing: "cubic-bezier(.22,.72,.18,1)", fill: "both" });
     animations.push(animation);
     return animation.finished.catch(() => {});
@@ -53,7 +53,10 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     dialog.querySelector("[data-atlas-description]")!.textContent = project.description ?? missingDescription;
     const detail = dialog.querySelector<HTMLAnchorElement>("[data-atlas-detail]")!;
     detail.hidden = !project.href;
-    if (project.href) detail.setAttribute("href", project.href); else detail.removeAttribute("href");
+    dialog.querySelectorAll<HTMLAnchorElement>("[data-atlas-project-link]").forEach(link => {
+      if (project.href) link.setAttribute("href", project.href); else link.removeAttribute("href");
+    });
+    media.setAttribute("aria-label", project.title);
     dialog.querySelector<HTMLElement>("[data-atlas-media-note]")!.hidden = thumb.dataset.atlasMissing !== "true";
     dialog.style.setProperty("--atlas-tone", `var(${atlasCategories[project.c].token})`);
     // Compensate only the removed scrollbar, keeping the approved map width intact.
@@ -80,7 +83,13 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     if (id !== epoch || !selection || disposed) return;
     stop();
     root.dataset.selection = "revealing";
-    await animate(panel, [{ opacity: 0 }, { opacity: 1 }], 220);
+    // The image has arrived. Reveal the body downward from its lower edge,
+    // keeping the image and the final card position fixed throughout.
+    const bodyHeight = Math.max(0, panel.getBoundingClientRect().height - media.getBoundingClientRect().height);
+    await animate(panel, [
+      { clipPath: `inset(0 0 ${bodyHeight}px 0 round 16px)` },
+      { clipPath: "inset(0 0 0 0 round 16px)" },
+    ], 220);
     if (id !== epoch || !selection || disposed) return;
     stop(); media.append(thumb); thumb.removeAttribute("style"); root.dataset.selection = "selected";
   }
@@ -89,23 +98,24 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     if (!state || root.dataset.selection === "closing") return;
     const id = ++epoch, from = state.thumb.getBoundingClientRect();
     const radius = parseFloat(getComputedStyle(state.thumb).borderTopLeftRadius), camera = getComputedStyle(world).transform;
-    const panelOpacity = getComputedStyle(panel).opacity;
+    const panelStyle = getComputedStyle(panel);
+    const panelOpacity = panelStyle.opacity, panelClip = panelStyle.clipPath;
     stop(); world.style.transform = "none";
     const target = state.slot.getBoundingClientRect();
     world.style.transform = camera; root.dataset.selection = "closing";
     const motion = move(state.thumb, from, target, radius, target.width / 2);
     world.style.transform = "none";
-    await Promise.all([motion, animate(world, [{ transform: camera }, { transform: "none" }]), animate(panel, [{ opacity: panelOpacity }, { opacity: 0 }], 180)]);
+    await Promise.all([motion, animate(world, [{ transform: camera }, { transform: "none" }]), animate(panel, [{ opacity: panelOpacity, clipPath: panelClip }, { opacity: 0, clipPath: panelClip }], 140)]);
     if (id === epoch && !disposed) restore();
   }
   function onClick(event: MouseEvent) {
     const trigger = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-atlas-trigger]");
     if (trigger && root.contains(trigger)) void open(trigger);
   }
-  function dismiss(event: MouseEvent) { if (event.target === dialog || (event.target as HTMLElement).closest("[data-atlas-close]")) void close(); }
+  function dismiss(event: MouseEvent) { if (!panel.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-atlas-close]")) void close(); }
   function trapFocus(event: KeyboardEvent) {
     if (event.key !== "Tab") return;
-    const targets = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]')).filter(node => !node.hidden);
+    const targets = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]')).filter(node => !node.hidden && getComputedStyle(node).visibility !== "hidden");
     const first = targets[0], last = targets.at(-1);
     if (!first || !last) return;
     if (event.shiftKey ? document.activeElement === first : document.activeElement === last) {

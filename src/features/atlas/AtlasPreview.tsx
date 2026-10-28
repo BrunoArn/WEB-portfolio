@@ -12,34 +12,22 @@ import { atlasWorlds } from "./atlas-layout";
 
 const copy = {
   pt: {
-    preview: "ATLAS / PRÉVIA",
-    eyebrow: "DISCOVERY THROUGH INTERACTION",
     title: <>Ideias que viram<br />experiências.</>,
     description: "Um território de jogos, interfaces e experiências interativas.",
     projects: "Projetos do Atlas",
     unavailable: "Miniatura indisponível",
-    imageNote: "sem miniatura",
-    note: "projetos",
     close: "Voltar ao mapa",
     contentNote: "Descrição indisponível.",
     detail: "Ver projeto completo",
-    diagnostics: "Pendências de conteúdo",
-    unplaced: "Projetos aguardando posicionamento",
   },
   en: {
-    preview: "ATLAS / PREVIEW",
-    eyebrow: "DISCOVERY THROUGH INTERACTION",
     title: <>Ideas into<br />experiences.</>,
     description: "A landscape of games, interfaces and interactive experiences.",
     projects: "Atlas projects",
     unavailable: "Thumbnail unavailable",
-    imageNote: "no thumbnail",
-    note: "projects",
     close: "Back to map",
     contentNote: "Description unavailable.",
     detail: "View full project",
-    diagnostics: "Content issues",
-    unplaced: "Projects awaiting placement",
   },
 } as const;
 
@@ -70,7 +58,7 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
   const world = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const media = useRef<HTMLDivElement>(null);
+  const media = useRef<HTMLAnchorElement>(null);
   const morph = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -123,32 +111,27 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
         </div>
         </div>
         <div className={styles.intro} ref={intro}>
-          <p className={styles.eyebrow}>{text.eyebrow}</p>
           <h1 className={styles.title}>{text.title}</h1>
           <p className={styles.description}>{text.description}</p>
         </div>
 
       </div>
       <dialog ref={dialog} id={dialogId} className={styles.dialog} aria-labelledby={dialogId + "-title"} aria-describedby={dialogId + "-description"}>
-        <div ref={panel} className={styles.card}>
+        <div className={styles.cardFrame}>
           <button type="button" className={styles.close} data-atlas-close>{text.close} <span aria-hidden="true">×</span></button>
-          <div ref={media} className={styles.selectedMedia} />
+          <div ref={panel} className={styles.card}>
+          <a ref={media} className={styles.selectedMedia} data-atlas-project-link />
           <div className={styles.selectedCopy}>
             <p className={styles.selectedCategory} data-atlas-category />
-            <h2 id={dialogId + "-title"} data-atlas-title />
+            <h2 id={dialogId + "-title"}><a className={styles.titleLink} data-atlas-project-link><span data-atlas-title /></a></h2>
             <p id={dialogId + "-description"} data-atlas-description />
             <p className={styles.mediaNote} data-atlas-media-note>{text.unavailable}</p>
-            <a className={styles.detailLink} data-atlas-detail hidden>{text.detail}</a>
+            <a className={styles.detailLink} data-atlas-detail data-atlas-project-link hidden>{text.detail}</a>
           </div>
+        </div>
         </div>
         <div ref={morph} className={styles.morph} aria-hidden="true" />
       </dialog>
-      <p className={styles.preview}>{text.preview} · {content.projects.length} {text.note}</p>
-      {(content.issues.length > 0 || content.unplaced.length > 0) && <details className={styles.diagnostics}>
-        <summary>{text.diagnostics} ({content.issues.length})</summary>
-        <ul>{content.issues.map(issue => <li key={issue}>{issue}</li>)}</ul>
-        {content.unplaced.length > 0 && <><p>{text.unplaced}</p><ul>{content.unplaced.map(project => <li key={project.id}>{project.href ? <a href={project.href}>{project.title}</a> : project.title}</li>)}</ul></>}
-      </details>}
     </main>
   );
 }
