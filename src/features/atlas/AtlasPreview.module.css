@@ -1,105 +1,105 @@
+/* Atlas-specific art tokens remain local; shared spacing comes from globals.css. */
 .root {
-  min-height: 670px;
-  padding: 40px 5% 56px;
-  background: #0b1211;
-  color: #dedfd4;
+  --atlas-world-width: var(--atlas-desktop-width);
+  --atlas-world-height: var(--atlas-desktop-height);
+  --atlas-background: #0b1211;
+  --atlas-text: #dedfd4;
+  --atlas-text-secondary: #95a39b;
+  --atlas-games: #a4b58c;
+  --atlas-web: #88aeb8;
+  --atlas-interactive: #c39374;
+  --atlas-footer-reserve: 68px;
+  height: var(--atlas-available-height, calc(100dvh - 61px - var(--atlas-footer-reserve)));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--atlas-background);
+  color: var(--atlas-text);
   font-family: system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
 
-.intro {
-  padding-top: 12px;
-}
+.viewport { position: relative; width: 100%; min-width: 0; max-width: 100%; flex: 1; min-height: 0; container-type: size; overflow: hidden; }
+.projectPlane { position: absolute; left: 50%; bottom: 0; width: min(100cqw, calc(100cqh * var(--atlas-world-width) / var(--atlas-world-height))); aspect-ratio: var(--atlas-world-width) / var(--atlas-world-height); transform: translateX(-50%); }
+.canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.intro { position: absolute; left: 5%; top: 7%; pointer-events: none; }
+.eyebrow { margin: 0; color: #98aa96; font-size: 9px; letter-spacing: 2px; }
+.title { margin: 22px 0; font-family: Georgia, serif; font-size: clamp(30px, 3.7vw, 60px); font-weight: 400; line-height: 1.05; letter-spacing: -1.5px; }
+.description { max-width: 280px; margin: 0; color: var(--atlas-text-secondary); font-size: var(--font-size-label); }
+.projects { list-style: none; margin: 0; padding: 0; }
+.project { position: absolute; display: flex; align-items: center; gap: 13px; transform: translate(-27px, -50%); max-width: 260px; isolation: isolate; margin: 0; }
+.project::before { content: ""; position: absolute; z-index: -1; inset: -30px -25px; background: radial-gradient(ellipse, var(--atlas-background) 25%, #0b1211d9 50%, transparent 73%); pointer-events: none; }
+.thumb { flex: none; display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid var(--atlas-tone); border-radius: 50%; background: #16201e; outline: 5px solid var(--atlas-background); color: var(--atlas-tone); overflow: hidden; }
+.thumbIcon { width: 24px; height: 24px; opacity: .7; }
+.label { min-width: 0; overflow-wrap: break-word; font-size: 12px; line-height: 1.4; text-shadow: 0 1px 6px var(--atlas-background); }
+.projectTitle { font-size: 13px; color: #eeeee4; }
+.projectMeta { display: block; color: #8f9c94; font-size: 10px; margin-top: 5px; }
+.left { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
+.territory { position: absolute; pointer-events: none; font-size: 10px; letter-spacing: 4px; opacity: .8; }
+.games { left: 45%; top: 19%; color: var(--atlas-games); }
+.web { left: 81%; top: 29%; color: var(--atlas-web); }
+.interactive { left: 51%; top: 88%; color: var(--atlas-interactive); }
+.preview { flex: none; padding: var(--space-12) 4vw; margin: 0; color: #82918a; font-size: 9px; letter-spacing: 1px; }
 
-.preview {
-  margin: 0 0 36px;
-  color: #82918a;
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
-.eyebrow {
-  margin: 0;
-  color: #98aa96;
-  font-size: 9px;
-  letter-spacing: 2px;
-}
-
-.title {
-  margin: 22px 0;
-  font-family: Georgia, serif;
-  font-size: clamp(36px, 3.7vw, 60px);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -1.5px;
-}
-
-.description {
-  max-width: 280px;
-  margin: 0;
-  color: #95a39b;
-  font-size: 12px;
-}
-
-.stage {
-  display: flex;
-  min-height: clamp(200px, 30vh, 340px);
-  margin-top: 48px;
-  padding: 28px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border: 1px dashed #34443b;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.stageTitle {
-  margin: 0;
-  color: #a4b58c;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.stageDescription {
-  margin: 8px 0 0;
-  color: #82918a;
-  font-size: 12px;
+@media (min-width: 761px) and (max-width: 1000px) {
+  .project { max-width: 210px; gap: 10px; }
+  .label { font-size: 11px; }
+  .projectTitle { font-size: 12px; }
+  .title { font-size: 34px; }
+  .eyebrow { font-size: 8px; }
+  .web { left: 83%; }
+  .project[data-atlas-project="fixture-apple-academy"] { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
+  .interactive { top: 94%; }
 }
 
 @media (max-width: 760px) {
-  .root {
-    min-height: 640px;
-    padding: 28px 7% 40px;
-  }
-
-  .preview {
-    margin-bottom: 30px;
-    font-size: 9px;
-  }
-
-  .title {
-    margin: 16px 0;
-    font-size: 39px;
-  }
-
-  .eyebrow {
-    font-size: 8px;
-  }
-
-  .stage {
-    margin-top: 40px;
-    padding: 20px;
-  }
+  .root { height: auto; display: block; --atlas-world-width: var(--atlas-mobile-width); --atlas-world-height: var(--atlas-mobile-height); }
+  .viewport { flex: none; height: auto; aspect-ratio: var(--atlas-world-width) / var(--atlas-world-height); min-height: 0; max-height: calc(var(--atlas-world-height) * 1px); }
+  .projectPlane { width: 100%; max-width: calc(var(--atlas-world-width) * 1px); left: 50%; transform: translateX(-50%); }
+  .intro { top: 3%; left: 7%; }
+  .title { font-size: 39px; margin: var(--space-16) 0; }
+  .eyebrow { font-size: 8px; }
+  .project { width: 190px; max-width: 190px; gap: 10px; transform: translate(-23px, -50%); }
+  .thumb { width: 46px; height: 46px; }
+  .left { transform: translate(calc(-100% + 23px), -50%); }
+  .label, .projectTitle { font-size: 11px; }
+  .projectMeta { font-size: 9px; }
+  .games { left: 64%; top: 25%; }
+  .web { left: 64%; top: 57%; }
+  .interactive { left: 43%; top: 94%; }
 }
 
 @media (max-width: 380px) {
-  .title {
-    font-size: 35px;
-  }
+  .project { max-width: 176px; }
+  .title { font-size: 35px; }
+  .eyebrow { letter-spacing: 1.4px; }
+}
 
-  .eyebrow {
-    letter-spacing: 1.4px;
-  }
+
+@media (max-width: 767px) { .root { --atlas-footer-reserve: 104px; } }
+@media (min-width: 761px) and (max-height: 700px) {
+  .project::before { display: none; }
+  .intro { top: 8px; }
+  .eyebrow, .description { display: none; }
+  .title { font-size: 28px; margin: 0; }
+  .project { width: 130px; max-width: 130px; gap: 8px; transform: translate(-12px, -50%); }
+  .thumb { width: 24px; height: 24px; outline-width: 3px; }
+  .thumbIcon { width: 16px; height: 16px; }
+  .left, .project[data-atlas-project="fixture-apple-academy"] { transform: translate(calc(-100% + 12px), -50%); }
+  .project[data-atlas-project="fixture-apple-academy"] { flex-direction: row-reverse; text-align: right; }
+  .label, .projectTitle { font-size: 10px; line-height: 1.2; }
+  .projectMeta { display: none; }
+  .territory { font-size: 9px; letter-spacing: 2px; }
+  .preview { padding-top: 6px; padding-bottom: 6px; font-size: 8px; letter-spacing: .6px; }
+}
+
+@media (min-width: 761px) and (max-height: 450px) {
+  .intro { left: var(--space-12); }
+  .title { font-size: 18px; max-width: 130px; }
+  .territory { display: none; }
+  .project[data-atlas-project="fixture-bloomancer"] { flex-direction: row-reverse; transform: translate(calc(-100% + 12px), -50%); text-align: right; }
+  .project[data-atlas-project="fixture-gabriela"], .project[data-atlas-project="fixture-forensic"] { flex-direction: row; transform: translate(-12px, -50%); text-align: left; }
+  .project[data-atlas-project="fixture-forensic"] .label { transform: translateY(4px); }
+  .project[data-atlas-project="fixture-quitandinha"] .label { transform: translateY(10px); }
 }
