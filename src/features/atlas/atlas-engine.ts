@@ -156,24 +156,29 @@ function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCur
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
 export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasProject[], mobileQuery: string) {
-  const ctx = canvas.getContext("2d"); if (!ctx) return () => {};
+  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; } };
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
+  let extension: AtlasBounds | undefined;
   function draw() {
     frame = 0; if (disposed) return;
     const rectangle = viewport.getBoundingClientRect(), w = rectangle.width, h = rectangle.height; if (!w || !h) return;
     const mobile = media.matches, positioned = positionAtlasProjects(projects, mobile);
     const view = getAtlasView(w, h, mobile), { world, scale, offsetX, offsetY } = view;
-    const key = JSON.stringify([mobile, view.bounds]);
-    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, view.bounds); geometryKey = key; builds++; }
+    const screen = extension ?? { left: 0, top: 0, right: w, bottom: h };
+    const width = screen.right - screen.left, height = screen.bottom - screen.top;
+    const bounds = { left: Math.min(view.bounds.left, (screen.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (screen.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (screen.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (screen.bottom - offsetY) / scale + 48 / scale) };
+    const key = JSON.stringify([mobile, bounds]);
+    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds); geometryKey = key; builds++; }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.ceil(w * dpr); canvas.height = Math.ceil(h * dpr);
+    canvas.width = Math.ceil(width * dpr); canvas.height = Math.ceil(height * dpr);
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
     canvas.style.width = canvas.width / dpr + "px"; canvas.style.height = canvas.height / dpr + "px";
-    ctx!.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * offsetX, dpr * offsetY); ctx!.fillStyle = "#fff";
+    canvas.style.left = screen.left + "px"; canvas.style.top = screen.top + "px";
+    ctx!.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (offsetX - screen.left), dpr * (offsetY - screen.top)); ctx!.fillStyle = "#fff";
     for (const curve of curves) { ctx!.globalAlpha = curve.index % 4 === 0 ? .77 : .42; paintRibbon(ctx!, curve, scale); }
     ctx!.globalAlpha = 1;
-    const colors = document.createElement("canvas"); colors.width = Math.max(2, Math.ceil(w / 5)); colors.height = Math.max(2, Math.ceil(h / 5));
+    const colors = document.createElement("canvas"); colors.width = Math.max(2, Math.ceil(width / 5)); colors.height = Math.max(2, Math.ceil(height / 5));
     const paint = colors.getContext("2d")!; const pixels = paint.createImageData(colors.width, colors.height);
     const style = getComputedStyle(viewport);
     const palette = ["--atlas-games", "--atlas-web", "--atlas-interactive"].map(token => {
@@ -184,14 +189,14 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const cy = (text.top - rectangle.top + text.height / 2 - offsetY) / scale / world.height;
     const sx = (text.width / 2 + 28) / scale / world.width, sy = (text.height / 2 + 26) / scale / world.height;
     for (let y = 0; y < colors.height; y++) for (let x = 0; x < colors.width; x++) {
-      const u = (x / (colors.width - 1) * w - offsetX) / scale / world.width;
-      const v = (y / (colors.height - 1) * h - offsetY) / scale / world.height;
+      const u = (screen.left + x / (colors.width - 1) * width - offsetX) / scale / world.width;
+      const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
       const weights = atlasCategoryWeights(u, v, positioned, mobile), i = (y * colors.width + x) * 4;
       for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0));
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
     paint.putImageData(pixels, 0, 0); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, w, h); ctx!.globalCompositeOperation = "source-over";
+    ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);
     canvas.dataset.worldWidth = String(world.width); canvas.dataset.worldHeight = String(world.height);
     canvas.dataset.worldScale = String(scale); canvas.dataset.worldOffsetX = String(offsetX); canvas.dataset.worldOffsetY = String(offsetY);
@@ -199,6 +204,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
   const observer = new ResizeObserver(schedule); observer.observe(viewport); observer.observe(intro);
   window.addEventListener("resize", schedule); media.addEventListener("change", schedule); document.fonts.ready.then(schedule); schedule();
-  return () => { disposed = true; observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); };
+  return { extend(bounds?: AtlasBounds) { extension = bounds; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 
