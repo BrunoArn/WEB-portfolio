@@ -1,11 +1,11 @@
-import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasProject } from "./atlas-types";
+import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor } from "./atlas-types";
 
 import { getAtlasView, type AtlasBounds } from "./atlas-layout";
 
 const defaultDensity = 15;
 const defaultThickness = 1.1;
 
-export function positionAtlasProjects(projects: readonly AtlasProject[], mobile: boolean): AtlasProject[] {
+export function positionAtlasProjects<T extends AtlasAnchor>(projects: readonly T[], mobile: boolean): T[] {
   return projects.map(project => ({ ...project, x: mobile ? project.mx : project.x, y: mobile ? project.my : project.y }));
 }
 
@@ -17,7 +17,7 @@ function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: 
 }
 
 /** Approved scalar field: coordinates remain normalized to the fixed art-directed world. */
-export function sampleAtlasField(x: number, y: number, projects: readonly AtlasProject[], mobile: boolean) {
+export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean) {
   const u = x + (mobile ? .018 : .028) * Math.sin(y * 12 + x * 3) + (mobile ? .009 : .016) * Math.cos(y * 23 - x * 7);
   const v = y + (mobile ? .012 : .025) * Math.sin(x * 13 - y * 5);
   let z = 0;
@@ -37,7 +37,7 @@ export function sampleAtlasField(x: number, y: number, projects: readonly AtlasP
   return z;
 }
 
-export function atlasCategoryWeights(x: number, y: number, projects: readonly AtlasProject[], mobile: boolean) {
+export function atlasCategoryWeights(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean) {
   const weights = [0, 0, 0];
   for (const p of projects) weights[p.c] += gaussian(x, y, p.x, p.y, mobile ? .25 : .22, mobile ? .13 : .22);
   const powered = weights.map(value => value ** 5);
@@ -121,7 +121,7 @@ function smoothContour(input: AtlasPoint[], mobile: boolean): AtlasContour {
   return { path, closed };
 }
 
-export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasProject[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }): AtlasCurve[] {
+export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }): AtlasCurve[] {
   const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
   const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
   const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
@@ -155,7 +155,7 @@ function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCur
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
-export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasProject[], mobileQuery: string) {
+export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], mobileQuery: string) {
   const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; } };
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;

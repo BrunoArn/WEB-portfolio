@@ -1,5 +1,5 @@
-import { atlasCategories, atlasMobileQuery, atlasProjects } from "./atlas-fixtures";
-import type { Locale } from "@/i18n/config";
+import { atlasCategories, atlasMobileQuery } from "./atlas-composition";
+import type { AtlasProject } from "./atlas-types";
 import type { mountAtlasTerrain } from "./atlas-engine";
 
 type Elements = {
@@ -8,7 +8,7 @@ type Elements = {
 };
 
 /** The approved camera/morph rhythm, scoped to a single mounted preview. */
-export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, locale: Locale) {
+export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string) {
   const { root, viewport, world, dialog, panel, media, morph } = elements;
   const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -44,12 +44,17 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
   async function open(trigger: HTMLButtonElement) {
     if (selection || disposed) return;
     const item = trigger.closest<HTMLElement>("[data-atlas-project]")!;
-    const project = atlasProjects.find(project => project.id === item.dataset.atlasProject); if (!project) return;
+    const project = projects.find(project => project.id === item.dataset.atlasProject); if (!project) return;
     const thumb = item.querySelector<HTMLElement>("[role=img]")!, slot = thumb.parentElement!;
     const from = thumb.getBoundingClientRect(), id = ++epoch;
     selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY };
-    dialog.querySelector("[data-atlas-title]")!.textContent = project.title[locale];
-    dialog.querySelector("[data-atlas-category]")!.textContent = atlasCategories[project.c].name;
+    dialog.querySelector("[data-atlas-title]")!.textContent = project.title;
+    dialog.querySelector("[data-atlas-category]")!.textContent = project.categoryLabel;
+    dialog.querySelector("[data-atlas-description]")!.textContent = project.description ?? missingDescription;
+    const detail = dialog.querySelector<HTMLAnchorElement>("[data-atlas-detail]")!;
+    detail.hidden = !project.href;
+    if (project.href) detail.setAttribute("href", project.href); else detail.removeAttribute("href");
+    dialog.querySelector<HTMLElement>("[data-atlas-media-note]")!.hidden = thumb.dataset.atlasMissing !== "true";
     dialog.style.setProperty("--atlas-tone", `var(${atlasCategories[project.c].token})`);
     // Compensate only the removed scrollbar, keeping the approved map width intact.
     const scrollbar = innerWidth - document.documentElement.clientWidth;
@@ -100,7 +105,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
   function dismiss(event: MouseEvent) { if (event.target === dialog || (event.target as HTMLElement).closest("[data-atlas-close]")) void close(); }
   function trapFocus(event: KeyboardEvent) {
     if (event.key !== "Tab") return;
-    const targets = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]'));
+    const targets = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]')).filter(node => !node.hidden);
     const first = targets[0], last = targets.at(-1);
     if (!first || !last) return;
     if (event.shiftKey ? document.activeElement === first : document.activeElement === last) {

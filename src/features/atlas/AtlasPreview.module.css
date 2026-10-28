@@ -1,5 +1,6 @@
 /* Atlas-specific art tokens remain local; shared spacing comes from globals.css. */
 .root {
+  position: relative;
   --atlas-world-width: var(--atlas-desktop-width);
   --atlas-world-height: var(--atlas-desktop-height);
   --atlas-background: #0b1211;
@@ -49,7 +50,7 @@
   .title { font-size: 34px; }
   .eyebrow { font-size: 8px; }
   .web { left: 83%; }
-  .project[data-atlas-project="fixture-apple-academy"] { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
+  .project[data-atlas-placement="fixture-apple-academy"] { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
   .interactive { top: 94%; }
 }
 
@@ -86,8 +87,8 @@
   .project { width: 130px; max-width: 130px; gap: 8px; transform: translate(-12px, -50%); }
   .thumb { width: 24px; height: 24px; outline-width: 3px; }
   .thumbIcon { width: 16px; height: 16px; }
-  .left, .project[data-atlas-project="fixture-apple-academy"] { transform: translate(calc(-100% + 12px), -50%); }
-  .project[data-atlas-project="fixture-apple-academy"] { flex-direction: row-reverse; text-align: right; }
+  .left, .project[data-atlas-placement="fixture-apple-academy"] { transform: translate(calc(-100% + 12px), -50%); }
+  .project[data-atlas-placement="fixture-apple-academy"] { flex-direction: row-reverse; text-align: right; }
   .label, .projectTitle { font-size: 10px; line-height: 1.2; }
   .projectMeta { display: none; }
   .territory { font-size: 9px; letter-spacing: 2px; }
@@ -98,10 +99,10 @@
   .intro { left: var(--space-12); }
   .title { font-size: 18px; max-width: 130px; }
   .territory { display: none; }
-  .project[data-atlas-project="fixture-bloomancer"] { flex-direction: row-reverse; transform: translate(calc(-100% + 12px), -50%); text-align: right; }
-  .project[data-atlas-project="fixture-gabriela"], .project[data-atlas-project="fixture-forensic"] { flex-direction: row; transform: translate(-12px, -50%); text-align: left; }
-  .project[data-atlas-project="fixture-forensic"] .label { transform: translateY(4px); }
-  .project[data-atlas-project="fixture-quitandinha"] .label { transform: translateY(10px); }
+  .project[data-atlas-placement="fixture-bloomancer"] { flex-direction: row-reverse; transform: translate(calc(-100% + 12px), -50%); text-align: right; }
+  .project[data-atlas-placement="fixture-gabriela"], .project[data-atlas-placement="fixture-forensic"] { flex-direction: row; transform: translate(-12px, -50%); text-align: left; }
+  .project[data-atlas-placement="fixture-forensic"] .label { transform: translateY(4px); }
+  .project[data-atlas-placement="fixture-quitandinha"] .label { transform: translateY(10px); }
 }
 
 /* Selection is scoped to this preview. The terrain and marker plane share one camera. */
@@ -151,3 +152,16 @@
 .root:is([data-selection="revealing"], [data-selection="selected"]) .card { opacity: 1; }
 .root[data-selection="opening"] .card { pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .project, .territory, .preview { transition: none; } }
+
+.thumb { position: relative; }
+.thumbImage { object-fit: cover; }
+.detailLink { display: inline-block; margin-top: 20px; padding: 10px 0; color: var(--atlas-tone); font-size: 12px; text-decoration: underline; text-underline-offset: 4px; }
+.detailLink:focus-visible { outline: 2px solid var(--atlas-tone); outline-offset: 4px; }
+.diagnostics { position: absolute; z-index: 3; right: 4vw; bottom: 4px; max-width: 92%; color: var(--atlas-text-secondary); font-size: 10px; padding: 0 4vw; max-height: 30vh; overflow: auto; }
+.diagnostics summary { padding: 7px 0; cursor: pointer; }
+.diagnostics ul { padding-left: 16px; }
+.diagnostics a { color: var(--atlas-web); text-decoration: underline; }
+
+.diagnostics[open] { bottom: 32px; background: #111b18f5; border: 1px solid #ffffff26; border-radius: 8px; padding: 8px 16px; }
+.detailLink[hidden] { display: none; }
+.root:is([data-selection="opening"], [data-selection="revealing"], [data-selection="selected"]) .diagnostics { visibility: hidden; }
