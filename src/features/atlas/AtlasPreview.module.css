@@ -1,0 +1,105 @@
+.root {
+  min-height: 670px;
+  padding: 40px 5% 56px;
+  background: #0b1211;
+  color: #dedfd4;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.intro {
+  padding-top: 12px;
+}
+
+.preview {
+  margin: 0 0 36px;
+  color: #82918a;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #98aa96;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.title {
+  margin: 22px 0;
+  font-family: Georgia, serif;
+  font-size: clamp(36px, 3.7vw, 60px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+}
+
+.description {
+  max-width: 280px;
+  margin: 0;
+  color: #95a39b;
+  font-size: 12px;
+}
+
+.stage {
+  display: flex;
+  min-height: clamp(200px, 30vh, 340px);
+  margin-top: 48px;
+  padding: 28px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed #34443b;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stageTitle {
+  margin: 0;
+  color: #a4b58c;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.stageDescription {
+  margin: 8px 0 0;
+  color: #82918a;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .root {
+    min-height: 640px;
+    padding: 28px 7% 40px;
+  }
+
+  .preview {
+    margin-bottom: 30px;
+    font-size: 9px;
+  }
+
+  .title {
+    margin: 16px 0;
+    font-size: 39px;
+  }
+
+  .eyebrow {
+    font-size: 8px;
+  }
+
+  .stage {
+    margin-top: 40px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 380px) {
+  .title {
+    font-size: 35px;
+  }
+
+  .eyebrow {
+    letter-spacing: 1.4px;
+  }
+}
