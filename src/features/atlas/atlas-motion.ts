@@ -29,7 +29,10 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
     schedule();
   }
   function tick(now: number) {
-    frame = 0; if (!running()) return;
+    frame = 0;
+    // A queued frame may observe that motion is no longer allowed.
+    // Apply the stop policy as well, so reduced motion restores the static raster.
+    if (!running()) { policy(); return; }
     // Cap at 30 redraws/sec; interpolation uses elapsed time on every refresh rate.
     if (now - lastPaint >= 32) {
       const dt = previous ? Math.min(.07, (now - previous) / 1000) : 0;

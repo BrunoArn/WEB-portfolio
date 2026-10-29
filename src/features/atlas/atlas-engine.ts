@@ -127,12 +127,13 @@ function ribbonOutline({ contour, index }: AtlasCurve, scale: number): AtlasPoin
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
 export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string, initialSettings: AtlasTerrainSettings) {
-  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds, _zoom?: number) { void _bounds; void _zoom; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; }, setMotion(_value: AtlasMotionSettings) { void _value; }, pulse(_id: string) { void _id; } };
+  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds, _zoom?: number) { void _bounds; void _zoom; }, crop(_bounds?: AtlasBounds) { void _bounds; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; }, setMotion(_value: AtlasMotionSettings) { void _value; }, pulse(_id: string) { void _id; } };
   let render = () => {};
   const motion = mountAtlasMotion(canvas, viewport, () => render());
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
   let extension: AtlasBounds | undefined;
+  let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
   let settings = resolveAtlasTerrainSettings(initialSettings);
   function draw() {
@@ -140,9 +141,10 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const rectangle = viewport.getBoundingClientRect(), w = rectangle.width, h = rectangle.height; if (!w || !h) return;
     const mobile = media.matches, positioned = positionAtlasProjects(projects, mobile);
     const view = getAtlasView(w, h, mobile), { world, scale, offsetX, offsetY } = view;
-    const screen = extension ?? { left: 0, top: 0, right: w, bottom: h };
+    const domain = extension ?? { left: 0, top: 0, right: w, bottom: h };
+    const screen = rasterCrop ?? domain;
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
-    const bounds = { left: Math.min(view.bounds.left, (screen.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (screen.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (screen.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (screen.bottom - offsetY) / scale + 48 / scale) };
+    const bounds = { left: Math.min(view.bounds.left, (domain.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (domain.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (domain.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (domain.bottom - offsetY) / scale + 48 / scale) };
     const controls = settings[mobile ? "mobile" : "desktop"];
     const key = JSON.stringify([mobile, bounds, controls, settings.regions.map(region => ({kind: region.kind, ...region[mobile ? "mobile" : "desktop"]}))]);
     if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
@@ -191,6 +193,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
   const observer = new ResizeObserver(schedule); observer.observe(viewport); observer.observe(intro);
   window.addEventListener("resize", schedule); media.addEventListener("change", schedule); document.fonts.ready.then(schedule); schedule();
-  return { setMotion: motion.set, pulse: motion.pulse, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
+  return { setMotion: motion.set, pulse: motion.pulse, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, crop(bounds?: AtlasBounds) { rasterCrop = bounds; cancelAnimationFrame(frame); draw(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterCrop = undefined; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 

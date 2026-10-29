@@ -80,9 +80,25 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     const camera = `translate(${tx}px,${ty}px) scale(${zoom})`;
     world.style.transform = camera;
     closeButton.focus({ preventScroll: true });
+    // Keep the full terrain domain, but stop repainting pixels outside the remaining
+    // camera path. Requested density stays fixed; only the backing surface is cropped.
+    function cropRemaining(includeCurrent: boolean) {
+      const current = includeCurrent ? new DOMMatrixReadOnly(getComputedStyle(world).transform) : new DOMMatrixReadOnly(camera);
+      terrain.crop({
+        left: Math.floor(Math.min(-current.e/current.a,-tx/zoom)-24),
+        top: Math.floor(Math.min(-current.f/current.d,-ty/zoom)-24),
+        right: Math.ceil(Math.max((frame.width-current.e)/current.a,(frame.width-tx)/zoom)+24),
+        bottom: Math.ceil(Math.max((frame.height-current.f)/current.d,(frame.height-ty)/zoom)+24),
+      });
+    }
+    const cropTimer = window.setTimeout(() => {
+      if (id === epoch && selection && !disposed) cropRemaining(true);
+    },120);
     await Promise.all([move(thumb, from, target, from.width / 2, 15), animate(world, [{ transform: "none" }, { transform: camera }])]);
+    clearTimeout(cropTimer);
     if (id !== epoch || !selection || disposed) return;
     stop();
+    cropRemaining(false);
     root.dataset.selection = "revealing";
     // The image has arrived. Reveal the body downward from its lower edge,
     // keeping the image and the final card position fixed throughout.
@@ -104,7 +120,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     const radius = getComputedStyle(state.thumb).borderRadius, camera = getComputedStyle(world).transform;
     const panelStyle = getComputedStyle(panel);
     const panelOpacity = panelStyle.opacity, panelClip = panelStyle.clipPath;
-    stop(); world.style.transform = "none";
+    stop(); terrain.crop(); world.style.transform = "none";
     const target = state.slot.getBoundingClientRect();
     world.style.transform = camera; root.dataset.selection = "closing";
     const motion = move(state.thumb, from, target, radius, target.width / 2);
