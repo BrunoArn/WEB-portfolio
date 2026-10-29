@@ -1,3 +1,6 @@
+import { atlasPosition } from './objects/atlasPosition'
+import { atlasCategorySettings } from './objects/atlasCategorySettings'
+import { atlasProjectSettings } from './objects/atlasProjectSettings'
 import { localizedString } from './objects/localizedString'
 import { localizedText } from './objects/localizedText'
 import { playableConfig } from './objects/playableConfig'
@@ -11,6 +14,9 @@ import { project } from './documents/project'
 import { aboutPage } from './documents/aboutPage'
 
 export const schemaTypes = [
+  atlasPosition,
+  atlasCategorySettings,
+  atlasProjectSettings,
   localizedString,
   localizedText,
   teamMember,
