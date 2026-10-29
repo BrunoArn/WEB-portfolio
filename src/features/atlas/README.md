@@ -79,3 +79,7 @@ Default global values reproduce the old scalar formula for the same existing pro
 The numeric comparison checked 2048 desktop/mobile samples against the previous generator with the six current projects (unit project influence), with maximum absolute difference 6.67e-16. Independent regions with no projects, empty-list removal, profile disabling, intensity edits and defensive resolution were verified. Twelve PT/EN viewport cases / 72 card cycles passed with the recovered model, including keyboard and exact return-raster checks. ESLint, app/Studio TypeScript, official schema validation and Studio build passed. Representative desktop/mobile renderings were visually inspected; clean comparison captures and tests are in `.work/atlas-regions/`.
 
 No published Sanity document was modified. Authenticated Studio form editing and other browsers/devices remain untested. This delivery changes only the preview and Studio configuration; the Home remains untouched.
+
+## Project thumbnail hover
+
+On devices with a fine pointer, hovering a project expands its circular thumbnail by 10% over 160ms, without moving the label. Keyboard focus receives the same cue. The effect applies only while the map is idle, leaves the approved card transition unchanged, and is disabled for touch-only devices and reduced motion. Browser checks covered expansion/exit, label stability, opening from hover, card size, return, keyboard focus, reduced motion and touch emulation without page errors.
