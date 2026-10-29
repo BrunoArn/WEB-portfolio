@@ -16,7 +16,7 @@ import { atlasWorlds } from "./atlas-layout";
 
 const copy = {
   pt: {
-    title: <>Ideias que viram<br />experiências.</>,
+    title: "Bruno Arnaud",
     description: "Um território de jogos, interfaces e experiências interativas.",
     projects: "Projetos do Atlas",
     unavailable: "Miniatura indisponível",
@@ -25,7 +25,7 @@ const copy = {
     detail: "Ver projeto completo",
   },
   en: {
-    title: <>Ideas into<br />experiences.</>,
+    title: "Bruno Arnaud",
     description: "A landscape of games, interfaces and interactive experiences.",
     projects: "Atlas projects",
     unavailable: "Thumbnail unavailable",
