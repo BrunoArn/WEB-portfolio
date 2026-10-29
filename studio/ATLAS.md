@@ -68,10 +68,10 @@ As massas e os vales de direção de arte são fontes independentes, que podem c
 
 ## Massas auxiliares independentes
 
-A direção atual permite massas e vales de composição que continuam existindo independentemente dos projetos. Em **Atlas — Topografia → Regiões de composição**, clique **Carregar regiões da referência no rascunho** se a lista ainda não estiver preenchida. Isso prepara as oito regiões antigas para edição; não publica automaticamente.
+A direção atual permite massas e vales de composição que continuam existindo independentemente dos projetos. Em **Atlas — Topografia → Regiões de composição**, clique **Carregar regiões da referência no rascunho** se a lista ainda não estiver preenchida. Isso prepara as oito regiões de referência para edição; não publica automaticamente.
 
 Cada região tem nome interno e tipo **Elevação** (soma volume) ou **Vale** (subtrai volume). Abra Desktop/Celular para ativar, posicionar e ajustar a intensidade. Escolha um formato simples ou **Personalizado** para editar largura/altura; a inclinação fica em Formato avançado. X/Y podem sair do intervalo 0–100, permitindo centros além das bordas. Use valores negativos de posição quando necessário, mas mantenha intensidade positiva; o tipo define se ela soma ou subtrai.
 
 Publique e recarregue a prévia para aplicar. Uma lista ausente usa a referência; uma lista vazia remove as regiões. Desativar um perfil remove a região apenas naquele tamanho. Os controles gerais continuam disponíveis, e restaurar um perfil geral não sobrescreve a lista de regiões.
 
-A referência recupera os arcos/vales do modelo antigo com os seis projetos existentes. Apple Academy não foi recriado. As cores continuam seguindo as categorias dos projetos atuais, portanto algumas diferenças cromáticas locais são esperadas em relação a imagens que ainda incluíam aquele projeto. Sem projetos, massas independentes usam uma cor neutra.
+No desktop, a referência recupera os arcos/vales do modelo antigo com os seis projetos existentes. No celular, as massas de referência foram alargadas e achatadas, com pequenas inclinações, para conduzir o olhar lateralmente. Regiões já publicadas mantêm seus valores; restaurar a lista de referência no rascunho carrega essa nova direção mobile e requer publicação para aplicar. Apple Academy não foi recriado. As cores continuam seguindo as categorias dos projetos atuais, portanto algumas diferenças cromáticas locais são esperadas em relação a imagens que ainda incluíam aquele projeto. Sem projetos, massas independentes usam uma cor neutra.

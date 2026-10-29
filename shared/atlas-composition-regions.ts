@@ -15,19 +15,19 @@ const profile = (x: number, y: number, width: number, height: number, intensity:
   ({enabled: true, shape: 'custom', x, y, width, height, intensity, rotation});
 const off = (): AtlasRegionProfile => ({...profile(50,50,20,10,.3), enabled: false});
 
-/** The former art-directed regions, with their original additive/subtractive roles. */
+/** Desktop reference and lateral mobile composition, using additive/subtractive sources. */
 export function atlasReferenceRegions(): AtlasCompositionRegion[] {
   const tilt = -.3 * 180 / Math.PI;
   const valley = .3 + .55 * .55;
   const rows: [string,string,'elevation'|'valley',AtlasRegionProfile,AtlasRegionProfile][] = [
-    ['ridge-games','Faixa entre os jogos','elevation',profile(43,41,23,11,.42,tilt),profile(49,38,20,8.5,.24,tilt)],
-    ['ridge-interactive','Faixa interativa inferior','elevation',profile(49,76,26,12,.35,tilt),profile(51,79,23,8.5,.27,tilt)],
-    ['ridge-web','Arco superior e região Web','elevation',profile(94,13,20,16,.65,tilt),profile(51,59,20.5,8.5,.20,tilt)],
+    ['ridge-games','Faixa entre os jogos','elevation',profile(43,41,23,11,.42,tilt),profile(48,37,55,4.8,.28,-3)],
+    ['ridge-interactive','Faixa interativa inferior','elevation',profile(49,76,26,12,.35,tilt),profile(50,83,62,5.2,.32,3)],
+    ['ridge-web','Arco superior e região Web','elevation',profile(94,13,20,16,.65,tilt),profile(52,60,58,4.6,.27,-2)],
     ['ridge-edge','Entrada pela borda inferior esquerda','elevation',profile(-8,96,24,17,.8,tilt),off()],
-    ['valley-intro','Respiro superior / lateral esquerda','valley',profile(15,18,26,23,valley),profile(8,54,13,6.5,valley)],
-    ['valley-center','Vale central / lateral direita','valley',profile(55,62,16,8,valley),profile(92,50,13,7,valley)],
-    ['valley-right','Respiro da borda direita','valley',profile(92,87,15,12,valley),profile(83,33,13,7.5,valley)],
-    ['valley-bottom','Respiro inferior do celular','valley',off(),profile(8,85,12,7.5,valley)],
+    ['valley-intro','Respiro superior / lateral esquerda','valley',profile(15,18,26,23,valley),profile(-5,53,32,3.2,.48,-3)],
+    ['valley-center','Vale central / lateral direita','valley',profile(55,62,16,8,valley),profile(108,49,32,3.4,.48,3)],
+    ['valley-right','Respiro da borda direita','valley',profile(92,87,15,12,valley),profile(105,31,30,3.5,.42,-3)],
+    ['valley-bottom','Respiro inferior do celular','valley',off(),profile(-8,86,30,3.4,.42,2)],
   ];
   return rows.map(([_key,name,kind,desktop,mobile]) => ({_key,_type:'atlasCompositionRegion',name,kind,desktop,mobile}));
 }

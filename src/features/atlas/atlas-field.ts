@@ -22,7 +22,9 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
   for (const p of ordered) counts.set(p.c, (counts.get(p.c) ?? 0) + 1);
   const kernels = ordered.map(p => {
     const solo = counts.get(p.c) === 1;
-    const kernel = { x: p.x, y: p.y, sx: mobile ? (solo ? .205 : .122) : (solo ? .13 : .14), sy: mobile ? (solo ? .089 : .069) : .115, angle: mobile ? (solo ? -.18 : .20) : (solo ? -.6 : .4), amplitude: .8 * p.influence };
+    // The tall mobile world needs wide, shallow sources to read as lateral arcs.
+    // Small normalized rotations avoid turning those arcs into vertical columns.
+    const kernel = { x: p.x, y: p.y, sx: mobile ? (solo ? .43 : .36) : (solo ? .13 : .14), sy: mobile ? (solo ? .047 : .043) : .115, angle: mobile ? (solo ? -.025 : .035) : (solo ? -.6 : .4), amplitude: .8 * p.influence };
     return { ...kernel, sx: kernel.sx * footprint * stretch, sy: kernel.sy * footprint / stretch, angle: kernel.angle + direction };
   });
   // Additive art direction: auxiliaries are independent, explicit sources.
