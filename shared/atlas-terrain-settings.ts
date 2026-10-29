@@ -1,3 +1,4 @@
+import { resolveAtlasRegions, type AtlasCompositionRegion, type AtlasRegionSource } from "./atlas-composition-regions";
 /** Shared editing contract for Studio, the server adapter and Canvas. */
 export interface AtlasTerrainControls {
   amplitude: number;
@@ -7,6 +8,7 @@ export interface AtlasTerrainControls {
   negativeSpace: number;
 }
 export interface AtlasTerrainSettings {
+  regions: AtlasCompositionRegion[];
   desktop: AtlasTerrainControls;
   mobile: AtlasTerrainControls;
 }
@@ -25,6 +27,6 @@ export function resolveAtlasTerrainControls(value?: Partial<AtlasTerrainControls
   }
   return result;
 }
-export function resolveAtlasTerrainSettings(value?: {desktop?: Partial<AtlasTerrainControls>; mobile?: Partial<AtlasTerrainControls>} | null): AtlasTerrainSettings {
-  return {desktop: resolveAtlasTerrainControls(value?.desktop), mobile: resolveAtlasTerrainControls(value?.mobile)};
+export function resolveAtlasTerrainSettings(value?: {desktop?: Partial<AtlasTerrainControls>; mobile?: Partial<AtlasTerrainControls>; regions?: readonly AtlasRegionSource[] | null} | null): AtlasTerrainSettings {
+  return {regions: resolveAtlasRegions(value?.regions), desktop: resolveAtlasTerrainControls(value?.desktop), mobile: resolveAtlasTerrainControls(value?.mobile)};
 }

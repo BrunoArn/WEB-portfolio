@@ -17,9 +17,9 @@ There is no fixed project-ID table or manual source array. A newly published pro
 `atlas-field.ts` prepares a smooth scalar field from the current project set:
 
 - Every project contributes a smooth elliptical elevation multiplied by its configured influence (default 1). A territory represented by a single project receives a broader mobile footprint so it remains legible.
-- Nearby elevations receive mild connecting shoulders selected by a deterministic minimum spanning forest. Same-territory neighbors are preferred; distant groups remain separate. Each connector is derived from two existing projects and disappears/recomputes when those sources change.
+- Independent composition regions add broad elevations or subtract valleys, matching the original art-directed model. Their own profile settings control placement, shape and strength; they are not tied to the presence of any project.
 - The smooth coordinate warp, fixed contour density, minimum visible stroke width, varying stroke thickness, smoothing and filtering of tiny mobile loops remain. The introduction retains its local soft attenuation.
-- No project-related or decorative positive elevation is held at an old fixed location. The former Apple Academy anchor remains removed. The old broad mass/valley regions now act only as multiplicative composition masks over project-generated terrain, rather than independent elevations. With zero participating projects, the scalar field is exactly zero and no terrain contours are drawn.
+- The former Apple Academy project anchor remains removed. Independent composition regions are now editable sources of elevation or valleys, as requested. They can remain even without participating projects; an empty region list and zero projects produce zero terrain.
 - Spatial color weights are calculated only from participating projects and their main territories, with contained transitions. No category creates an elevation merely by existing.
 
 The field is calculated once per geometry build; sampling reuses the prepared project kernels and connections. It does not regenerate contours per animation frame.
@@ -58,10 +58,24 @@ The single Studio entry **Atlas — Topografia** edits document `atlas-settings`
 
 `shared/atlas-terrain-settings.ts` defines the common defaults, limits and defensive resolution for both apps. Studio sliders retain numeric entry and each profile has **Restaurar referência deste perfil**, which patches only the five controls. This edits the draft; publish to apply to the normal preview on reload.
 
-The reference restores the former broad composition regions through multiplication: project field × broad-mass guidance × soft-valley attenuation. It is an adapted starting point for review, not an exact recreation of the old approved map or an approval claim. There is still no terrain with zero projects, and no Apple Academy contribution.
+The reference now restores the original additive/subtractive model: project field + auxiliary elevations - valleys. It is an adapted starting point for review, not an exact recreation of the old approved map or an approval claim. Auxiliary regions may create terrain independently of projects. Apple Academy is not represented as a project or an extra region.
 
 For experiments open `/pt/atlas-preview?terrain=1` (also available in EN). Its collapsible panel changes only local state, with no CMS writes; reload discards those changes. Its restore button uses the same reference as Studio. The normal URL remains free of controls. Input changes are grouped into requested frames; the renderer updates its settings and invalidates only the relevant geometry cache, without remounting interaction handlers or recreating marker nodes. There is no permanent redraw loop.
 
 Validation for this block: TypeScript and ESLint for the app/Studio; official schema validation with zero errors/warnings; Studio build; data/field checks including every control's effect, ranges/fallbacks, separate profiles and zero-project behavior; browser checks of all five sliders and exact reference restoration at desktop and phone sizes; marker node reuse; desktop/mobile override isolation; overrides discarded by reload; normal URL without controls. The 12 PT/EN viewport cases / 72 card cycles and the real-motion interruption checks passed with the new composition. Representative reference/panel screenshots were visually inspected. Scripts and captures are under `.work/atlas-terrain-controls/` in the task workspace.
 
 The rendered Studio still requires login in the test session: authenticated field editing and the Studio reset button have not been exercised against real documents. No Studio deployment or Sanity mutation was performed. Physical-device and other-browser testing remain outstanding.
+
+## Independent composition regions — recovered reference
+
+The latest direction explicitly allows auxiliary masses independent of projects. `shared/atlas-composition-regions.ts` stores the eight named reference regions, representing four elevations/three valleys on desktop and three elevations/four valleys on mobile. These are the actual former art-direction sources, not deleted-project substitutes. The minimum-spanning connections and multiplicative replacement model were removed.
+
+In Studio → **Atlas — Topografia → Regiões de composição**, each item has a name, elevation/valley type and separate desktop/mobile settings. Each profile supports enable/disable, center X/Y, intensity, preset shape (rounded/elongated/band) or custom width/height and rotation. Centers can range from -50 to 150 percent to support formations entering/exiting the viewport. Width/height are smooth Gaussian spreads, not hard rectangle bounds.
+
+An absent `regions` field uses the reference list. Existing settings documents show a **Carregar regiões da referência no rascunho** button to materialize that list for editing. Explicit `[]` means no auxiliary regions. Disabling a region's profile removes its contribution only on that layout. Invalid region data is not replaced by an invented source. The color field still follows the participating projects/territories; without any projects, independent terrain uses a neutral mineral tone.
+
+Default global values reproduce the old scalar formula for the same existing projects, without Apple Academy. Amplitude/elongation/direction adjust project and region footprints; Connection scales auxiliary elevations; Respiro scales valley depth. At the default values, positions/spreads/rotation/intensity match the former generator. Changing the source project set can still change the final picture and colors.
+
+The numeric comparison checked 2048 desktop/mobile samples against the previous generator with the six current projects (unit project influence), with maximum absolute difference 6.67e-16. Independent regions with no projects, empty-list removal, profile disabling, intensity edits and defensive resolution were verified. Twelve PT/EN viewport cases / 72 card cycles passed with the recovered model, including keyboard and exact return-raster checks. ESLint, app/Studio TypeScript, official schema validation and Studio build passed. Representative desktop/mobile renderings were visually inspected; clean comparison captures and tests are in `.work/atlas-regions/`.
+
+No published Sanity document was modified. Authenticated Studio form editing and other browsers/devices remain untested. This delivery changes only the preview and Studio configuration; the Home remains untouched.

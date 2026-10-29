@@ -1,3 +1,5 @@
+import {atlasRegionProfile} from './objects/atlasRegionProfile'
+import {atlasCompositionRegion} from './objects/atlasCompositionRegion'
 import {atlasTerrainControls} from './objects/atlasTerrainControls'
 import {atlasSettings} from './documents/atlasSettings'
 import { atlasPosition } from './objects/atlasPosition'
@@ -16,6 +18,8 @@ import { project } from './documents/project'
 import { aboutPage } from './documents/aboutPage'
 
 export const schemaTypes = [
+  atlasRegionProfile,
+  atlasCompositionRegion,
   atlasTerrainControls,
   atlasSettings,
   atlasPosition,

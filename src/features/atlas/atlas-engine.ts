@@ -1,3 +1,4 @@
+import type { AtlasCompositionRegion } from "../../../shared/atlas-composition-regions";
 import { resolveAtlasTerrainSettings, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor, AtlasTerritory } from "./atlas-types";
 
@@ -89,11 +90,11 @@ function smoothContour(input: AtlasPoint[], mobile: boolean): AtlasContour {
   return { path, closed };
 }
 
-export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls): AtlasCurve[] {
+export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[]): AtlasCurve[] {
   const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
   const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
   const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
-  const field = createAtlasField(projects, mobile, settings);
+  const field = createAtlasField(projects, mobile, settings, regions);
   const values = new Float32Array((nx + 1) * (ny + 1));
   for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) values[y * (nx + 1) + x] = field((x0 + x) * stepX / w, (y0 + y) * stepY / h);
   const result: AtlasCurve[] = [];
@@ -139,8 +140,8 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
     const bounds = { left: Math.min(view.bounds.left, (screen.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (screen.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (screen.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (screen.bottom - offsetY) / scale + 48 / scale) };
     const controls = settings[mobile ? "mobile" : "desktop"];
-    const key = JSON.stringify([mobile, bounds, controls]);
-    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls); geometryKey = key; builds++; }
+    const key = JSON.stringify([mobile, bounds, controls, settings.regions.map(region => ({kind: region.kind, ...region[mobile ? "mobile" : "desktop"]}))]);
+    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.ceil(width * dpr); canvas.height = Math.ceil(height * dpr);
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
@@ -161,11 +162,12 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
       const u = (screen.left + x / (colors.width - 1) * width - offsetX) / scale / world.width;
       const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
       const weights = weightsAt(u, v), i = (y * colors.width + x) * 4;
-      for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0));
+      for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = palette.length ? Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0)) : [149, 163, 155][channel];
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
     paint.putImageData(pixels, 0, 0); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
+    canvas.dataset.regionSources = String(settings.regions.filter(region => region[mobile ? "mobile" : "desktop"].enabled).length);
     canvas.dataset.terrainControls = JSON.stringify(controls);
     canvas.dataset.projectSources = String(projects.length); canvas.dataset.territories = String(territories.length);
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);

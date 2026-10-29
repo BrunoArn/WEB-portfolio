@@ -36,7 +36,7 @@ Os nomes curtos são editáveis nos dois idiomas; a tabela conserva a identidade
 | Forensic Injury Visualizer | interactive-experiences | 73 / 65 | 67 / 80 | 1 |
 | VR Quintandinha | interactive-experiences | 62 / 82 | 28 / 88 | 1 |
 
-Apple Academy · BGS 2019 não consta entre os projetos publicados e não deve ganhar um documento inventado para preencher o mapa. Sua antiga elevação foi removida. O gerador usa somente projetos ativos e conexões calculadas entre eles; não há influência reservada para esse projeto.
+Apple Academy · BGS 2019 não consta entre os projetos publicados e não deve ganhar um documento inventado para preencher o mapa. Sua antiga elevação foi removida. O gerador combina projetos ativos com as massas e vales de composição explicitamente configurados; não há influência reservada para esse projeto.
 
 ## Estrutura e validação
 
@@ -64,4 +64,14 @@ Os controles de referência são um ponto de partida para revisão visual. Para 
 
 Para experimentar sem salvar, abra [a prévia de ajustes locais](http://localhost:3000/pt/atlas-preview?terrain=1). Esses sliders não gravam no Sanity e se perdem ao recarregar. Depois de escolher os valores, transfira-os ao perfil correspondente no Studio e publique. A URL normal da prévia não mostra os controles.
 
-As regras de direção de arte organizam apenas o terreno gerado pelos projetos. Apple Academy continua ausente e, sem projetos ativos, não há elevações. A configuração não faz distribuição automática nem corrige todos os possíveis conflitos entre rótulos.
+As massas e os vales de direção de arte são fontes independentes, que podem continuar sem projetos. Apple Academy continua ausente. A configuração não faz distribuição automática nem corrige todos os possíveis conflitos entre rótulos.
+
+## Massas auxiliares independentes
+
+A direção atual permite massas e vales de composição que continuam existindo independentemente dos projetos. Em **Atlas — Topografia → Regiões de composição**, clique **Carregar regiões da referência no rascunho** se a lista ainda não estiver preenchida. Isso prepara as oito regiões antigas para edição; não publica automaticamente.
+
+Cada região tem nome interno e tipo **Elevação** (soma volume) ou **Vale** (subtrai volume). Abra Desktop/Celular para ativar, posicionar e ajustar a intensidade. Escolha um formato simples ou **Personalizado** para editar largura/altura; a inclinação fica em Formato avançado. X/Y podem sair do intervalo 0–100, permitindo centros além das bordas. Use valores negativos de posição quando necessário, mas mantenha intensidade positiva; o tipo define se ela soma ou subtrai.
+
+Publique e recarregue a prévia para aplicar. Uma lista ausente usa a referência; uma lista vazia remove as regiões. Desativar um perfil remove a região apenas naquele tamanho. Os controles gerais continuam disponíveis, e restaurar um perfil geral não sobrescreve a lista de regiões.
+
+A referência recupera os arcos/vales do modelo antigo com os seis projetos existentes. Apple Academy não foi recriado. As cores continuam seguindo as categorias dos projetos atuais, portanto algumas diferenças cromáticas locais são esperadas em relação a imagens que ainda incluíam aquele projeto. Sem projetos, massas independentes usam uma cor neutra.

@@ -1,3 +1,4 @@
+import { resolveAtlasRegions, type AtlasCompositionRegion } from "../../../shared/atlas-composition-regions";
 import { resolveAtlasTerrainControls, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasAnchor } from "./atlas-types";
 
@@ -8,8 +9,8 @@ function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: 
   return Math.exp(-.5 * ((u / sx) ** 2 + (v / sy) ** 2));
 }
 
-/** All elevations and connecting shoulders originate in current projects. */
-export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>) {
+/** Project elevations plus editable, independent composition regions. */
+export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>, regions?: readonly AtlasCompositionRegion[]) {
   const controls = resolveAtlasTerrainControls(settings);
   const footprint = .7 + controls.amplitude * .006;
   const stretch = Math.exp((controls.elongation - 50) * .012);
@@ -24,45 +25,24 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
     const kernel = { x: p.x, y: p.y, sx: mobile ? (solo ? .205 : .122) : (solo ? .13 : .14), sy: mobile ? (solo ? .089 : .069) : .115, angle: mobile ? (solo ? -.18 : .20) : (solo ? -.6 : .4), amplitude: .8 * p.influence };
     return { ...kernel, sx: kernel.sx * footprint * stretch, sy: kernel.sy * footprint / stretch, angle: kernel.angle + direction };
   });
-  // Deterministic minimum spanning forest: prefer same-territory neighbors and
-  // keep distant formations separate. These bridges disappear with their sources.
-  const edges: { a: number; b: number; score: number }[] = [];
-  for (let a = 0; a < ordered.length; a++) for (let b = a + 1; b < ordered.length; b++) {
-    const dx = ordered[b].x - ordered[a].x, dy = ordered[b].y - ordered[a].y;
-    const distance = Math.hypot(dx, dy * (mobile ? 1.3 : 1));
-    if (distance <= .65) edges.push({ a, b, score: distance * (ordered[a].c === ordered[b].c ? .55 : 1) });
+  // Additive art direction: auxiliaries are independent, explicit sources.
+  for (const region of resolveAtlasRegions(regions)) {
+    const profile = mobile ? region.mobile : region.desktop;
+    if (!profile.enabled) continue;
+    const strength = profile.intensity * (region.kind === "valley" ? -clearing : connection);
+    kernels.push({x: profile.x / 100, y: profile.y / 100, sx: profile.width / 100 * footprint * stretch, sy: profile.height / 100 * footprint / stretch, angle: profile.rotation * Math.PI / 180 + direction, amplitude: strength});
   }
-  edges.sort((a, b) => a.score - b.score || a.a - b.a || a.b - b.b);
-  const roots = ordered.map((_, i) => i);
-  function root(i: number): number { while (roots[i] !== i) i = roots[i]; return i; }
-  for (const edge of edges) {
-    const ar = root(edge.a), br = root(edge.b); if (ar === br) continue;
-    roots[br] = ar;
-    const a = ordered[edge.a], b = ordered[edge.b], dx = b.x - a.x, dy = b.y - a.y;
-    kernels.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, sx: Math.max(.08, Math.hypot(dx, dy) * .55), sy: mobile ? .045 : .065, angle: Math.atan2(dy, dx), amplitude: (mobile ? .24 : .26) * .3 * connection * Math.min(a.influence, b.influence) });
-  }
-  // Reference art direction is multiplicative: it shapes project-generated
-  // terrain but cannot create any elevation when the project field is empty.
-  const masses = mobile
-    ? [[.49, .38, .20, .085, .24], [.51, .59, .205, .085, .20], [.51, .79, .23, .085, .27]]
-    : [[.43, .41, .23, .11, .42], [.49, .76, .26, .12, .35], [.94, .13, .20, .16, .65], [-.08, .96, .24, .17, .8]];
-  const valleys = mobile
-    ? [[.08, .54, .13, .065], [.92, .50, .13, .07], [.83, .33, .13, .075], [.08, .85, .12, .075]]
-    : [[.15, .18, .26, .23], [.55, .62, .16, .08], [.92, .87, .15, .12]];
   return (x: number, y: number) => {
     const u = x + (mobile ? .018 : .028) * Math.sin(y * 12 + x * 3) + (mobile ? .009 : .016) * Math.cos(y * 23 - x * 7);
     const v = y + (mobile ? .012 : .025) * Math.sin(x * 13 - y * 5);
     let z = 0;
     for (const k of kernels) z += k.amplitude * gaussian(u, v, k.x, k.y, k.sx, k.sy, k.angle);
-    let mass = 0, valley = 0;
-    for (const [cx, cy, sx, sy, strength] of masses) mass += strength * gaussian(u, v, cx, cy, sx, sy, -.3);
-    for (const [cx, cy, sx, sy] of valleys) valley += gaussian(u, v, cx, cy, sx, sy);
-    return z * (1 + connection * mass) * Math.exp(-2.2 * clearing * valley);
+    return z;
   };
 }
 
-export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>) {
-  return createAtlasField(projects, mobile, settings)(x, y);
+export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>, regions?: readonly AtlasCompositionRegion[]) {
+  return createAtlasField(projects, mobile, settings, regions)(x, y);
 }
 
 export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {
