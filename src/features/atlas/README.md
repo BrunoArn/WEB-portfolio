@@ -82,4 +82,4 @@ No published Sanity document was modified. Authenticated Studio form editing and
 
 ## Project thumbnail hover
 
-On devices with a fine pointer, hovering a project expands its circular thumbnail by 10% over 160ms, without moving the label. Keyboard focus receives the same cue. The effect applies only while the map is idle, leaves the approved card transition unchanged, and is disabled for touch-only devices and reduced motion. Browser checks covered expansion/exit, label stability, opening from hover, card size, return, keyboard focus, reduced motion and touch emulation without page errors.
+On devices with a fine pointer, hovering a project expands its circular thumbnail by 20% over 160ms, without moving the label or adding a background highlight behind the name. Keyboard focus receives the same cue. The effect applies only while the map is idle, leaves the approved card transition unchanged, and is disabled for touch-only devices and reduced motion. Browser checks covered expansion/exit, label stability, opening from hover, card size, return, keyboard focus, reduced motion and touch emulation without page errors.
