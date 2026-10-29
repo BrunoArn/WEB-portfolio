@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useState, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { atlasTerrainReference, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
+import { AtlasMotionPanel } from "./AtlasMotionPanel";
+import { atlasMotionReference } from "./atlas-motion";
 import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
 import Image from "next/image";
 import type { AtlasContent, AtlasProject } from "./atlas-types";
@@ -52,10 +54,11 @@ function AtlasThumbnail({ image, unavailable }: { image: AtlasProject["image"]; 
   </span>;
 }
 
-type AtlasPreviewProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean };
+type AtlasPreviewProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
 
-export function AtlasPreview({ locale, content, showTerrainControls = false }: AtlasPreviewProps) {
+export function AtlasPreview({ locale, content, showTerrainControls = false, showMotionControls = false }: AtlasPreviewProps) {
   const text = copy[locale];
+  const [motionSettings, setMotionSettings] = useState({ ...atlasMotionReference });
   const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
   const [override, setOverride] = useState<{ source: AtlasTerrainSettings; value: AtlasTerrainSettings } | null>(null);
   const settings = override?.source === content.terrain ? override.value : content.terrain;
@@ -84,6 +87,7 @@ export function AtlasPreview({ locale, content, showTerrainControls = false }: A
   }, [locale, content.projects, content.territories, content.terrain, text.contentNote]);
 
   useEffect(() => { terrainController.current?.setSettings(settings); }, [settings]);
+  useEffect(() => { terrainController.current?.setMotion(motionSettings); }, [motionSettings, locale, content]);
   useEffect(() => () => cancelAnimationFrame(settingsFrame.current), []);
   function updateControls(key: keyof AtlasTerrainControls, value: number) {
     const profile = mobile ? "mobile" : "desktop";
@@ -154,6 +158,7 @@ export function AtlasPreview({ locale, content, showTerrainControls = false }: A
         </div>
         <div ref={morph} className={styles.morph} aria-hidden="true" />
       </dialog>
+      {showMotionControls && <AtlasMotionPanel locale={locale} value={motionSettings} onChange={setMotionSettings} />}
       {showTerrainControls && <AtlasTerrainPanel locale={locale} mobile={mobile} value={settings[mobile ? "mobile" : "desktop"]} onChange={updateControls} onReset={resetControls} />}
     </main>
   );

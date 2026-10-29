@@ -170,3 +170,11 @@
 }
 .root[data-selection]:not([data-selection="idle"]) .thumbSlot { transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) { .thumbSlot { transition: none; } }
+
+.motionPanel { left: auto; right: 16px; width: min(280px,calc(100vw - 32px)); }
+.motionPanel .motionToggle { display: flex; align-items: center; gap: 8px; }
+.motionToggle input { width: auto; }
+.reducedMotionNote { display: none; }
+@media (prefers-reduced-motion: reduce) { .reducedMotionNote { display: block; } }
+.root:has(.motionPanel) [data-atlas-controls] { bottom: auto; top: 76px; }
+.root:has(.motionPanel) [data-atlas-controls], .root:has([data-atlas-controls]) .motionPanel { max-height: calc(50dvh - 60px); }

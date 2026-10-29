@@ -1,3 +1,5 @@
+import { atlasRasterResolution } from "./atlas-raster";
+import { mountAtlasMotion, type AtlasMotionSettings } from "./atlas-motion";
 import type { AtlasCompositionRegion } from "../../../shared/atlas-composition-regions";
 import { resolveAtlasTerrainSettings, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor, AtlasTerritory } from "./atlas-types";
@@ -109,7 +111,7 @@ export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasA
   return result;
 }
 
-function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCurve, scale: number) {
+function ribbonOutline({ contour, index }: AtlasCurve, scale: number): AtlasPoint[] {
   const { path, closed } = contour, a: AtlasPoint[] = [], b: AtlasPoint[] = [];
   path.forEach((p, i) => {
     const prev = path[closed ? (i - 1 + path.length) % path.length : Math.max(0, i - 1)];
@@ -120,16 +122,18 @@ function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCur
     a.push([p[0] - dy / length * half, p[1] + dx / length * half]);
     b.push([p[0] + dy / length * half, p[1] - dx / length * half]);
   });
-  const outline = a.concat(b.reverse()); ctx.beginPath(); ctx.moveTo(...outline[0]);
-  for (let i = 1; i < outline.length; i++) ctx.lineTo(...outline[i]); ctx.closePath(); ctx.fill();
+  return a.concat(b.reverse());
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
 export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string, initialSettings: AtlasTerrainSettings) {
-  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; } };
+  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds, _zoom?: number) { void _bounds; void _zoom; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; }, setMotion(_value: AtlasMotionSettings) { void _value; }, pulse(_id: string) { void _id; } };
+  let render = () => {};
+  const motion = mountAtlasMotion(canvas, viewport, () => render());
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
   let extension: AtlasBounds | undefined;
+  let rasterZoom = 1;
   let settings = resolveAtlasTerrainSettings(initialSettings);
   function draw() {
     frame = 0; if (disposed) return;
@@ -142,14 +146,12 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const controls = settings[mobile ? "mobile" : "desktop"];
     const key = JSON.stringify([mobile, bounds, controls, settings.regions.map(region => ({kind: region.kind, ...region[mobile ? "mobile" : "desktop"]}))]);
     if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.ceil(width * dpr); canvas.height = Math.ceil(height * dpr);
+    const raster = atlasRasterResolution(width,height,window.devicePixelRatio || 1,rasterZoom);
+    const dpr = raster.ratio;
+    canvas.width = raster.pixelWidth; canvas.height = raster.pixelHeight;
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
     canvas.style.width = canvas.width / dpr + "px"; canvas.style.height = canvas.height / dpr + "px";
     canvas.style.left = screen.left + "px"; canvas.style.top = screen.top + "px";
-    ctx!.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (offsetX - screen.left), dpr * (offsetY - screen.top)); ctx!.fillStyle = "#fff";
-    for (const curve of curves) { ctx!.globalAlpha = curve.index % 4 === 0 ? .77 : .42; paintRibbon(ctx!, curve, scale); }
-    ctx!.globalAlpha = 1;
     const colors = document.createElement("canvas"); colors.width = Math.max(2, Math.ceil(width / 5)); colors.height = Math.max(2, Math.ceil(height / 5));
     const paint = colors.getContext("2d")!; const pixels = paint.createImageData(colors.width, colors.height);
     const palette = territories.map(territory => [1, 3, 5].map(offset => parseInt(territory.color.slice(offset, offset + 2), 16)));
@@ -165,8 +167,20 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
       for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = palette.length ? Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0)) : [149, 163, 155][channel];
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
-    paint.putImageData(pixels, 0, 0); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
+    paint.putImageData(pixels, 0, 0);
+    motion.configure(bounds, world, scale, screen.left, screen.top, offsetX, offsetY, positioned, { cx, cy, sx, sy });
+    const ribbons = curves.map(curve => ({ index: curve.index, mesh: motion.prepare(ribbonOutline(curve, scale), curve.contour) }));
+    render = () => {
+      ctx!.setTransform(1, 0, 0, 1, 0, 0); ctx!.clearRect(0, 0, canvas.width, canvas.height);
+      ctx!.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (offsetX - screen.left), dpr * (offsetY - screen.top)); ctx!.fillStyle = "#fff";
+      for (const ribbon of ribbons) { ctx!.globalAlpha = ribbon.index % 4 === 0 ? .77 : .42; motion.paint(ctx!, ribbon.mesh); }
+      ctx!.globalAlpha = 1; ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
+    };
+    render();
+    canvas.dataset.rasterZoom = String(rasterZoom);
+    canvas.dataset.rasterRatio = String(dpr);
+    canvas.dataset.rasterLimited = String(raster.limited);
     canvas.dataset.regionSources = String(settings.regions.filter(region => region[mobile ? "mobile" : "desktop"].enabled).length);
     canvas.dataset.terrainControls = JSON.stringify(controls);
     canvas.dataset.projectSources = String(projects.length); canvas.dataset.territories = String(territories.length);
@@ -177,6 +191,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
   const observer = new ResizeObserver(schedule); observer.observe(viewport); observer.observe(intro);
   window.addEventListener("resize", schedule); media.addEventListener("change", schedule); document.fonts.ready.then(schedule); schedule();
-  return { setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, extend(bounds?: AtlasBounds) { extension = bounds; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
+  return { setMotion: motion.set, pulse: motion.pulse, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 

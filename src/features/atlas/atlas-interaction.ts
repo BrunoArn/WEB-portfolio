@@ -73,7 +73,8 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     const tx = cx - zoom * point.x, ty = cy - zoom * point.y;
     // Inverse-camera corner extrema occur at the transition endpoints because scale
     // and translation share the same interpolation. Include both plus a guard.
-    terrain.extend({ left: Math.floor(Math.min(0, -tx / zoom) - 24), top: Math.floor(Math.min(0, -ty / zoom) - 24), right: Math.ceil(Math.max(frame.width, (frame.width - tx) / zoom) + 24), bottom: Math.ceil(Math.max(frame.height, (frame.height - ty) / zoom) + 24) });
+    terrain.extend({ left: Math.floor(Math.min(0, -tx / zoom) - 24), top: Math.floor(Math.min(0, -ty / zoom) - 24), right: Math.ceil(Math.max(frame.width, (frame.width - tx) / zoom) + 24), bottom: Math.ceil(Math.max(frame.height, (frame.height - ty) / zoom) + 24) }, zoom);
+    terrain.pulse(project.id);
     root.dataset.selection = "opening";
     item.dataset.selected = "true"; trigger.setAttribute("aria-expanded", "true");
     const camera = `translate(${tx}px,${ty}px) scale(${zoom})`;
