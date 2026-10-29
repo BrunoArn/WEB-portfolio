@@ -6,7 +6,7 @@ O Atlas é a Home em `/pt` e `/en`. A mesma composição e interação ficam dis
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `AtlasPreview.tsx` | Componente compartilhado pela Home e pela prévia; projetos HTML, card, controles locais e recuperação do renderizador. |
+| `AtlasMap.tsx` | Componente compartilhado pela Home e pela prévia; projetos HTML, card, controles locais e recuperação do renderizador. |
 | `atlas-content.ts` | Adapta conteúdo publicado, idiomas, imagens, destinos e participação no mapa. |
 | `atlas-field.ts` | Prepara o campo escalar e a influência espacial das cores. |
 | `atlas-engine.ts` | Gera/suaviza curvas de nível, prepara fitas de espessura variável, enquadramento, cores e cache de geometria. |

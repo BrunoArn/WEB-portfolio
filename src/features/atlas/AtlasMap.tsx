@@ -10,7 +10,7 @@ import type { AtlasContent } from "./atlas-types";
 import type { Locale } from "@/i18n/config";
 import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain, positionAtlasProjects } from "./atlas-engine";
-import styles from "./AtlasPreview.module.css";
+import styles from "./AtlasMap.module.css";
 import { mountAtlasInteraction } from "./atlas-interaction";
 import { atlasWorlds } from "./atlas-layout";
 
@@ -43,9 +43,9 @@ function subscribeToLayout(callback: () => void) {
 function getLayout() { return window.matchMedia(atlasMobileQuery).matches; }
 function getServerLayout() { return false; }
 
-type AtlasPreviewProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
+type AtlasMapProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
 
-export function AtlasPreview({ locale, content, showTerrainControls = false, showMotionControls = false }: AtlasPreviewProps) {
+export function AtlasMap({ locale, content, showTerrainControls = false, showMotionControls = false }: AtlasMapProps) {
   const text = copy[locale];
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);

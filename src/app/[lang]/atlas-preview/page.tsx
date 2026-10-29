@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { AtlasPreview } from "@/features/atlas/AtlasPreview";
+import { AtlasMap } from "@/features/atlas/AtlasMap";
 import { getAtlasData } from "@/sanity/repositories/atlas";
 import { adaptAtlasContent } from "@/features/atlas/atlas-content";
 import { isLocale } from "@/i18n/config";
@@ -37,5 +37,5 @@ export default async function AtlasPreviewPage({
 
   const content = adaptAtlasContent(await getAtlasData(), lang);
   const query = await searchParams;
-  return <AtlasPreview locale={lang} content={content} showTerrainControls={query?.terrain === "1"} showMotionControls={query?.motion === "1"} />;
+  return <AtlasMap locale={lang} content={content} showTerrainControls={query?.terrain === "1"} showMotionControls={query?.motion === "1"} />;
 }

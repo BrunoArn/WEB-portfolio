@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { AtlasProject } from "./atlas-types";
-import styles from "./AtlasPreview.module.css";
+import styles from "./AtlasMap.module.css";
 
 // Include the approved 20% hover enlargement, without downloading card-size images.
 const thumbnailSizes = "(max-width: 760px) 56px, (max-height: 700px) 28px, 64px";

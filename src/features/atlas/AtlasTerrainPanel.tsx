@@ -2,7 +2,7 @@
 import { useId } from "react";
 import { atlasTerrainControlKeys, atlasTerrainLimits, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { Locale } from "@/i18n/config";
-import styles from "./AtlasPreview.module.css";
+import styles from "./AtlasMap.module.css";
 
 const names = {
   pt: {amplitude: "Amplitude", elongation: "Alongamento", direction: "Direção", connection: "Conexão", negativeSpace: "Respiro"},

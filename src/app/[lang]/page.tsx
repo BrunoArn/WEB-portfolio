@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { AtlasPreview } from "@/features/atlas/AtlasPreview";
+import { AtlasMap } from "@/features/atlas/AtlasMap";
 import { adaptAtlasContent } from "@/features/atlas/atlas-content";
 import { isLocale } from "@/i18n/config";
 import { getAtlasData } from "@/sanity/repositories/atlas";
@@ -17,5 +17,5 @@ export default async function HomePage({ params }: HomePageProps) {
   }
 
   const content = adaptAtlasContent(await getAtlasData(), lang);
-  return <AtlasPreview locale={lang} content={content} />;
+  return <AtlasMap locale={lang} content={content} />;
 }
