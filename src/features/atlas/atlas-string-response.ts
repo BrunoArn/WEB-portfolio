@@ -1,7 +1,8 @@
+import { atlasBendLimits } from "./atlas-contour-safety";
 import type { AtlasContour } from "./atlas-types";
 
 /** A contour behaves as a separate strand, with its own nearest contact and return. */
-export function createAtlasString(contour: AtlasContour) {
+export function createAtlasString(contour: AtlasContour, scale = 1) {
   const { path, closed } = contour, arcs = new Float64Array(path.length), normals = new Float32Array(path.length * 2);
   const samples: number[] = [];
   let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
@@ -15,7 +16,8 @@ export function createAtlasString(contour: AtlasContour) {
   }
   const length = arcs.at(-1)! + (closed ? Math.hypot(path[0][0]-path.at(-1)![0],path[0][1]-path.at(-1)![1]) : 0);
   if (closed) samples.push(path[0][0],path[0][1],length);
-  return { arcs, normals, samples: new Float64Array(samples), closed, length, left, top, right, bottom, value: 0, contact: 0, strike: undefined as { contact: number; value: number } | undefined };
+  const bendLimits = atlasBendLimits(contour, arcs, normals, scale);
+  return { arcs, normals, bendLimits, samples: new Float64Array(samples), closed, length, left, top, right, bottom, value: 0, contact: 0, strike: undefined as { contact: number; value: number } | undefined };
 }
 export type AtlasString = ReturnType<typeof createAtlasString>;
 /** Closest contact belongs to this contour, irrespective of its winding. */
@@ -49,32 +51,9 @@ export function advanceAtlasString(line: AtlasString, x: number, y: number, over
   const tau=target ? .075 : .12+returnTime/100*1.2;
   line.value += (target-line.value)*(1-Math.exp(-dt/tau));
 }
-export function atlasStringOffset(line: AtlasString, arc: number, unit: number, mouseRadius = 35) {
-  let distance=Math.abs(arc-line.contact);
-  if (line.closed) distance=Math.min(distance,line.length-distance);
-  return line.value*Math.exp(-.5*(distance/(mouseRadius*1.3*unit))**2);
-}
-
-export const atlasSelectionDuration = 1.15;
-
 /** A click excites each strand at its own nearest contact, like a brief pointer push. */
 export function strikeAtlasString(line: AtlasString, x: number, y: number, unit: number, mouseRadius = 35) {
   const hit=nearestAtlasString(line,x,y), radius=Math.max(75,mouseRadius*2)*unit;
   const value=11*unit * hit.signed/Math.hypot(hit.signed,8*unit) * Math.exp(-.5*hit.distance2/(radius*radius));
   line.strike=Number.isFinite(value) && Math.abs(value)>.005*unit ? {contact:hit.contact,value} : undefined;
-}
-export function atlasStringStrikeOffset(line: AtlasString, arc: number, age: number, unit: number, returnTime = 45, selectionStrength = 75) {
-  if (!line.strike) return 0;
-  let distance=Math.abs(arc-line.strike.contact);
-  if (line.closed) distance=Math.min(distance,line.length-distance);
-  // Two packets travel along this strand. A periodic distance keeps closed loops smooth.
-  const front=(35+age*300)*unit, width=32*unit;
-  const packet=(delta: number)=> {
-    const d=line.closed ? line.length/Math.PI*Math.sin(Math.PI*delta/line.length) : delta;
-    return Math.exp(-.5*(d/width)**2);
-  };
-  const wave=packet(distance-front)+packet(distance+front);
-  const tail=Math.max(0,Math.min(1,(atlasSelectionDuration-age)/.4));
-  const envelope=(1-Math.exp(-age/.02))*Math.exp(-age/(.26+returnTime/100*.3))*tail*tail*(3-2*tail);
-  return line.strike.value*envelope*wave*Math.max(0,Math.min(100,selectionStrength))/25;
 }

@@ -2,10 +2,10 @@ import { resolveAtlasRegions, type AtlasCompositionRegion } from "../../../share
 import { resolveAtlasTerrainControls, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasAnchor } from "./atlas-types";
 
-function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: number, angle = 0) {
+function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: number, cosine = 1, sine = 0) {
   const dx = x - cx, dy = y - cy;
-  const u = dx * Math.cos(angle) + dy * Math.sin(angle);
-  const v = -dx * Math.sin(angle) + dy * Math.cos(angle);
+  const u = dx * cosine + dy * sine;
+  const v = -dx * sine + dy * cosine;
   return Math.exp(-.5 * ((u / sx) ** 2 + (v / sy) ** 2));
 }
 
@@ -34,17 +34,14 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
     const strength = profile.intensity * (region.kind === "valley" ? -clearing : connection);
     kernels.push({x: profile.x / 100, y: profile.y / 100, sx: profile.width / 100 * footprint * stretch, sy: profile.height / 100 * footprint / stretch, angle: profile.rotation * Math.PI / 180 + direction, amplitude: strength});
   }
+  const prepared = kernels.map(kernel => ({ ...kernel, cosine: Math.cos(kernel.angle), sine: Math.sin(kernel.angle) }));
   return (x: number, y: number) => {
     const u = x + (mobile ? .018 : .028) * Math.sin(y * 12 + x * 3) + (mobile ? .009 : .016) * Math.cos(y * 23 - x * 7);
     const v = y + (mobile ? .012 : .025) * Math.sin(x * 13 - y * 5);
     let z = 0;
-    for (const k of kernels) z += k.amplitude * gaussian(u, v, k.x, k.y, k.sx, k.sy, k.angle);
+    for (const k of prepared) z += k.amplitude * gaussian(u, v, k.x, k.y, k.sx, k.sy, k.cosine, k.sine);
     return z;
   };
-}
-
-export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>, regions?: readonly AtlasCompositionRegion[]) {
-  return createAtlasField(projects, mobile, settings, regions)(x, y);
 }
 
 export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {
@@ -57,8 +54,4 @@ export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: 
     const sum = powered.reduce((a, b) => a + b, 0) || 1;
     return powered.map(value => value / sum);
   };
-}
-
-export function atlasCategoryWeights(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {
-  return createAtlasColorField(projects, mobile, categoryIds)(x, y);
 }

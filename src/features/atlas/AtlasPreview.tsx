@@ -3,10 +3,10 @@
 import { useEffect, useId, useState, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { atlasTerrainReference, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import { AtlasMotionPanel } from "./AtlasMotionPanel";
-import { atlasMotionReference } from "./atlas-motion";
+import { atlasMotionReference } from "./atlas-motion-settings";
 import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
-import Image from "next/image";
-import type { AtlasContent, AtlasProject } from "./atlas-types";
+import { AtlasThumbnail } from "./AtlasThumbnail";
+import type { AtlasContent } from "./atlas-types";
 import type { Locale } from "@/i18n/config";
 import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain, positionAtlasProjects } from "./atlas-engine";
@@ -43,25 +43,18 @@ function subscribeToLayout(callback: () => void) {
 function getLayout() { return window.matchMedia(atlasMobileQuery).matches; }
 function getServerLayout() { return false; }
 
-function AtlasThumbnail({ image, unavailable }: { image: AtlasProject["image"]; unavailable: string }) {
-  const [failed, setFailed] = useState(false);
-  const available = image && !failed;
-  return <span className={styles.thumb} role="img" aria-label={available ? image.alt : unavailable} data-atlas-missing={!available}>
-    {available ? <Image src={image.src} alt="" fill sizes="460px" className={styles.thumbImage} onError={() => setFailed(true)} /> :
-      <svg className={styles.thumbIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="9" r="1.5" /><path d="m3 17 6-5 4 3 3-3 5 5" />
-      </svg>}
-  </span>;
-}
-
 type AtlasPreviewProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
 
 export function AtlasPreview({ locale, content, showTerrainControls = false, showMotionControls = false }: AtlasPreviewProps) {
   const text = copy[locale];
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
   const [motionSettings, setMotionSettings] = useState({ ...atlasMotionReference });
+  const latestMotion = useRef(motionSettings);
   const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
   const [override, setOverride] = useState<{ source: AtlasTerrainSettings; value: AtlasTerrainSettings } | null>(null);
   const settings = override?.source === content.terrain ? override.value : content.terrain;
+  const latestTerrain = useRef(settings);
   const pendingSettings = useRef<AtlasTerrainSettings | null>(null);
   const settingsFrame = useRef(0);
   const dialogId = useId();
@@ -80,14 +73,17 @@ export function AtlasPreview({ locale, content, showTerrainControls = false, sho
   useEffect(() => {
     if (!canvas.current || !viewport.current || !intro.current) return;
     if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current) return;
-    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery, content.terrain);
+    let cancelled = false;
+    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery, content.terrain,
+      { staticFallback: webglFailed, onFallback: () => { if (!cancelled) setWebglFailed(true); } });
     terrainController.current = terrain;
-    const disposeInteraction = mountAtlasInteraction({ root: root.current, viewport: viewport.current, world: world.current, dialog: dialog.current, panel: panel.current, media: media.current, morph: morph.current }, terrain, content.projects, text.contentNote);
-    return () => { disposeInteraction(); terrain.dispose(); terrainController.current = null; };
-  }, [locale, content.projects, content.territories, content.terrain, text.contentNote]);
-
-  useEffect(() => { terrainController.current?.setSettings(settings); }, [settings]);
-  useEffect(() => { terrainController.current?.setMotion(motionSettings); }, [motionSettings, locale, content]);
+    terrain.setMotion(latestMotion.current);
+    terrain.setSettings(latestTerrain.current);
+    const disposeInteraction = mountAtlasInteraction({ root: root.current, viewport: viewport.current, world: world.current, dialog: dialog.current, panel: panel.current, media: media.current, morph: morph.current }, terrain, content.projects, text.contentNote, setSelectedProjectId);
+    return () => { cancelled = true; disposeInteraction(); terrain.dispose(); terrainController.current = null; };
+  }, [locale, content.projects, content.territories, content.terrain, text.contentNote, webglFailed]);
+  useEffect(() => { latestTerrain.current = settings; terrainController.current?.setSettings(settings); }, [settings]);
+  useEffect(() => { latestMotion.current = motionSettings; terrainController.current?.setMotion(motionSettings); }, [motionSettings, locale, content]);
   useEffect(() => () => cancelAnimationFrame(settingsFrame.current), []);
   function updateControls(key: keyof AtlasTerrainControls, value: number) {
     const profile = mobile ? "mobile" : "desktop";
@@ -108,7 +104,7 @@ export function AtlasPreview({ locale, content, showTerrainControls = false, sho
     <main ref={root} className={styles.root} data-atlas-preview style={{ "--atlas-desktop-width": atlasWorlds.desktop.width, "--atlas-desktop-height": atlasWorlds.desktop.height, "--atlas-mobile-width": atlasWorlds.mobile.width, "--atlas-mobile-height": atlasWorlds.mobile.height } as CSSProperties}>
       <div className={styles.viewport} ref={viewport}>
         <div className={styles.world} ref={world}>
-        <canvas className={styles.canvas} ref={canvas} aria-hidden="true" />
+        <canvas key={webglFailed ? "static" : "webgl"} className={styles.canvas} ref={canvas} aria-hidden="true" />
         <div className={styles.projectPlane}>
           <ul className={styles.projects} aria-label={text.projects}>
             {positionedProjects.map(project => {
@@ -123,7 +119,7 @@ export function AtlasPreview({ locale, content, showTerrainControls = false, sho
                 >
                   <button type="button" className={styles.trigger} data-atlas-trigger aria-label={project.title} aria-haspopup="dialog" aria-expanded="false" aria-controls={dialogId} />
                   <span className={styles.thumbSlot}>
-                    <AtlasThumbnail image={project.image} unavailable={text.unavailable} />
+                    <AtlasThumbnail image={project.image} unavailable={text.unavailable} selected={selectedProjectId === project.id} />
                   </span>
                   <span className={styles.label}>
                     <span className={styles.projectTitle}>{project.title}</span>
@@ -158,7 +154,8 @@ export function AtlasPreview({ locale, content, showTerrainControls = false, sho
         </div>
         <div ref={morph} className={styles.morph} aria-hidden="true" />
       </dialog>
-      {showMotionControls && <AtlasMotionPanel locale={locale} value={motionSettings} onChange={setMotionSettings} />}
+      {webglFailed && <p className={styles.fallbackNotice} role="status">{locale === "pt" ? "Visualização simplificada ativada." : "Simplified view enabled."}</p>}
+      {showMotionControls && !webglFailed && <AtlasMotionPanel locale={locale} value={motionSettings} onChange={setMotionSettings} />}
       {showTerrainControls && <AtlasTerrainPanel locale={locale} mobile={mobile} value={settings[mobile ? "mobile" : "desktop"]} onChange={updateControls} onReset={resetControls} />}
     </main>
   );

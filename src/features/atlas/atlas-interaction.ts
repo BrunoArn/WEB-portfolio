@@ -8,7 +8,7 @@ type Elements = {
 };
 
 /** The approved camera/morph rhythm, scoped to a single mounted preview. */
-export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string) {
+export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void) {
   const { root, viewport, world, dialog, panel, media, morph } = elements;
   const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -37,6 +37,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     dialog.close();
     document.body.style.overflow = state.overflow; document.body.style.paddingRight = state.padding;
     selection = undefined;
+    onSelectionChange(null);
     terrain.extend();
     window.scrollTo({ top: state.scroll, behavior: "instant" });
     if (focus && state.trigger.isConnected) state.trigger.focus({ preventScroll: true });
@@ -48,6 +49,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     const thumb = item.querySelector<HTMLElement>("[role=img]")!, slot = thumb.parentElement!;
     const from = thumb.getBoundingClientRect(), id = ++epoch;
     selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY };
+    onSelectionChange(project.id);
     dialog.querySelector("[data-atlas-title]")!.textContent = project.title;
     dialog.querySelector("[data-atlas-category]")!.textContent = project.categoryLabel;
     dialog.querySelector("[data-atlas-description]")!.textContent = project.description ?? missingDescription;

@@ -1,7 +1,7 @@
 "use client";
 import { useId } from "react";
 import type { Locale } from "@/i18n/config";
-import { atlasMotionReference, type AtlasMotionSettings } from "./atlas-motion";
+import { atlasMotionReference, type AtlasMotionSettings } from "./atlas-motion-settings";
 import styles from "./AtlasPreview.module.css";
 
 export function AtlasMotionPanel({ locale, value, onChange }: { locale: Locale; value: AtlasMotionSettings; onChange: (value: AtlasMotionSettings) => void }) {

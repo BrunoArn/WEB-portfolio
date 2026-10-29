@@ -1,9 +1,10 @@
-import { atlasSelectionDuration, createAtlasString, advanceAtlasString, atlasStringOffset, strikeAtlasString, atlasStringStrikeOffset, type AtlasString } from "./atlas-string-response";
+import { atlasMotionReference, atlasSelectionDuration, type AtlasMotionSettings } from "./atlas-motion-settings";
+import { createAtlasString, advanceAtlasString, strikeAtlasString, type AtlasString } from "./atlas-string-response";
 import type { AtlasAnchor, AtlasPoint, AtlasContour } from "./atlas-types";
 import type { AtlasBounds } from "./atlas-layout";
 
-export interface AtlasMotionSettings { enabled: boolean; breath: number; pressure: number; returnTime: number; mouseRadius: number; selectionStrength: number }
-export const atlasMotionReference: AtlasMotionSettings = { enabled: true, breath: 90, pressure: 85, returnTime: 86, mouseRadius: 65, selectionStrength: 75 };
+export const atlasRibbonStride = 7;
+
 type World = { width: number; height: number };
 type Clearing = { cx: number; cy: number; sx: number; sy: number };
 
@@ -12,7 +13,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
   let settings = { ...atlasMotionReference, enabled: false }, disposed = false, visible = true;
   let frame = 0, previous = 0, lastPaint = 0, time = 0, frames = 0;
   let bounds: AtlasBounds = { left: 0, top: 0, right: 1, bottom: 1 }, nx = 1, ny = 1, stepX = 1, stepY = 1;
-  let dx = new Float32Array(4), dy = new Float32Array(4), protection = new Float32Array(4);
+  let protection = new Float32Array(4);
   let world: World = { width: 1, height: 1 }, scale = 1, screenLeft = 0, screenTop = 0, offsetX = 0, offsetY = 0;
   let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0, pressure = 0, over = false;
   let lines: AtlasString[] = [];
@@ -21,7 +22,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
   const active = () => settings.enabled && !reduced.matches;
   const running = () => active() && (settings.breath > 0 || (over && settings.pressure > 0) || pressure > .001 || !!pulse) && !document.hidden && visible && !disposed;
   function schedule() { canvas.dataset.motionActive = String(running()); if (running() && !frame) frame = requestAnimationFrame(tick); }
-  function clear() { dx.fill(0); dy.fill(0); pressure = 0; over = false; pulse = undefined; lines.forEach(line => { line.value = 0; line.strike = undefined; }); }
+  function clear() { pressure = 0; over = false; pulse = undefined; lines.forEach(line => { line.value = 0; line.strike = undefined; }); }
   function policy() {
     cancelAnimationFrame(frame); frame = 0; previous = 0;
     canvas.dataset.motionActive = String(running());
@@ -33,33 +34,25 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
     // A queued frame may observe that motion is no longer allowed.
     // Apply the stop policy as well, so reduced motion restores the static raster.
     if (!running()) { policy(); return; }
-    // Cap at 30 redraws/sec; interpolation uses elapsed time on every refresh rate.
-    if (now - lastPaint >= 32) {
+    // Target 60 redraws/sec while integrating the response with elapsed time.
+    if (now - lastPaint >= 15) {
       const dt = previous ? Math.min(.07, (now - previous) / 1000) : 0;
       previous = now; lastPaint = now; time += dt;
       const start = performance.now();
-      updateField(dt);
+      advance(dt);
       repaint(); frames++;
       canvas.dataset.motionFrames = String(frames);
       canvas.dataset.motionCost = (performance.now() - start).toFixed(2);
     }
     schedule();
   }
-  function updateField(dt: number) {
+  function advance(dt: number) {
     const follow = 1 - Math.exp(-dt / .09), release = .12 + settings.returnTime / 100 * 1.2;
     pointerX += (targetX - pointerX) * follow; pointerY += (targetY - pointerY) * follow;
     pressure += ((over ? 1 : 0) - pressure) * (1 - Math.exp(-dt / (over ? .13 : release)));
     if (pulse) { pulse.age += dt; if (pulse.age > atlasSelectionDuration) { pulse = undefined; lines.forEach(line => { line.strike = undefined; }); } }
     const unit = 1 / scale;
     for (const line of lines) advanceAtlasString(line, pointerX, pointerY, over, settings.pressure, settings.returnTime, dt, unit, settings.mouseRadius);
-    for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
-      const index = j * (nx + 1) + i, x = bounds.left + i * stepX, y = bounds.top + j * stepY;
-      const breath = settings.breath / 100 * 9 * unit;
-      const u = breath * (Math.sin(y * .007 + time * .43) * .65 + Math.sin(x * .004 - y * .003 - time * .29) * .35);
-      const v = breath * (Math.cos(x * .006 - time * .37) * .65 + Math.sin(y * .005 + x * .003 + time * .23) * .35);
-      dx[index] = u * protection[index]; dy[index] = v * protection[index];
-    }
-
     if (!over && pressure < .001) { pressure = 0; lines.forEach(line => { line.value = 0; }); }
   }
   function pointer(event: PointerEvent) {
@@ -78,57 +71,43 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
   document.addEventListener("visibilitychange", policy); reduced.addEventListener("change", policy);
   const observer = new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? true; policy(); }); observer.observe(viewport);
   return {
+    state: () => ({ settings, time, scale, bounds, nx, ny, stepX, stepY, protection, active: active(), pulseAge: pulse?.age ?? -1 }),
     configure(area: AtlasBounds, dimensions: World, zoom: number, left: number, top: number, ox: number, oy: number, projects: readonly AtlasAnchor[], intro: Clearing) {
       lines = [];
       bounds = area; world = dimensions; scale = zoom; screenLeft = left; screenTop = top; offsetX = ox; offsetY = oy; anchors = projects;
       nx = Math.max(1, Math.ceil((area.right - area.left) / 12)); ny = Math.max(1, Math.ceil((area.bottom - area.top) / 12));
       stepX = (area.right - area.left) / nx; stepY = (area.bottom - area.top) / ny;
-      dx = new Float32Array((nx + 1) * (ny + 1)); dy = new Float32Array(dx.length); protection = new Float32Array(dx.length);
+      protection = new Float32Array((nx + 1) * (ny + 1));
       for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
         const x = area.left + i * stepX, y = area.top + j * stepY;
         let keep = 1 - Math.exp(-.5 * (((x / world.width - intro.cx) / intro.sx) ** 4 + ((y / world.height - intro.cy) / intro.sy) ** 4));
         for (const p of anchors) keep *= 1 - .94 * Math.exp(-.5 * (((x - p.x * world.width) / (56 / scale)) ** 2 + ((y - p.y * world.height) / (45 / scale)) ** 2));
         protection[j * (nx + 1) + i] = keep;
       }
-      if (active()) updateField(0);
+      if (active()) advance(0);
       previous = 0; schedule();
     },
     prepare(points: AtlasPoint[], contour: AtlasContour) {
-      const line = createAtlasString(contour); lines.push(line);
+      const line = createAtlasString(contour, scale); lines.push(line);
       if (pulse) strikeAtlasString(line,pulse.x,pulse.y,1/scale,settings.mouseRadius);
-      const mesh = new Float64Array(points.length * 9);
+      const mesh = new Float32Array(points.length * atlasRibbonStride);
       points.forEach(([x,y], i) => {
         const gx = Math.max(0, Math.min(nx - .00001, (x - bounds.left) / stepX));
         const gy = Math.max(0, Math.min(ny - .00001, (y - bounds.top) / stepY));
         const cell = Math.floor(gy) * (nx + 1) + Math.floor(gx), a = gx % 1, b = gy % 1, below = cell+nx+1;
         const keep = (protection[cell]*(1-a)+protection[cell+1]*a)*(1-b)+(protection[below]*(1-a)+protection[below+1]*a)*b;
         const index = i < contour.path.length ? i : points.length-1-i;
-        mesh.set([x,y,cell,a,b,line.normals[index*2],line.normals[index*2+1],line.arcs[index],keep],i*9);
+        mesh.set([x,y,cell,line.normals[index*2],line.normals[index*2+1],line.arcs[index],keep],i*atlasRibbonStride);
       });
       return { mesh, line };
-    },
-    paint(ctx: CanvasRenderingContext2D, ribbon: { mesh: Float64Array; line: AtlasString }) {
-      const { mesh, line } = ribbon;
-      ctx.beginPath();
-      for (let i = 0; i < mesh.length; i += 9) {
-        const cell = mesh[i+2], a = mesh[i+3], b = mesh[i+4], below = cell + nx + 1;
-        const u = (dx[cell] * (1-a) + dx[cell+1] * a) * (1-b) + (dx[below] * (1-a) + dx[below+1] * a) * b;
-        const v = (dy[cell] * (1-a) + dy[cell+1] * a) * (1-b) + (dy[below] * (1-a) + dy[below+1] * a) * b;
-        const hover = line.value ? atlasStringOffset(line, mesh[i+7], 1/scale, settings.mouseRadius) : 0;
-        const strike = pulse ? atlasStringStrikeOffset(line,mesh[i+7],pulse.age,1/scale,settings.returnTime,settings.selectionStrength) : 0;
-        const bend = (hover+strike)*mesh[i+8];
-        const x = mesh[i]+u+mesh[i+5]*bend, y = mesh[i+1]+v+mesh[i+6]*bend;
-        if (i) ctx.lineTo(x,y); else ctx.moveTo(x,y);
-      }
-      ctx.closePath(); ctx.fill();
     },
     set(value: AtlasMotionSettings) {
       settings = { selectionStrength: Number.isFinite(value.selectionStrength) ? Math.max(0,Math.min(100,value.selectionStrength)) : atlasMotionReference.selectionStrength, mouseRadius: Number.isFinite(value.mouseRadius) ? Math.max(15, Math.min(80, value.mouseRadius)) : atlasMotionReference.mouseRadius, enabled: !!value.enabled, breath: Math.max(0,Math.min(100,value.breath)), pressure: Math.max(0,Math.min(100,value.pressure)), returnTime: Math.max(0,Math.min(100,value.returnTime)) };
       if (!settings.breath && !settings.pressure && !pulse) { clear(); }
-      if (active()) updateField(0); repaint();
+      if (active()) { advance(0); repaint(); }
       policy();
     },
-    pulse(id: string) { if (!active() || !settings.selectionStrength) return; const p = anchors.find(p => p.id === id); if (p) pulse = { x: p.x * world.width, y: p.y * world.height, age: .035 }; over = false; lines.forEach(line => { if (pulse) strikeAtlasString(line,pulse.x,pulse.y,1/scale,settings.mouseRadius); }); updateField(0); repaint(); schedule(); },
+    pulse(id: string) { if (!active() || !settings.selectionStrength) return; const p = anchors.find(p => p.id === id); if (p) pulse = { x: p.x * world.width, y: p.y * world.height, age: .035 }; over = false; lines.forEach(line => { if (pulse) strikeAtlasString(line,pulse.x,pulse.y,1/scale,settings.mouseRadius); }); advance(0); repaint(); schedule(); },
     dispose() { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); viewport.removeEventListener("pointermove", pointer); viewport.removeEventListener("pointerleave", leave); window.removeEventListener("blur", leave); window.removeEventListener("scroll", leave); document.removeEventListener("visibilitychange", policy); reduced.removeEventListener("change", policy); },
   };
 }
