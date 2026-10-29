@@ -17,7 +17,7 @@ export function createAtlasString(contour: AtlasContour, scale = 1) {
   const length = arcs.at(-1)! + (closed ? Math.hypot(path[0][0]-path.at(-1)![0],path[0][1]-path.at(-1)![1]) : 0);
   if (closed) samples.push(path[0][0],path[0][1],length);
   const bendLimits = atlasBendLimits(contour, arcs, normals, scale);
-  return { arcs, normals, bendLimits, samples: new Float64Array(samples), closed, length, left, top, right, bottom, value: 0, contact: 0, strike: undefined as { contact: number; value: number } | undefined };
+  return { path, arcs, normals, bendLimits, samples: new Float64Array(samples), closed, length, left, top, right, bottom, value: 0, contact: 0, strike: undefined as { contact: number; value: number } | undefined };
 }
 export type AtlasString = ReturnType<typeof createAtlasString>;
 /** Closest contact belongs to this contour, irrespective of its winding. */

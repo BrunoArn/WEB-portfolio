@@ -127,11 +127,25 @@ function ribbonOutline({ contour, index }: AtlasCurve, scale: number): AtlasPoin
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
-export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string, initialSettings: AtlasTerrainSettings, options: { staticFallback: boolean; onFallback: () => void }) {
+export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string, initialSettings: AtlasTerrainSettings, options: { staticFallback: boolean; onFallback: () => void; entrance?: boolean; onReady?: () => void }) {
   const gpu = options.staticFallback ? null : createAtlasWebGL(canvas, options.onFallback);
-  const ctx = options.staticFallback ? canvas.getContext("2d") : null; if (!ctx && !gpu) return { dispose() {}, extend(_bounds?: AtlasBounds, _zoom?: number) { void _bounds; void _zoom; }, crop(_bounds?: AtlasBounds) { void _bounds; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; }, setMotion(_value: AtlasMotionSettings) { void _value; }, pulse(_id: string) { void _id; } };
+  const ctx = options.staticFallback ? canvas.getContext("2d") : null;
+  if (!ctx && !gpu) {
+    if (options.staticFallback) queueMicrotask(() => options.onReady?.());
+    return {
+      entranceAt(_x: number, _y: number) { void _x; void _y; return 0; },
+      setReveal(_progress: number) { void _progress; },
+      dispose() {},
+      extend(_bounds?: AtlasBounds, _zoom?: number) { void _bounds; void _zoom; },
+      crop(_bounds?: AtlasBounds) { void _bounds; },
+      setSettings(_settings: AtlasTerrainSettings) { void _settings; },
+      setMotion(_value: AtlasMotionSettings) { void _value; },
+      pulse(_id: string) { void _id; },
+    };
+  }
   canvas.dataset.renderer = gpu ? "webgl" : "static";
   canvas.dataset.motionActive = "false";
+  let revealProgress = options.entrance ? 0 : 1, ready = false;
   let render = () => {};
   const motion = gpu ? mountAtlasMotion(canvas, viewport, () => render()) : null;
   const media = window.matchMedia(mobileQuery);
@@ -178,8 +192,8 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     if (gpu && motion) {
       motion.configure(bounds, world, scale, screen.left, screen.top, offsetX, offsetY, positioned, { cx, cy, sx, sy });
       const ribbons = outlines.map(({ index, points }, i) => ({ index, mesh: motion.prepare(points, curves[i].contour) }));
-      gpu.prepare(ribbons, colors, motion, { scale, x: offsetX - screen.left, y: offsetY - screen.top, width: canvas.width / dpr, height: canvas.height / dpr, pixelRatio: dpr });
-      render = () => gpu.paint(motion);
+      gpu.prepare(ribbons, colors, motion, { scale, x: offsetX - screen.left, y: offsetY - screen.top, width: canvas.width / dpr, height: canvas.height / dpr, pixelRatio: dpr }, revealProgress < 1);
+      render = () => gpu.paint(motion, revealProgress);
     } else if (ctx) {
       // Compatibility recovery only: draw the resting landscape without a motion loop.
       const paths = outlines.map(({ index, points }) => {
@@ -206,10 +220,14 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);
     canvas.dataset.worldWidth = String(world.width); canvas.dataset.worldHeight = String(world.height);
     canvas.dataset.worldScale = String(scale); canvas.dataset.worldOffsetX = String(offsetX); canvas.dataset.worldOffsetY = String(offsetY);
+    if (!ready) { ready = true; options.onReady?.(); }
   }
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
   const observer = new ResizeObserver(schedule); observer.observe(viewport); observer.observe(intro);
   window.addEventListener("resize", schedule); media.addEventListener("change", schedule); document.fonts.ready.then(schedule); schedule();
-  return { setMotion(value: AtlasMotionSettings) { motion?.set(value); }, pulse(id: string) { motion?.pulse(id); }, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, crop(bounds?: AtlasBounds) { rasterCrop = bounds; cancelAnimationFrame(frame); draw(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterCrop = undefined; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion?.dispose(); gpu?.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
+  return { entranceAt(x: number, y: number) { return gpu?.arrivalAt(x, y) ?? 0; }, setReveal(progress: number) {
+    revealProgress = Math.max(0, Math.min(1, progress));
+    if (!disposed && !motion?.isRunning()) render();
+  }, setMotion(value: AtlasMotionSettings) { motion?.set(value); }, pulse(id: string) { motion?.pulse(id); }, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, crop(bounds?: AtlasBounds) { rasterCrop = bounds; cancelAnimationFrame(frame); draw(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterCrop = undefined; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion?.dispose(); gpu?.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 

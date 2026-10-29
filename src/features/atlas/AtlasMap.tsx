@@ -13,6 +13,7 @@ import { mountAtlasTerrain, positionAtlasProjects } from "./atlas-engine";
 import styles from "./AtlasMap.module.css";
 import { mountAtlasInteraction } from "./atlas-interaction";
 import { atlasWorlds } from "./atlas-layout";
+import { mountAtlasEntrance } from "./atlas-entrance";
 
 const copy = {
   pt: {
@@ -51,6 +52,7 @@ export function AtlasMap({ locale, content, showTerrainControls = false, showMot
   const [webglFailed, setWebglFailed] = useState(false);
   const [motionSettings, setMotionSettings] = useState({ ...atlasMotionReference });
   const latestMotion = useRef(motionSettings);
+  const entranceFinished = useRef(false);
   const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
   const [override, setOverride] = useState<{ source: AtlasTerrainSettings; value: AtlasTerrainSettings } | null>(null);
   const settings = override?.source === content.terrain ? override.value : content.terrain;
@@ -75,12 +77,13 @@ export function AtlasMap({ locale, content, showTerrainControls = false, showMot
     if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current) return;
     let cancelled = false;
     const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery, content.terrain,
-      { staticFallback: webglFailed, onFallback: () => { if (!cancelled) setWebglFailed(true); } });
+      { staticFallback: webglFailed, entrance: !entranceFinished.current, onReady: () => entrance?.start(), onFallback: () => { if (!cancelled) setWebglFailed(true); } });
+    const entrance = mountAtlasEntrance(root.current, viewport.current, terrain, { skip: webglFailed || entranceFinished.current, onComplete: () => { entranceFinished.current = true; } });
     terrainController.current = terrain;
     terrain.setMotion(latestMotion.current);
     terrain.setSettings(latestTerrain.current);
     const disposeInteraction = mountAtlasInteraction({ root: root.current, viewport: viewport.current, world: world.current, dialog: dialog.current, panel: panel.current, media: media.current, morph: morph.current }, terrain, content.projects, text.contentNote, setSelectedProjectId);
-    return () => { cancelled = true; disposeInteraction(); terrain.dispose(); terrainController.current = null; };
+    return () => { cancelled = true; entrance?.dispose(); disposeInteraction(); terrain.dispose(); terrainController.current = null; };
   }, [locale, content.projects, content.territories, content.terrain, text.contentNote, webglFailed]);
   useEffect(() => { latestTerrain.current = settings; terrainController.current?.setSettings(settings); }, [settings]);
   useEffect(() => { latestMotion.current = motionSettings; terrainController.current?.setMotion(motionSettings); }, [motionSettings, locale, content]);
@@ -101,7 +104,8 @@ export function AtlasMap({ locale, content, showTerrainControls = false, showMot
   }
 
   return (
-    <main ref={root} className={styles.root} data-atlas-preview style={{ "--atlas-desktop-width": atlasWorlds.desktop.width, "--atlas-desktop-height": atlasWorlds.desktop.height, "--atlas-mobile-width": atlasWorlds.mobile.width, "--atlas-mobile-height": atlasWorlds.mobile.height } as CSSProperties}>
+    <main ref={root} className={styles.root} data-atlas-preview data-entry="pending" style={{ "--atlas-desktop-width": atlasWorlds.desktop.width, "--atlas-desktop-height": atlasWorlds.desktop.height, "--atlas-mobile-width": atlasWorlds.mobile.width, "--atlas-mobile-height": atlasWorlds.mobile.height } as CSSProperties}>
+      <noscript><style>{`[data-atlas-preview] :is([data-atlas-project],[data-atlas-territory]){opacity:1!important;visibility:visible!important}`}</style></noscript>
       <div className={styles.viewport} ref={viewport}>
         <div className={styles.world} ref={world}>
         <canvas key={webglFailed ? "static" : "webgl"} className={styles.canvas} ref={canvas} aria-hidden="true" />
@@ -118,7 +122,7 @@ export function AtlasMap({ locale, content, showTerrainControls = false, showMot
                   style={{ left: `${project.x * 100}%`, top: `${project.y * 100}%`, "--atlas-tone": project.color } as CSSProperties}
                 >
                   <button type="button" className={styles.trigger} data-atlas-trigger aria-label={project.title} aria-haspopup="dialog" aria-expanded="false" aria-controls={dialogId} />
-                  <span className={styles.thumbSlot}>
+                  <span className={styles.thumbSlot} data-atlas-thumb-slot>
                     <AtlasThumbnail image={project.image} unavailable={text.unavailable} selected={selectedProjectId === project.id} />
                   </span>
                   <span className={styles.label}>

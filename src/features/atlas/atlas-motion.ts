@@ -71,6 +71,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
   document.addEventListener("visibilitychange", policy); reduced.addEventListener("change", policy);
   const observer = new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? true; policy(); }); observer.observe(viewport);
   return {
+    isRunning: running,
     state: () => ({ settings, time, scale, bounds, nx, ny, stepX, stepY, protection, active: active(), pulseAge: pulse?.age ?? -1 }),
     configure(area: AtlasBounds, dimensions: World, zoom: number, left: number, top: number, ox: number, oy: number, projects: readonly AtlasAnchor[], intro: Clearing) {
       lines = [];

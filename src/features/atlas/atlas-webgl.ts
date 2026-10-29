@@ -1,8 +1,11 @@
+import { atlasGrowthBand, createAtlasGrowth, atlasGrowthAt, atlasGrowthTip, atlasGrowthArrival, type AtlasGrowth } from "./atlas-growth";
+import { nearestAtlasString } from "./atlas-string-response";
 import { atlasSelectionDuration } from "./atlas-motion-settings";
 import { atlasRibbonStride, type mountAtlasMotion } from "./atlas-motion";
 
 type Motion = ReturnType<typeof mountAtlasMotion>;
 type Ribbon = { index: number; mesh: ReturnType<Motion["prepare"]> };
+const stateColumns = 5, stateStride = stateColumns * 4;
 const vertexStride = 15; // Position, normal/arc/mask, four grid guards, strand, edge/limit.
 
 type View = { scale: number; x: number; y: number; width: number; height: number; pixelRatio: number };
@@ -22,6 +25,7 @@ uniform vec3 response;
 uniform vec3 view;
 uniform vec2 size;
 uniform float pixelRatio;
+uniform float entrance;
 out vec2 uv;
 out float opacity;
 out vec2 edgeDistance;
@@ -42,6 +46,27 @@ float packet(float delta, vec4 state) {
 void main() {
   vec4 state=texelFetch(states,ivec2(0,int(strand.x)),0);
   vec4 strike=texelFetch(states,ivec2(1,int(strand.x)),0);
+  vec2 formedPosition=position, formedNormal=normalArc.xy;
+  float developed=1., curl=0.;
+  if (entrance < 1.) {
+    vec4 growth=texelFetch(states,ivec2(2,int(strand.x)),0);
+    float distance=normalArc.z-growth.x;
+    if (state.w>.5) {
+      if (distance>state.z*.5) distance-=state.z;
+      if (distance<-state.z*.5) distance+=state.z;
+    }
+    float reach=distance>=0. ? growth.y : growth.z;
+    float gap=reach-abs(distance), band=${atlasGrowthBand}.0*motion.z;
+    developed=smoothstep(0.,band,gap);
+    vec2 center=position-normalArc.xy*edge.x*edge.y;
+    if (gap<0.) {
+      vec4 tip=texelFetch(states,ivec2(distance>=0. ? 3 : 4,int(strand.x)),0);
+      center=tip.xy; formedNormal=tip.zw;
+    }
+    formedPosition=center+formedNormal*edge.x*edge.y*developed;
+    float phase=gap/band;
+    curl=sin(phase*1.4)*exp(-.5*pow(phase/1.6,2.))*growth.w;
+  }
   vec2 g=clamp((position-grid.xy)/grid.zw,vec2(0.),cells-vec2(.00001));
   vec2 f=fract(g), base=grid.xy+floor(g)*grid.zw;
   vec2 ambient=mix(mix(breathe(base)*protection.x,breathe(base+vec2(grid.z,0.))*protection.y,f.x),
@@ -55,13 +80,13 @@ void main() {
     float envelope=(1.-exp(-age/.02))*exp(-age/(.26+response.y/100.*.3))*tail*tail*(3.-2.*tail);
     impulse=strike.y*envelope*(packet(distance-front,state)+packet(distance+front,state))*response.z/25.;
   }
-  float bend=(hover+impulse)*normalArc.w;
+  float bend=((hover+impulse)*developed+curl)*normalArc.w;
   float ratio=bend/edge.z, square=ratio*ratio;
   bend=bend/sqrt(sqrt(1.+square*square));
-  vec2 p=(position+ambient+normalArc.xy*(bend+sign(edge.x)/(view.x*pixelRatio)))*view.x+view.yz;
-  edgeDistance=vec2(sign(edge.x)*(edge.y*view.x*pixelRatio+1.),edge.y*view.x*pixelRatio);
+  vec2 p=(formedPosition+ambient*developed+formedNormal*(bend+sign(edge.x)/(view.x*pixelRatio)))*view.x+view.yz;
+  edgeDistance=vec2(sign(edge.x)*(edge.y*developed*view.x*pixelRatio+1.),edge.y*developed*view.x*pixelRatio);
   uv=p/size;
-  opacity=strand.y;
+  opacity=strand.y*step(.00001,developed);
   gl_Position=vec4(uv*vec2(2.,-2.)+vec2(-1.,1.),0.,1.);
 }`;
 const fragmentSource = `#version 300 es
@@ -86,7 +111,8 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
   const program = gl.createProgram();
   const buffer = gl.createBuffer(), indices = gl.createBuffer(), vao = gl.createVertexArray();
   const colors = gl.createTexture(), states = gl.createTexture();
-  let disposed = false, count = 0, ribbons: Ribbon[] = [], statePixels = new Float32Array(8), currentView: View;
+  let disposed = false, count = 0, ribbons: Ribbon[] = [], statePixels = new Float32Array(stateStride), currentView: View;
+  let growthPlans: AtlasGrowth[] = [];
   const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
   const release = () => {
     shaders.forEach(shader => gl.deleteShader(shader)); gl.deleteProgram(program);
@@ -103,7 +129,7 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
     console.warn("Atlas WebGL initialization:", gl.getProgramInfoLog(program), ...shaders.map(shader => gl.getShaderInfoLog(shader)));
     release(); queueMicrotask(fallback); return null;
   }
-  const uniforms = Object.fromEntries(["states", "grid", "cells", "motion", "response", "view", "size", "colors", "pixelRatio"].map(name => [name, gl.getUniformLocation(program, name)]));
+  const uniforms = Object.fromEntries(["states", "grid", "cells", "motion", "response", "view", "size", "colors", "pixelRatio", "entrance"].map(name => [name, gl.getUniformLocation(program, name)]));
   gl.useProgram(program); gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   for (const [location, size, offset] of [[0,2,0],[1,4,2],[2,4,6],[3,2,10],[4,3,12]]) {
     gl.enableVertexAttribArray(location); gl.vertexAttribPointer(location,size,gl.FLOAT,false,vertexStride*4,offset*4);
@@ -118,10 +144,11 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
   function lost(event: Event) { event.preventDefault(); if (!disposed) fallback(); }
   canvas.addEventListener("webglcontextlost",lost);
   return {
-    prepare(next: Ribbon[], colorMap: HTMLCanvasElement, motion: Motion, view: View) {
+    prepare(next: Ribbon[], colorMap: HTMLCanvasElement, motion: Motion, view: View, grow = false) {
       if (disposed || gl.isContextLost()) return;
       if (next.length > maxTextureSize || colorMap.width > maxTextureSize || colorMap.height > maxTextureSize || gl.drawingBufferWidth !== canvas.width || gl.drawingBufferHeight !== canvas.height) { fallback(); return; }
       ribbons = next; currentView = view;
+      growthPlans = grow ? ribbons.map(({ mesh: { line } }) => createAtlasGrowth(line, view)) : [];
       const field = motion.state();
       const vertexCount = ribbons.reduce((sum, ribbon) => sum + ribbon.mesh.mesh.length / atlasRibbonStride, 0);
       const indexCount = ribbons.reduce((sum, { mesh: { mesh, line } }) => sum + (mesh.length / (atlasRibbonStride * 2) - (line.closed ? 0 : 1)) * 6, 0);
@@ -158,24 +185,32 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
       gl.bindVertexArray(vao);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,elements,gl.STATIC_DRAW);
       gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,colors);
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,colorMap);
-      statePixels=new Float32Array(Math.max(1,ribbons.length)*8);
+      statePixels=new Float32Array(Math.max(1,ribbons.length)*stateStride);
       gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,states);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,2,Math.max(1,ribbons.length),0,gl.RGBA,gl.FLOAT,statePixels);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,stateColumns,Math.max(1,ribbons.length),0,gl.RGBA,gl.FLOAT,statePixels);
       canvas.dataset.gpuVertices=String(vertexCount);
     },
-    paint(motion: Motion) {
+    paint(motion: Motion, reveal = 1) {
       if (disposed || !currentView || gl.isContextLost()) return;
       const field=motion.state();
       ribbons.forEach(({mesh:{line}},i) => {
-        const offset = i*8;
+        const offset = i*stateStride;
         statePixels[offset] = line.contact; statePixels[offset+1] = line.value;
         statePixels[offset+2] = line.length; statePixels[offset+3] = line.closed ? 1 : 0;
         statePixels[offset+4] = line.strike?.contact ?? 0; statePixels[offset+5] = line.strike?.value ?? 0;
+        const plan = growthPlans[i];
+        if (reveal < 1 && plan) {
+          const growth = atlasGrowthAt(plan, reveal);
+          statePixels[offset+8] = plan.arc; statePixels[offset+9] = growth.forward;
+          statePixels[offset+10] = growth.backward; statePixels[offset+11] = growth.curl;
+          atlasGrowthTip(line, plan.arc + Math.min(plan.forward, growth.forward), statePixels, offset+12);
+          atlasGrowthTip(line, plan.arc - Math.min(plan.backward, growth.backward), statePixels, offset+16);
+        }
       });
       gl.useProgram(program);gl.bindVertexArray(vao);gl.viewport(0,0,canvas.width,canvas.height);
       gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
       gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,states);
-      gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,2,Math.max(1,ribbons.length),gl.RGBA,gl.FLOAT,statePixels);
+      gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,stateColumns,Math.max(1,ribbons.length),gl.RGBA,gl.FLOAT,statePixels);
       gl.uniform4f(uniforms.grid,field.bounds.left,field.bounds.top,field.stepX,field.stepY);
       gl.uniform2f(uniforms.cells,field.nx,field.ny);
       gl.uniform4f(uniforms.motion,field.time,field.active?field.settings.breath/100*9/field.scale:0,1/field.scale,field.active?field.pulseAge:-1);
@@ -183,7 +218,22 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
       gl.uniform3f(uniforms.view,currentView.scale,currentView.x,currentView.y);
       gl.uniform2f(uniforms.size,currentView.width,currentView.height);
       gl.uniform1f(uniforms.pixelRatio,currentView.pixelRatio);
+      gl.uniform1f(uniforms.entrance,reveal);
       gl.drawElements(gl.TRIANGLES,count,gl.UNSIGNED_INT,0);
+    },
+    arrivalAt(x: number, y: number) {
+      if (!currentView || !growthPlans.length) return .15 + Math.max(0, Math.min(1,x)) * .5;
+      const px = (x * currentView.width - currentView.x) / currentView.scale;
+      const py = (y * currentView.height - currentView.y) / currentView.scale;
+      let nearest = Infinity, arrival = .5;
+      for (const plan of growthPlans) {
+        const line = plan.line;
+        const dx = Math.max(line.left-px, 0, px-line.right), dy = Math.max(line.top-py, 0, py-line.bottom);
+        if (dx*dx+dy*dy > nearest) continue;
+        const hit = nearestAtlasString(line,px,py);
+        if (hit.distance2 < nearest) { nearest = hit.distance2; arrival = atlasGrowthArrival(plan,hit.contact); }
+      }
+      return arrival;
     },
     dispose() { disposed=true;canvas.removeEventListener("webglcontextlost",lost);release(); },
   };
