@@ -23,10 +23,10 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     return animation.finished.catch(() => {});
   }
   function rectangle(rect: DOMRect) { return { left: rect.left + "px", top: rect.top + "px", width: rect.width + "px", height: rect.height + "px" }; }
-  function move(thumb: HTMLElement, from: DOMRect, to: DOMRect, radius: number, endRadius: number) {
+  function move(thumb: HTMLElement, from: DOMRect, to: DOMRect, radius: number | string, endRadius: number) {
     morph.append(thumb);
     Object.assign(thumb.style, rectangle(to), { borderRadius: endRadius + "px" });
-    return animate(thumb, [{ ...rectangle(from), borderRadius: radius + "px" }, { ...rectangle(to), borderRadius: endRadius + "px" }]);
+    return animate(thumb, [{ ...rectangle(from), borderRadius: typeof radius === "number" ? radius + "px" : radius }, { ...rectangle(to), borderRadius: endRadius + "px" }]);
   }
   function restore(focus = true) {
     const state = selection; if (!state) return;
@@ -86,10 +86,13 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     // The image has arrived. Reveal the body downward from its lower edge,
     // keeping the image and the final card position fixed throughout.
     const bodyHeight = Math.max(0, panel.getBoundingClientRect().height - media.getBoundingClientRect().height);
-    await animate(panel, [
+    await Promise.all([animate(thumb, [
+      { borderRadius: "15px" },
+      { borderRadius: "15px 15px 0 0" },
+    ], 220), animate(panel, [
       { clipPath: `inset(0 0 ${bodyHeight}px 0 round 16px)` },
       { clipPath: "inset(0 0 0 0 round 16px)" },
-    ], 220);
+    ], 220)]);
     if (id !== epoch || !selection || disposed) return;
     stop(); media.append(thumb); thumb.removeAttribute("style"); root.dataset.selection = "selected";
   }
@@ -97,7 +100,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     const state = selection;
     if (!state || root.dataset.selection === "closing") return;
     const id = ++epoch, from = state.thumb.getBoundingClientRect();
-    const radius = parseFloat(getComputedStyle(state.thumb).borderTopLeftRadius), camera = getComputedStyle(world).transform;
+    const radius = getComputedStyle(state.thumb).borderRadius, camera = getComputedStyle(world).transform;
     const panelStyle = getComputedStyle(panel);
     const panelOpacity = panelStyle.opacity, panelClip = panelStyle.clipPath;
     stop(); world.style.transform = "none";

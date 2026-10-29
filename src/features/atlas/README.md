@@ -83,3 +83,7 @@ No published Sanity document was modified. Authenticated Studio form editing and
 ## Project thumbnail hover
 
 On devices with a fine pointer, hovering a project expands its circular thumbnail by 20% over 160ms, without moving the label or adding a background highlight behind the name. Keyboard focus receives the same cue. The effect applies only while the map is idle, leaves the approved card transition unchanged, and is disabled for touch-only devices and reduced motion. Browser checks covered expansion/exit, label stability, opening from hover, card size, return, keyboard focus, reduced motion and touch emulation without page errors.
+
+## Card corner continuity
+
+During the existing 220ms downward card reveal, the travelling image's lower corners interpolate from 15px to zero while its upper corners stay rounded. Reparenting the same thumbnail into the card therefore preserves its final shape. Closing captures all four current corner radii, including an interrupted reveal. Browser checks covered six project open/close cycles at 1440, 761, 760 and 390px, intermediate radius values, reveal interruption and reduced motion. TypeScript and ESLint passed. No camera timing or card framing was changed.
