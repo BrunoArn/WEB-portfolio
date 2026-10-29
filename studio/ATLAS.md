@@ -1,6 +1,6 @@
-# Atlas no Sanity — etapa de preparação
+# Atlas no Sanity — configuração e conferência
 
-Os campos Atlas agora controlam a prévia: projetos habilitados e publicados determinam posições, influência e território principal; as categorias determinam cores e rótulos. A Home permanece preservada. Nenhum documento foi alterado, preenchido ou publicado automaticamente, e o Studio hospedado não foi implantado.
+Os campos Atlas agora controlam a prévia: projetos habilitados e publicados determinam posições, influência e território principal; as categorias determinam cores e rótulos. A Home permanece preservada. Nenhum documento foi alterado, preenchido ou publicado automaticamente, e esta revisão não implantou o Studio hospedado.
 
 ## Abrir e revisar
 
@@ -46,7 +46,7 @@ Apple Academy · BGS 2019 não consta entre os projetos publicados e não deve g
 - `schemaTypes/atlas/atlasValidation.ts`: regras testáveis e confirmação de que a referência está habilitada como território. A leitura considera o rascunho da categoria antes da versão publicada para validar a edição; publique as categorias primeiro.
 - `schemaTypes/atlas/AtlasColorInput.tsx`: seletor nativo de cor e entrada padrão do Sanity, sem dependências novas.
 
-Não há desempate automático pela primeira categoria. Se a categoria principal for removida do projeto, excluída ou desabilitada, o Studio aponta a inconsistência ao validar o projeto. Alterar outra categoria não revalida/publica todos os projetos automaticamente; a integração futura também deverá tratar configurações incompletas e referências inválidas.
+Não há desempate automático pela primeira categoria. Se a categoria principal for removida do projeto, excluída ou desabilitada, o Studio aponta a inconsistência ao validar o projeto. Alterar outra categoria não revalida/publica todos os projetos automaticamente; a prévia também trata configurações incompletas e referências inválidas, separando os projetos sem posicionamento válido.
 
 Verificações executadas: TypeScript do Studio, ESLint, build do Studio, validação oficial de esquemas (zero erros e avisos) e 29 verificações de validação, incluindo documentos antigos, ativação opcional, cores, limites de posição, prioridade explícita entre categorias, IDs de rascunho, categoria desabilitada e falha de conexão. O build informa o aviso preexistente de atualização automática sem appId; a configuração de publicação não foi modificada.
 
@@ -75,3 +75,21 @@ Cada região tem nome interno e tipo **Elevação** (soma volume) ou **Vale** (s
 Publique e recarregue a prévia para aplicar. Uma lista ausente usa a referência; uma lista vazia remove as regiões. Desativar um perfil remove a região apenas naquele tamanho. Os controles gerais continuam disponíveis, e restaurar um perfil geral não sobrescreve a lista de regiões.
 
 No desktop, a referência recupera os arcos/vales do modelo antigo com os seis projetos existentes. No celular, as massas de referência foram alargadas e achatadas, com pequenas inclinações, para conduzir o olhar lateralmente. Regiões já publicadas mantêm seus valores; restaurar a lista de referência no rascunho carrega essa nova direção mobile e requer publicação para aplicar. Apple Academy não foi recriado. As cores continuam seguindo as categorias dos projetos atuais, portanto algumas diferenças cromáticas locais são esperadas em relação a imagens que ainda incluíam aquele projeto. Sem projetos, massas independentes usam uma cor neutra.
+
+## Conferência dos controles — 29/10/2026
+
+A validação técnica dos controles passou: os cinco parâmetros gerais alteram o campo nos dois layouts; regiões respondem a posição, dimensões, formato, inclinação, intensidade e ativação; elevações somam e vales subtraem. Foram conferidos perfis separados, remoção/ativação/influência dos projetos, prioridade explícita do território, cores, PT/EN, limites e referências ausentes. Os dados publicados atuais retornaram seis projetos, três territórios e nenhuma inconsistência nos dois idiomas.
+
+O documento `atlas-settings` está publicado, com oito regiões. A configuração lida na revisão tem amplitude 52 no desktop e 50 no celular, com os demais controles em 50 e direção 0. Os dois perfis têm sete regiões ativas. A prévia de produção confirmou esses valores. Nenhum dado do Sanity foi alterado nesta conferência.
+
+Os componentes personalizados foram exercitados isoladamente com suas funções reais e patches reais do Sanity: sliders, limites, valores vazios, reset somente do perfil escolhido, carregamento/restauração das regiões, cor, campos somente leitura e filtro de território. Isso testa os callbacks e a renderização estática dos componentes, não substitui a edição no formulário completo. A prévia renderizada passou dez ajustes/restaurações em desktop/celular, preservação dos marcadores, isolamento dos perfis e descarte das alterações locais no reload.
+
+Validação oficial dos esquemas: zero erros/avisos. TypeScript, ESLint e build do Studio passaram. O build mantém o aviso de auto-update sem appId e informa versões locais 6.20.0 versus runtime 6.21.0; as dependências e a configuração de atualização não foram modificadas. As descrições de Conexão e do perfil Celular foram atualizadas para refletir massas independentes e a composição lateral atual.
+
+A conferência técnica e da integração dos dados publicados foi concluída: os valores publicados chegaram ao Canvas de produção, uma alteração local não gravou no CMS e o reload recuperou o publicado. O agente não executou nova edição autenticada, salvamento de rascunho ou publicação; os callbacks dos formulários foram testados isoladamente. Scripts e resultados estão no workspace da conversa em `.work/atlas-control-audit/` e `.work/atlas-final/`; não houve deploy nem alteração da Home.
+
+## Revisão final da integração — 29/10/2026
+
+A configuração publicada foi comparada com o Canvas da versão de produção nos dois layouts. No desktop, o ajuste local de amplitude foi levado a 0, restaurado para a referência 50 e, após reload, voltou ao valor publicado 52. No celular, o publicado 50 também foi recuperado. As oito regiões publicadas geraram sete fontes ativas por perfil. Projetos, categorias, prioridade explícita e idiomas passaram sem inconsistências. A verificação foi somente de leitura no CMS; não foi necessário alterar ou republicar conteúdo.
+
+O build do Studio e a validação oficial dos esquemas passaram (zero erros/avisos), assim como os testes dos componentes e regras de validação. A diferença de versão do auto-update informada acima permanece uma ressalva do ambiente; não houve mudança de dependências. A edição autenticada do formulário completo não foi automatizada. A conferência de integração dos controles publicados está encerrada.

@@ -19,7 +19,7 @@ const labels = {
   ],
   connection: [
     'Conexão',
-    'Menor (0) ou maior (100) integração entre formações. Não cria elevações sem projetos.',
+    'Intensidade das elevações auxiliares: 0 remove sua contribuição; 50 mantém a referência. Os projetos continuam independentes.',
   ],
   negativeSpace: ['Respiro', 'Menos (0) ou mais (100) espaços vazios e separação entre as massas.'],
 } as const

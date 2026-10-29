@@ -36,7 +36,7 @@ export const atlasSettings = defineType({
       name: 'mobile',
       title: 'Celular',
       type: 'atlasTerrainControls',
-      description: 'Ajusta a composição vertical, sem esticar o mapa.',
+      description: 'Ajusta a composição do celular, com seu percurso lateral e sem esticar o mapa.',
     }),
   ],
   preview: {
