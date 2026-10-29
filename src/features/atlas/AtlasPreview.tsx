@@ -4,7 +4,7 @@ import { useEffect, useId, useState, useRef, useSyncExternalStore, type CSSPrope
 import Image from "next/image";
 import type { AtlasContent, AtlasProject } from "./atlas-types";
 import type { Locale } from "@/i18n/config";
-import { atlasCategories, atlasMobileQuery, atlasTerrainAnchors } from "./atlas-composition";
+import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain, positionAtlasProjects } from "./atlas-engine";
 import styles from "./AtlasPreview.module.css";
 import { mountAtlasInteraction } from "./atlas-interaction";
@@ -70,10 +70,10 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
   useEffect(() => {
     if (!canvas.current || !viewport.current || !intro.current) return;
     if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current) return;
-    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, atlasTerrainAnchors, atlasMobileQuery);
+    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery);
     const disposeInteraction = mountAtlasInteraction({ root: root.current, viewport: viewport.current, world: world.current, dialog: dialog.current, panel: panel.current, media: media.current, morph: morph.current }, terrain, content.projects, text.contentNote);
     return () => { disposeInteraction(); terrain.dispose(); };
-  }, [locale, content.projects, text.contentNote]);
+  }, [locale, content.projects, content.territories, text.contentNote]);
 
   return (
     <main ref={root} className={styles.root} data-atlas-preview style={{ "--atlas-desktop-width": atlasWorlds.desktop.width, "--atlas-desktop-height": atlasWorlds.desktop.height, "--atlas-mobile-width": atlasWorlds.mobile.width, "--atlas-mobile-height": atlasWorlds.mobile.height } as CSSProperties}>
@@ -83,7 +83,6 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
         <div className={styles.projectPlane}>
           <ul className={styles.projects} aria-label={text.projects}>
             {positionedProjects.map(project => {
-              const category = atlasCategories[project.c];
               const left = mobile ? project.x > .5 : project.left;
               return (
                 <li
@@ -91,7 +90,7 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
                   data-atlas-project={project.id}
                   data-atlas-placement={project.placement}
                   className={`${styles.project} ${left ? styles.left : ""}`}
-                  style={{ left: `${project.x * 100}%`, top: `${project.y * 100}%`, "--atlas-tone": `var(${category.token})` } as CSSProperties}
+                  style={{ left: `${project.x * 100}%`, top: `${project.y * 100}%`, "--atlas-tone": project.color } as CSSProperties}
                 >
                   <button type="button" className={styles.trigger} data-atlas-trigger aria-label={project.title} aria-haspopup="dialog" aria-expanded="false" aria-controls={dialogId} />
                   <span className={styles.thumbSlot}>
@@ -105,9 +104,7 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
               );
             })}
           </ul>
-          <div className={`${styles.territory} ${styles.games}`} aria-hidden="true">GAMES</div>
-          <div className={`${styles.territory} ${styles.web}`} aria-hidden="true">WEB</div>
-          <div className={`${styles.territory} ${styles.interactive}`} aria-hidden="true">INTERACTIVE</div>
+          {content.territories.map(territory => <div key={territory.id} data-atlas-territory={territory.id} className={styles.territory} aria-hidden="true" style={{ left: `${(mobile ? territory.mx : territory.x) * 100}%`, top: `${(mobile ? territory.my : territory.y) * 100}%`, color: territory.color }}>{territory.name}</div>)}
         </div>
         </div>
         <div className={styles.intro} ref={intro}>

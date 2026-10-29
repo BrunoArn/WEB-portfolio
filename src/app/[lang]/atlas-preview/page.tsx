@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AtlasPreview } from "@/features/atlas/AtlasPreview";
-import { getAtlasProjects } from "@/sanity/repositories/atlas";
+import { getAtlasData } from "@/sanity/repositories/atlas";
 import { adaptAtlasContent } from "@/features/atlas/atlas-content";
 import { isLocale } from "@/i18n/config";
 
@@ -34,6 +34,6 @@ export default async function AtlasPreviewPage({
     notFound();
   }
 
-  const content = adaptAtlasContent(await getAtlasProjects(), lang);
+  const content = adaptAtlasContent(await getAtlasData(), lang);
   return <AtlasPreview locale={lang} content={content} />;
 }

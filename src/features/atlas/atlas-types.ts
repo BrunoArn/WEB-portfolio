@@ -1,18 +1,19 @@
-export type AtlasCategoryIndex = 0 | 1 | 2;
 export type AtlasPoint = [number, number];
 
 export interface AtlasAnchor {
   id: string;
-  c: AtlasCategoryIndex;
+  c: string;
   x: number;
   y: number;
   mx: number;
   my: number;
+  influence: number;
   left?: boolean;
 }
 
 export interface AtlasProject extends AtlasAnchor {
   placement: string;
+  color: string;
   title: string;
   description?: string;
   categoryLabel: string;
@@ -21,12 +22,22 @@ export interface AtlasProject extends AtlasAnchor {
   href?: string;
 }
 
+export interface AtlasTerritory {
+  id: string;
+  name: string;
+  color: string;
+  x: number;
+  y: number;
+  mx: number;
+  my: number;
+}
+
 export interface AtlasContent {
   projects: AtlasProject[];
+  territories: AtlasTerritory[];
   unplaced: { id: string; title: string; href?: string }[];
   issues: string[];
 }
 
-export interface AtlasCategory { name: string; token: string }
 export interface AtlasContour { path: AtlasPoint[]; closed: boolean }
 export interface AtlasCurve { index: number; contour: AtlasContour }

@@ -6,9 +6,6 @@
   --atlas-background: #0b1211;
   --atlas-text: #dedfd4;
   --atlas-text-secondary: #95a39b;
-  --atlas-games: #a4b58c;
-  --atlas-web: #88aeb8;
-  --atlas-interactive: #c39374;
   --atlas-footer-reserve: 68px;
   height: var(--atlas-available-height, calc(100dvh - 61px - var(--atlas-footer-reserve)));
   min-height: 0;
@@ -36,19 +33,13 @@
 .projectMeta { display: block; color: #8f9c94; font-size: 10px; margin-top: 5px; }
 .projectTitle { font-size: 13px; color: #eeeee4; }
 .left { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
-.territory { position: absolute; pointer-events: none; font-size: clamp(13px, 1.05vw, 16px); font-weight: 600; line-height: 1.2; letter-spacing: 3px; opacity: 1; text-shadow: 0 2px 8px #0b1211, 0 0 18px #0b1211; }
-.games { left: 45%; top: 19%; color: var(--atlas-games); }
-.web { left: 81%; top: 29%; color: var(--atlas-web); }
-.interactive { left: 51%; top: 88%; color: var(--atlas-interactive); }
+.territory { position: absolute; pointer-events: none; font-size: clamp(13px, 1.05vw, 16px); font-weight: 600; line-height: 1.2; letter-spacing: 3px; text-transform: uppercase; opacity: 1; text-shadow: 0 2px 8px #0b1211, 0 0 18px #0b1211; }
 
 @media (min-width: 761px) and (max-width: 1000px) {
   .project { max-width: 210px; gap: 10px; }
   .label { font-size: 11px; }
   .projectTitle { font-size: 12px; }
   .title { font-size: 34px; }
-  .web { left: 83%; }
-  .project[data-atlas-placement="fixture-apple-academy"] { flex-direction: row-reverse; transform: translate(calc(-100% + 27px), -50%); text-align: right; }
-  .interactive { top: 94%; }
 }
 
 @media (max-width: 760px) {
@@ -62,9 +53,6 @@
   .left { transform: translate(calc(-100% + 23px), -50%); }
   .label, .projectTitle { font-size: 11px; }
   .projectMeta { font-size: 9px; }
-  .games { left: 64%; top: 25%; }
-  .web { left: 64%; top: 57%; }
-  .interactive { left: 43%; top: 94%; }
 }
 
 @media (max-width: 380px) {
@@ -82,8 +70,6 @@
   .project { width: 130px; max-width: 130px; gap: 8px; transform: translate(-12px, -50%); }
   .thumb { width: 24px; height: 24px; outline-width: 3px; }
   .thumbIcon { width: 16px; height: 16px; }
-  .left, .project[data-atlas-placement="fixture-apple-academy"] { transform: translate(calc(-100% + 12px), -50%); }
-  .project[data-atlas-placement="fixture-apple-academy"] { flex-direction: row-reverse; text-align: right; }
   .label, .projectTitle { font-size: 10px; line-height: 1.2; }
   .projectMeta { display: none; }
   .territory { font-size: 12px; letter-spacing: 2px; }
@@ -93,8 +79,8 @@
   .intro { left: var(--space-12); }
   .title { font-size: 18px; max-width: 130px; }
   .territory { display: none; }
-  .project[data-atlas-placement="fixture-bloomancer"] { flex-direction: row-reverse; transform: translate(calc(-100% + 12px), -50%); text-align: right; }
-  .project[data-atlas-placement="fixture-gabriela"], .project[data-atlas-placement="fixture-forensic"] { flex-direction: row; transform: translate(-12px, -50%); text-align: left; }
+  .project[data-atlas-placement="bloomancer"] { flex-direction: row-reverse; transform: translate(calc(-100% + 12px), -50%); text-align: right; }
+  .project[data-atlas-placement="portfolio-gabriela"], .project[data-atlas-placement="forensic-injury-visualizer"] { flex-direction: row; transform: translate(-12px, -50%); text-align: left; }
   .project[data-atlas-placement="fixture-forensic"] .label { transform: translateY(4px); }
   .project[data-atlas-placement="fixture-quitandinha"] .label { transform: translateY(10px); }
 }
@@ -163,3 +149,5 @@
 .root[data-selection="closing"] .close { visibility: hidden; pointer-events: none; }
 
 .root[data-selection="revealing"] .morph .thumb { border-color: transparent; }
+
+@media (min-width: 761px) and (max-height: 700px) { .left { transform: translate(calc(-100% + 12px), -50%); } }

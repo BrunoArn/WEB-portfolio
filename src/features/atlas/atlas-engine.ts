@@ -1,48 +1,15 @@
-import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor } from "./atlas-types";
+import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor, AtlasTerritory } from "./atlas-types";
 
 import { getAtlasView, type AtlasBounds } from "./atlas-layout";
+
+import { createAtlasField, createAtlasColorField } from "./atlas-field";
+export { sampleAtlasField, atlasCategoryWeights } from "./atlas-field";
 
 const defaultDensity = 15;
 const defaultThickness = 1.1;
 
 export function positionAtlasProjects<T extends AtlasAnchor>(projects: readonly T[], mobile: boolean): T[] {
   return projects.map(project => ({ ...project, x: mobile ? project.mx : project.x, y: mobile ? project.my : project.y }));
-}
-
-function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: number, angle = 0) {
-  const dx = x - cx, dy = y - cy;
-  const u = dx * Math.cos(angle) + dy * Math.sin(angle);
-  const v = -dx * Math.sin(angle) + dy * Math.cos(angle);
-  return Math.exp(-.5 * ((u / sx) ** 2 + (v / sy) ** 2));
-}
-
-/** Approved scalar field: coordinates remain normalized to the fixed art-directed world. */
-export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean) {
-  const u = x + (mobile ? .018 : .028) * Math.sin(y * 12 + x * 3) + (mobile ? .009 : .016) * Math.cos(y * 23 - x * 7);
-  const v = y + (mobile ? .012 : .025) * Math.sin(x * 13 - y * 5);
-  let z = 0;
-  for (const p of projects) {
-    const sx = mobile ? (p.c === 1 ? .205 : .122) : p.c === 1 ? .13 : .14;
-    const sy = mobile ? (p.c === 1 ? .089 : .069) : .115;
-    z += (.62 + .18) * gaussian(u, v, p.x, p.y, sx, sy, mobile ? (p.c === 1 ? -.18 : .20) : (p.c === 1 ? -.6 : .4));
-  }
-  const shoulders = mobile
-    ? [[.49, .38, .20, .085, .24], [.51, .59, .205, .085, .20], [.51, .79, .23, .085, .27]]
-    : [[.43, .41, .23, .11, .42], [.49, .76, .26, .12, .35], [.94, .13, .20, .16, .65], [-.08, .96, .24, .17, .8]];
-  for (const [cx, cy, sx, sy, amplitude] of shoulders) z += amplitude * gaussian(u, v, cx, cy, sx, sy, -.3);
-  const valleys = mobile
-    ? [[.08, .54, .13, .065], [.92, .50, .13, .07], [.83, .33, .13, .075], [.08, .85, .12, .075]]
-    : [[.15, .18, .26, .23], [.55, .62, .16, .08], [.92, .87, .15, .12]];
-  for (const [cx, cy, sx, sy] of valleys) z -= (.3 + .55 * .55) * gaussian(u, v, cx, cy, sx, sy);
-  return z;
-}
-
-export function atlasCategoryWeights(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean) {
-  const weights = [0, 0, 0];
-  for (const p of projects) weights[p.c] += gaussian(x, y, p.x, p.y, mobile ? .25 : .22, mobile ? .13 : .22);
-  const powered = weights.map(value => value ** 5);
-  const sum = powered.reduce((a, b) => a + b, 0) || 1;
-  return powered.map(value => value / sum);
 }
 
 function extractContours(values: Float32Array, nx: number, ny: number, level: number, w: number, h: number, originX = 0, originY = 0): AtlasPoint[][] {
@@ -125,8 +92,9 @@ export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasA
   const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
   const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
   const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
+  const field = createAtlasField(projects, mobile);
   const values = new Float32Array((nx + 1) * (ny + 1));
-  for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) values[y * (nx + 1) + x] = sampleAtlasField((x0 + x) * stepX / w, (y0 + y) * stepY / h, projects, mobile);
+  for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) values[y * (nx + 1) + x] = field((x0 + x) * stepX / w, (y0 + y) * stepY / h);
   const result: AtlasCurve[] = [];
   for (let i = 0; i < defaultDensity; i++) for (const path of extractContours(values, nx, ny, .18 + i * (1.05 / defaultDensity), nx * stepX, ny * stepY, x0 * stepX, y0 * stepY)) {
     const contour = smoothContour(path, mobile);
@@ -155,7 +123,7 @@ function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCur
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
-export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], mobileQuery: string) {
+export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string) {
   const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; } };
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
@@ -180,10 +148,8 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     ctx!.globalAlpha = 1;
     const colors = document.createElement("canvas"); colors.width = Math.max(2, Math.ceil(width / 5)); colors.height = Math.max(2, Math.ceil(height / 5));
     const paint = colors.getContext("2d")!; const pixels = paint.createImageData(colors.width, colors.height);
-    const style = getComputedStyle(viewport);
-    const palette = ["--atlas-games", "--atlas-web", "--atlas-interactive"].map(token => {
-      const hex = style.getPropertyValue(token).trim(); return [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
-    });
+    const palette = territories.map(territory => [1, 3, 5].map(offset => parseInt(territory.color.slice(offset, offset + 2), 16)));
+    const weightsAt = createAtlasColorField(positioned, mobile, territories.map(territory => territory.id));
     const text = intro.getBoundingClientRect();
     const cx = (text.left - rectangle.left + text.width / 2 - offsetX) / scale / world.width;
     const cy = (text.top - rectangle.top + text.height / 2 - offsetY) / scale / world.height;
@@ -191,12 +157,13 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     for (let y = 0; y < colors.height; y++) for (let x = 0; x < colors.width; x++) {
       const u = (screen.left + x / (colors.width - 1) * width - offsetX) / scale / world.width;
       const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
-      const weights = atlasCategoryWeights(u, v, positioned, mobile), i = (y * colors.width + x) * 4;
+      const weights = weightsAt(u, v), i = (y * colors.width + x) * 4;
       for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0));
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
     paint.putImageData(pixels, 0, 0); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
+    canvas.dataset.projectSources = String(projects.length); canvas.dataset.territories = String(territories.length);
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);
     canvas.dataset.worldWidth = String(world.width); canvas.dataset.worldHeight = String(world.height);
     canvas.dataset.worldScale = String(scale); canvas.dataset.worldOffsetX = String(offsetX); canvas.dataset.worldOffsetY = String(offsetY);

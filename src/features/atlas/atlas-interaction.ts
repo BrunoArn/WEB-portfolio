@@ -1,4 +1,4 @@
-import { atlasCategories, atlasMobileQuery } from "./atlas-composition";
+import { atlasMobileQuery } from "./atlas-composition";
 import type { AtlasProject } from "./atlas-types";
 import type { mountAtlasTerrain } from "./atlas-engine";
 
@@ -58,7 +58,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     });
     media.setAttribute("aria-label", project.title);
     dialog.querySelector<HTMLElement>("[data-atlas-media-note]")!.hidden = thumb.dataset.atlasMissing !== "true";
-    dialog.style.setProperty("--atlas-tone", `var(${atlasCategories[project.c].token})`);
+    dialog.style.setProperty("--atlas-tone", project.color);
     // Compensate only the removed scrollbar, keeping the approved map width intact.
     const scrollbar = innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = (parseFloat(getComputedStyle(document.body).paddingRight) + scrollbar) + "px";
