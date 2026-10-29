@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useId, useState, useRef, useSyncExternalStore, type CSSProperties } from "react";
+import { atlasTerrainReference, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
+import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
 import Image from "next/image";
 import type { AtlasContent, AtlasProject } from "./atlas-types";
 import type { Locale } from "@/i18n/config";
@@ -50,10 +52,15 @@ function AtlasThumbnail({ image, unavailable }: { image: AtlasProject["image"]; 
   </span>;
 }
 
-type AtlasPreviewProps = { locale: Locale; content: AtlasContent };
+type AtlasPreviewProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean };
 
-export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
+export function AtlasPreview({ locale, content, showTerrainControls = false }: AtlasPreviewProps) {
   const text = copy[locale];
+  const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
+  const [override, setOverride] = useState<{ source: AtlasTerrainSettings; value: AtlasTerrainSettings } | null>(null);
+  const settings = override?.source === content.terrain ? override.value : content.terrain;
+  const pendingSettings = useRef<AtlasTerrainSettings | null>(null);
+  const settingsFrame = useRef(0);
   const dialogId = useId();
   const world = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -70,10 +77,28 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
   useEffect(() => {
     if (!canvas.current || !viewport.current || !intro.current) return;
     if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current) return;
-    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery);
+    const terrain = mountAtlasTerrain(canvas.current, viewport.current, intro.current, content.projects, content.territories, atlasMobileQuery, content.terrain);
+    terrainController.current = terrain;
     const disposeInteraction = mountAtlasInteraction({ root: root.current, viewport: viewport.current, world: world.current, dialog: dialog.current, panel: panel.current, media: media.current, morph: morph.current }, terrain, content.projects, text.contentNote);
-    return () => { disposeInteraction(); terrain.dispose(); };
-  }, [locale, content.projects, content.territories, text.contentNote]);
+    return () => { disposeInteraction(); terrain.dispose(); terrainController.current = null; };
+  }, [locale, content.projects, content.territories, content.terrain, text.contentNote]);
+
+  useEffect(() => { terrainController.current?.setSettings(settings); }, [settings]);
+  useEffect(() => () => cancelAnimationFrame(settingsFrame.current), []);
+  function updateControls(key: keyof AtlasTerrainControls, value: number) {
+    const profile = mobile ? "mobile" : "desktop";
+    const base = pendingSettings.current ?? settings;
+    pendingSettings.current = { ...base, [profile]: { ...base[profile], [key]: value } };
+    if (!settingsFrame.current) settingsFrame.current = requestAnimationFrame(() => {
+      settingsFrame.current = 0;
+      if (pendingSettings.current) setOverride({ source: content.terrain, value: pendingSettings.current });
+      pendingSettings.current = null;
+    });
+  }
+  function resetControls() {
+    cancelAnimationFrame(settingsFrame.current); settingsFrame.current = 0; pendingSettings.current = null;
+    setOverride({ source: content.terrain, value: { ...settings, [mobile ? "mobile" : "desktop"]: { ...atlasTerrainReference } } });
+  }
 
   return (
     <main ref={root} className={styles.root} data-atlas-preview style={{ "--atlas-desktop-width": atlasWorlds.desktop.width, "--atlas-desktop-height": atlasWorlds.desktop.height, "--atlas-mobile-width": atlasWorlds.mobile.width, "--atlas-mobile-height": atlasWorlds.mobile.height } as CSSProperties}>
@@ -129,6 +154,7 @@ export function AtlasPreview({ locale, content }: AtlasPreviewProps) {
         </div>
         <div ref={morph} className={styles.morph} aria-hidden="true" />
       </dialog>
+      {showTerrainControls && <AtlasTerrainPanel locale={locale} mobile={mobile} value={settings[mobile ? "mobile" : "desktop"]} onChange={updateControls} onReset={resetControls} />}
     </main>
   );
 }

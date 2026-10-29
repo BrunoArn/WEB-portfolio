@@ -1,3 +1,4 @@
+import { resolveAtlasTerrainSettings, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasContour, AtlasCurve, AtlasPoint, AtlasAnchor, AtlasTerritory } from "./atlas-types";
 
 import { getAtlasView, type AtlasBounds } from "./atlas-layout";
@@ -88,11 +89,11 @@ function smoothContour(input: AtlasPoint[], mobile: boolean): AtlasContour {
   return { path, closed };
 }
 
-export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }): AtlasCurve[] {
+export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls): AtlasCurve[] {
   const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
   const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
   const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
-  const field = createAtlasField(projects, mobile);
+  const field = createAtlasField(projects, mobile, settings);
   const values = new Float32Array((nx + 1) * (ny + 1));
   for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) values[y * (nx + 1) + x] = field((x0 + x) * stepX / w, (y0 + y) * stepY / h);
   const result: AtlasCurve[] = [];
@@ -123,11 +124,12 @@ function paintRibbon(ctx: CanvasRenderingContext2D, { contour, index }: AtlasCur
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
-export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string) {
-  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; } };
+export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLElement, intro: HTMLElement, projects: readonly AtlasAnchor[], territories: readonly AtlasTerritory[], mobileQuery: string, initialSettings: AtlasTerrainSettings) {
+  const ctx = canvas.getContext("2d"); if (!ctx) return { dispose() {}, extend(_bounds?: AtlasBounds) { void _bounds; }, setSettings(_settings: AtlasTerrainSettings) { void _settings; } };
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
   let extension: AtlasBounds | undefined;
+  let settings = resolveAtlasTerrainSettings(initialSettings);
   function draw() {
     frame = 0; if (disposed) return;
     const rectangle = viewport.getBoundingClientRect(), w = rectangle.width, h = rectangle.height; if (!w || !h) return;
@@ -136,8 +138,9 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const screen = extension ?? { left: 0, top: 0, right: w, bottom: h };
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
     const bounds = { left: Math.min(view.bounds.left, (screen.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (screen.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (screen.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (screen.bottom - offsetY) / scale + 48 / scale) };
-    const key = JSON.stringify([mobile, bounds]);
-    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds); geometryKey = key; builds++; }
+    const controls = settings[mobile ? "mobile" : "desktop"];
+    const key = JSON.stringify([mobile, bounds, controls]);
+    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls); geometryKey = key; builds++; }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.ceil(width * dpr); canvas.height = Math.ceil(height * dpr);
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
@@ -163,6 +166,7 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     }
     paint.putImageData(pixels, 0, 0); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.globalCompositeOperation = "source-in"; ctx!.drawImage(colors, 0, 0, width, height); ctx!.globalCompositeOperation = "source-over";
+    canvas.dataset.terrainControls = JSON.stringify(controls);
     canvas.dataset.projectSources = String(projects.length); canvas.dataset.territories = String(territories.length);
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);
     canvas.dataset.worldWidth = String(world.width); canvas.dataset.worldHeight = String(world.height);
@@ -171,6 +175,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
   const observer = new ResizeObserver(schedule); observer.observe(viewport); observer.observe(intro);
   window.addEventListener("resize", schedule); media.addEventListener("change", schedule); document.fonts.ready.then(schedule); schedule();
-  return { extend(bounds?: AtlasBounds) { extension = bounds; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
+  return { setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, extend(bounds?: AtlasBounds) { extension = bounds; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 

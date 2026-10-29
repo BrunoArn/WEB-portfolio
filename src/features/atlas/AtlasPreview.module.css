@@ -151,3 +151,13 @@
 .root[data-selection="revealing"] .morph .thumb { border-color: transparent; }
 
 @media (min-width: 761px) and (max-height: 700px) { .left { transform: translate(calc(-100% + 12px), -50%); } }
+
+.terrainPanel { position: fixed; z-index: 4; right: 16px; bottom: 16px; width: min(320px,calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow: auto; border: 1px solid #ffffff30; border-radius: 10px; padding: 12px 16px; background: #111b18f5; color: var(--atlas-text); font-size: 12px; }
+.terrainPanel summary { cursor: pointer; }
+.terrainPanel p { color: var(--atlas-text-secondary); font-size: 11px; line-height: 1.5; }
+.terrainPanel label { display: grid; gap: 6px; margin: 12px 0; }
+.terrainPanel output { float: right; font-variant-numeric: tabular-nums; }
+.terrainPanel input { width: 100%; accent-color: #a4b58c; }
+.terrainPanel button { cursor: pointer; border: 1px solid #ffffff40; background: transparent; color: inherit; border-radius: 6px; padding: 8px 12px; }
+.terrainPanel :focus-visible { outline: 2px solid #a4b58c; outline-offset: 3px; }
+.root[data-selection]:not([data-selection="idle"]) .terrainPanel { visibility: hidden; }

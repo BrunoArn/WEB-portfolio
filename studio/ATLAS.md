@@ -34,7 +34,7 @@ Os nomes curtos são editáveis nos dois idiomas; a tabela conserva a identidade
 | 2D RPG Project | game | 57 / 48 | 28 / 46 | 1 |
 | Portfólio Gabriela | web-development | 79 / 24 | 53 / 61 | 1 |
 | Forensic Injury Visualizer | interactive-experiences | 73 / 65 | 67 / 80 | 1 |
-| VR Quintandinha | interactive-experiences | 32 / 82 | 28 / 88 | 1 |
+| VR Quintandinha | interactive-experiences | 62 / 82 | 28 / 88 | 1 |
 
 Apple Academy · BGS 2019 não consta entre os projetos publicados e não deve ganhar um documento inventado para preencher o mapa. Sua antiga elevação foi removida. O gerador usa somente projetos ativos e conexões calculadas entre eles; não há influência reservada para esse projeto.
 
@@ -53,3 +53,15 @@ Verificações executadas: TypeScript do Studio, ESLint, build do Studio, valida
 A abertura renderizada em localhost chegou à tela de login sem erros JavaScript. Não foi possível inspecionar os formulários autenticados nesta sessão; a edição visual do seletor e a busca real de referências aguardam a revisão com login. Nenhum clique de edição foi feito em documentos reais. Os scripts e a captura ficam no workspace desta conversa em `.work/atlas-studio/`.
 
 Integração do terreno: consulte [a documentação da prévia](../src/features/atlas/README.md). As novas publicações precisam de revisão visual: o posicionamento dos projetos continua manual.
+
+## Atlas — Topografia
+
+No menu principal do Studio, abra **Atlas — Topografia**. Esse documento único reúne os controles gerais; não é necessário editar cada projeto para ajustar o estilo do mapa.
+
+Desktop e celular têm cinco controles separados: **Amplitude**, **Alongamento**, **Direção**, **Conexão** e **Respiro**. Use 50 nos controles de 0–100 e 0 na direção (-90 a 90 graus) como referência inicial. Os próprios campos explicam o efeito. **Restaurar referência deste perfil** repõe somente os cinco números do perfil escolhido, sem alterar projetos, categorias ou o outro perfil.
+
+Os controles de referência são um ponto de partida para revisão visual. Para aplicar, publique o documento e recarregue a prévia. Sem documento publicado, os mesmos padrões são usados. O Studio hospedado precisa receber esta versão do código para exibir os campos; esta entrega não executa deploy.
+
+Para experimentar sem salvar, abra [a prévia de ajustes locais](http://localhost:3000/pt/atlas-preview?terrain=1). Esses sliders não gravam no Sanity e se perdem ao recarregar. Depois de escolher os valores, transfira-os ao perfil correspondente no Studio e publique. A URL normal da prévia não mostra os controles.
+
+As regras de direção de arte organizam apenas o terreno gerado pelos projetos. Apple Academy continua ausente e, sem projetos ativos, não há elevações. A configuração não faz distribuição automática nem corrige todos os possíveis conflitos entre rótulos.

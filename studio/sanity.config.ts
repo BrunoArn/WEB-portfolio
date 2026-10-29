@@ -16,6 +16,7 @@ export default defineConfig({
         S.list()
           .title('Content')
           .items([
+            S.listItem().title('Atlas — Topografia').id('atlasSettings').child(S.document().schemaType('atlasSettings').documentId('atlas-settings')),
             S.listItem()
               .title('About Page')
               .id('aboutPage')
@@ -28,7 +29,7 @@ export default defineConfig({
             S.divider(),
 
             ...S.documentTypeListItems().filter(
-              (item) => item.getId() !== 'aboutPage',
+              (item) => !['aboutPage', 'atlasSettings'].includes(item.getId() ?? ''),
             ),
           ]),
     }),
@@ -42,11 +43,11 @@ export default defineConfig({
   document: {
     newDocumentOptions: (prev) =>
       prev.filter(
-        (template) => template.templateId !== 'aboutPage',
+        (template) => !['aboutPage', 'atlasSettings'].includes(template.templateId),
       ),
 
     actions: (prev, context) =>
-      context.schemaType === 'aboutPage'
+      ['aboutPage', 'atlasSettings'].includes(context.schemaType)
         ? prev.filter(
           ({ action }) =>
             action !== 'duplicate' && action !== 'delete',

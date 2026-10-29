@@ -19,7 +19,7 @@ There is no fixed project-ID table or manual source array. A newly published pro
 - Every project contributes a smooth elliptical elevation multiplied by its configured influence (default 1). A territory represented by a single project receives a broader mobile footprint so it remains legible.
 - Nearby elevations receive mild connecting shoulders selected by a deterministic minimum spanning forest. Same-territory neighbors are preferred; distant groups remain separate. Each connector is derived from two existing projects and disappears/recomputes when those sources change.
 - The smooth coordinate warp, fixed contour density, minimum visible stroke width, varying stroke thickness, smoothing and filtering of tiny mobile loops remain. The introduction retains its local soft attenuation.
-- No project-related or decorative positive elevation is held at an old fixed location. The former Apple Academy anchor and the old fixed shoulders/valleys were removed. With zero participating projects, the scalar field is exactly zero and no terrain contours are drawn.
+- No project-related or decorative positive elevation is held at an old fixed location. The former Apple Academy anchor remains removed. The old broad mass/valley regions now act only as multiplicative composition masks over project-generated terrain, rather than independent elevations. With zero participating projects, the scalar field is exactly zero and no terrain contours are drawn.
 - Spatial color weights are calculated only from participating projects and their main territories, with contained transitions. No category creates an elevation merely by existing.
 
 The field is calculated once per geometry build; sampling reuses the prepared project kernels and connections. It does not regenerate contours per animation frame.
@@ -34,7 +34,7 @@ Before movement, inverse-camera bounds extend both contours and spatial colors. 
 
 ## Current content audit
 
-The published configuration contains six participating projects and three valid territories, with no adapter issues. The configured VR Quintandinha desktop X is **32**, as published by the user; no former hardcoded position is substituted. Apple Academy has no marker, terrain anchor or reserved influence.
+The published configuration contains six participating projects and three valid territories, with no adapter issues. VR Quintandinha uses its current published position; no hardcoded position is substituted. Apple Academy has no marker, terrain anchor or reserved influence.
 
 ## Validation
 
@@ -43,3 +43,25 @@ ESLint, TypeScript and diff checks passed. Pure-data/field checks verified the p
 Chromium rendered 12 PT/EN viewport cases at 1440×900, 761×900, 760×900, 390×844, 320×568 and 844×390. Across 72 card cycles, checks covered images, card/button bounds, category borders, image/title/detail link agreement, keyboard order, exact Canvas restoration and scroll restoration. Representative desktop, intermediate and phone screenshots were visually inspected. Targeted real-motion samples checked the 400/220 ms sequence and interrupted closing. Coverage checks sampled movement when opening each of the six projects on desktop and phone.
 
 Audit data, tests and captures are in the task workspace under `.work/atlas-live-terrain/`. This is desktop Chromium viewport testing, not physical-device or other-browser verification. New configurations still require visual review of spacing and composition. No deployment, Home replacement or Studio document mutation was performed.
+
+## Simple terrain controls
+
+The single Studio entry **Atlas — Topografia** edits document `atlas-settings` (type `atlasSettings`). Desktop and mobile have independent profiles. The schema prevents duplicate/delete actions in the Studio UI, following the existing About singleton pattern. An absent or partial published document uses safe reference defaults; nothing is seeded or published automatically.
+
+| Control | Range | Reference | Effect |
+| --- | --- | --- | --- |
+| Amplitude | 0–100 | 50 | Narrower/wider project footprints; project height remains its own influence setting. |
+| Alongamento | 0–100 | 50 | Vertical-to-horizontal elongation at the current direction. |
+| Direção | -90–90 degrees | 0 | Additional rotation of project formations. |
+| Conexão | 0–100 | 50 | Strength of derived bridges and broad composition guidance. Natural overlap can remain at zero. |
+| Respiro | 0–100 | 50 | Soft valley attenuation, opening space between masses. |
+
+`shared/atlas-terrain-settings.ts` defines the common defaults, limits and defensive resolution for both apps. Studio sliders retain numeric entry and each profile has **Restaurar referência deste perfil**, which patches only the five controls. This edits the draft; publish to apply to the normal preview on reload.
+
+The reference restores the former broad composition regions through multiplication: project field × broad-mass guidance × soft-valley attenuation. It is an adapted starting point for review, not an exact recreation of the old approved map or an approval claim. There is still no terrain with zero projects, and no Apple Academy contribution.
+
+For experiments open `/pt/atlas-preview?terrain=1` (also available in EN). Its collapsible panel changes only local state, with no CMS writes; reload discards those changes. Its restore button uses the same reference as Studio. The normal URL remains free of controls. Input changes are grouped into requested frames; the renderer updates its settings and invalidates only the relevant geometry cache, without remounting interaction handlers or recreating marker nodes. There is no permanent redraw loop.
+
+Validation for this block: TypeScript and ESLint for the app/Studio; official schema validation with zero errors/warnings; Studio build; data/field checks including every control's effect, ranges/fallbacks, separate profiles and zero-project behavior; browser checks of all five sliders and exact reference restoration at desktop and phone sizes; marker node reuse; desktop/mobile override isolation; overrides discarded by reload; normal URL without controls. The 12 PT/EN viewport cases / 72 card cycles and the real-motion interruption checks passed with the new composition. Representative reference/panel screenshots were visually inspected. Scripts and captures are under `.work/atlas-terrain-controls/` in the task workspace.
+
+The rendered Studio still requires login in the test session: authenticated field editing and the Studio reset button have not been exercised against real documents. No Studio deployment or Sanity mutation was performed. Physical-device and other-browser testing remain outstanding.

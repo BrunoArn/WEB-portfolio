@@ -1,3 +1,4 @@
+import type { AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import { sanityClient } from "@/sanity/client";
 import type { LocalizedValue } from "@/content/adapters/localization";
 import type { SanityProject } from "@/sanity/types/project";
@@ -24,11 +25,16 @@ export type AtlasSanityProject = Pick<SanityProject, "_id" | "title" | "descript
   } | null;
 };
 export interface AtlasSanityData {
+  settings?: { desktop?: Partial<AtlasTerrainControls>; mobile?: Partial<AtlasTerrainControls> } | null;
   projects: AtlasSanityProject[];
   territories: AtlasSanityTerritory[];
 }
 
 const atlasQuery = /* groq */ `{
+  "settings": *[_id == "atlas-settings" && _type == "atlasSettings"][0]{
+    desktop{amplitude, elongation, direction, connection, negativeSpace},
+    mobile{amplitude, elongation, direction, connection, negativeSpace}
+  },
   "projects": *[_type == "project" && atlas.enabled == true] | order(order asc, _id asc) {
     _id, title, description, year, slug,
     atlas{enabled, territory{_ref}, desktop{x,y}, mobile{x,y}, influence},

@@ -1,3 +1,4 @@
+import { resolveAtlasTerrainControls, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasAnchor } from "./atlas-types";
 
 function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: number, angle = 0) {
@@ -8,13 +9,20 @@ function gaussian(x: number, y: number, cx: number, cy: number, sx: number, sy: 
 }
 
 /** All elevations and connecting shoulders originate in current projects. */
-export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boolean) {
+export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>) {
+  const controls = resolveAtlasTerrainControls(settings);
+  const footprint = .7 + controls.amplitude * .006;
+  const stretch = Math.exp((controls.elongation - 50) * .012);
+  const direction = controls.direction * Math.PI / 180;
+  const connection = controls.connection / 50;
+  const clearing = controls.negativeSpace / 50;
   const ordered = [...projects].sort((a, b) => a.id.localeCompare(b.id));
   const counts = new Map<string, number>();
   for (const p of ordered) counts.set(p.c, (counts.get(p.c) ?? 0) + 1);
   const kernels = ordered.map(p => {
     const solo = counts.get(p.c) === 1;
-    return { x: p.x, y: p.y, sx: mobile ? (solo ? .205 : .122) : (solo ? .13 : .14), sy: mobile ? (solo ? .089 : .069) : .115, angle: mobile ? (solo ? -.18 : .20) : (solo ? -.6 : .4), amplitude: .8 * p.influence };
+    const kernel = { x: p.x, y: p.y, sx: mobile ? (solo ? .205 : .122) : (solo ? .13 : .14), sy: mobile ? (solo ? .089 : .069) : .115, angle: mobile ? (solo ? -.18 : .20) : (solo ? -.6 : .4), amplitude: .8 * p.influence };
+    return { ...kernel, sx: kernel.sx * footprint * stretch, sy: kernel.sy * footprint / stretch, angle: kernel.angle + direction };
   });
   // Deterministic minimum spanning forest: prefer same-territory neighbors and
   // keep distant formations separate. These bridges disappear with their sources.
@@ -31,19 +39,30 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
     const ar = root(edge.a), br = root(edge.b); if (ar === br) continue;
     roots[br] = ar;
     const a = ordered[edge.a], b = ordered[edge.b], dx = b.x - a.x, dy = b.y - a.y;
-    kernels.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, sx: Math.max(.08, Math.hypot(dx, dy) * .55), sy: mobile ? .045 : .065, angle: Math.atan2(dy, dx), amplitude: (mobile ? .24 : .26) * Math.min(a.influence, b.influence) });
+    kernels.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, sx: Math.max(.08, Math.hypot(dx, dy) * .55), sy: mobile ? .045 : .065, angle: Math.atan2(dy, dx), amplitude: (mobile ? .24 : .26) * .3 * connection * Math.min(a.influence, b.influence) });
   }
+  // Reference art direction is multiplicative: it shapes project-generated
+  // terrain but cannot create any elevation when the project field is empty.
+  const masses = mobile
+    ? [[.49, .38, .20, .085, .24], [.51, .59, .205, .085, .20], [.51, .79, .23, .085, .27]]
+    : [[.43, .41, .23, .11, .42], [.49, .76, .26, .12, .35], [.94, .13, .20, .16, .65], [-.08, .96, .24, .17, .8]];
+  const valleys = mobile
+    ? [[.08, .54, .13, .065], [.92, .50, .13, .07], [.83, .33, .13, .075], [.08, .85, .12, .075]]
+    : [[.15, .18, .26, .23], [.55, .62, .16, .08], [.92, .87, .15, .12]];
   return (x: number, y: number) => {
     const u = x + (mobile ? .018 : .028) * Math.sin(y * 12 + x * 3) + (mobile ? .009 : .016) * Math.cos(y * 23 - x * 7);
     const v = y + (mobile ? .012 : .025) * Math.sin(x * 13 - y * 5);
     let z = 0;
     for (const k of kernels) z += k.amplitude * gaussian(u, v, k.x, k.y, k.sx, k.sy, k.angle);
-    return z;
+    let mass = 0, valley = 0;
+    for (const [cx, cy, sx, sy, strength] of masses) mass += strength * gaussian(u, v, cx, cy, sx, sy, -.3);
+    for (const [cx, cy, sx, sy] of valleys) valley += gaussian(u, v, cx, cy, sx, sy);
+    return z * (1 + connection * mass) * Math.exp(-2.2 * clearing * valley);
   };
 }
 
-export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean) {
-  return createAtlasField(projects, mobile)(x, y);
+export function sampleAtlasField(x: number, y: number, projects: readonly AtlasAnchor[], mobile: boolean, settings?: Partial<AtlasTerrainControls>) {
+  return createAtlasField(projects, mobile, settings)(x, y);
 }
 
 export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {

@@ -1,3 +1,4 @@
+import { resolveAtlasTerrainSettings } from "../../../shared/atlas-terrain-settings";
 import { resolveLocalizedValue, type LocalizedValue } from "@/content/adapters/localization";
 import { adaptProjectImage } from "@/content/adapters/media";
 import type { Locale } from "@/i18n/config";
@@ -10,7 +11,7 @@ function validPosition(value: AtlasSanityPosition | undefined): value is { x: nu
 const canonicalId = (id: string) => id.replace(/^drafts\./, "");
 
 export function adaptAtlasContent(data: AtlasSanityData, locale: Locale): AtlasContent {
-  const content: AtlasContent = { projects: [], territories: [], unplaced: [], issues: [] };
+  const content: AtlasContent = { terrain: resolveAtlasTerrainSettings(data.settings), projects: [], territories: [], unplaced: [], issues: [] };
   const pt = locale === "pt";
   function localized(value: LocalizedValue | null | undefined, id: string, field: string) {
     try { return resolveLocalizedValue(value, locale); }

@@ -8,6 +8,7 @@ import { isLocale } from "@/i18n/config";
 
 type AtlasPreviewPageProps = {
   params: Promise<{ lang: string }>;
+  searchParams?: Promise<{ terrain?: string }>;
 };
 
 export async function generateMetadata({
@@ -26,7 +27,7 @@ export async function generateMetadata({
 }
 
 export default async function AtlasPreviewPage({
-  params,
+  params, searchParams,
 }: AtlasPreviewPageProps) {
   const { lang } = await params;
 
@@ -35,5 +36,6 @@ export default async function AtlasPreviewPage({
   }
 
   const content = adaptAtlasContent(await getAtlasData(), lang);
-  return <AtlasPreview locale={lang} content={content} />;
+  const query = await searchParams;
+  return <AtlasPreview locale={lang} content={content} showTerrainControls={query?.terrain === "1"} />;
 }

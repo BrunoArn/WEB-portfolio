@@ -1,3 +1,4 @@
+import type { AtlasTerrainSettings } from "../../../shared/atlas-terrain-settings";
 export type AtlasPoint = [number, number];
 
 export interface AtlasAnchor {
@@ -33,6 +34,7 @@ export interface AtlasTerritory {
 }
 
 export interface AtlasContent {
+  terrain: AtlasTerrainSettings;
   projects: AtlasProject[];
   territories: AtlasTerritory[];
   unplaced: { id: string; title: string; href?: string }[];
