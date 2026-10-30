@@ -10,9 +10,10 @@ type Elements = {
     media: HTMLElement;
     morph: HTMLElement;
 };
-/** The approved camera/morph rhythm, scoped to a single mounted preview. */
+/** One opening timeline for the camera, thumbnail and card; scoped to this map. */
 export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void) {
     const { root, viewport, world, dialog, panel, media, morph } = elements;
+    const cardFrame = panel.parentElement!;
     const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const layout = matchMedia(atlasMobileQuery);
@@ -26,12 +27,13 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         overflow: string;
         padding: string;
         scroll: number;
+        frameHeight: string;
     } | undefined;
     const stop = () => {
         animations.forEach(animation => animation.cancel());
         animations = [];
     };
-    function animate(node: HTMLElement, frames: Keyframe[], duration = 400, delay = 0) {
+    function animate(node: Element, frames: Keyframe[], duration = 400, delay = 0) {
         const animation = node.animate(frames, { duration: reduced.matches ? 0 : duration, delay: reduced.matches ? 0 : delay, easing: "cubic-bezier(.22,.72,.18,1)", fill: "both" });
         animations.push(animation);
         return animation.finished.catch(() => {
@@ -40,10 +42,11 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     function rectangle(rect: DOMRect) {
         return { left: rect.left + "px", top: rect.top + "px", width: rect.width + "px", height: rect.height + "px" };
     }
-    function move(thumb: HTMLElement, from: DOMRect, to: DOMRect, radius: number | string, endRadius: number) {
+    function move(thumb: HTMLElement, from: DOMRect, to: DOMRect, radius: number | string, endRadius: number | string) {
         morph.append(thumb);
-        Object.assign(thumb.style, rectangle(to), { borderRadius: endRadius + "px" });
-        return animate(thumb, [{ ...rectangle(from), borderRadius: typeof radius === "number" ? radius + "px" : radius }, { ...rectangle(to), borderRadius: endRadius + "px" }]);
+        const finalRadius = typeof endRadius === "number" ? endRadius + "px" : endRadius;
+        Object.assign(thumb.style, rectangle(to), { borderRadius: finalRadius });
+        return animate(thumb, [{ ...rectangle(from), borderRadius: typeof radius === "number" ? radius + "px" : radius }, { ...rectangle(to), borderRadius: finalRadius }]);
     }
     function restore(focus = true) {
         const state = selection;
@@ -59,6 +62,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         dialog.close();
         document.body.style.overflow = state.overflow;
         document.body.style.paddingRight = state.padding;
+        cardFrame.style.height = state.frameHeight;
         selection = undefined;
         onSelectionChange(null);
         terrain.extend();
@@ -75,7 +79,11 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
             return;
         const thumb = item.querySelector<HTMLElement>("[role=img]")!, slot = thumb.parentElement!;
         const from = thumb.getBoundingClientRect(), id = ++epoch;
-        selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY };
+        const sourceScale = from.width / thumb.offsetWidth;
+        const sourceBorder = parseFloat(getComputedStyle(thumb).borderTopWidth) * sourceScale;
+        const icon = thumb.querySelector("svg");
+        const iconFrom = icon?.getBoundingClientRect();
+        selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY, frameHeight: cardFrame.style.height };
         onSelectionChange(project.id);
         dialog.querySelector("[data-atlas-title]")!.textContent = project.title;
         dialog.querySelector("[data-atlas-category]")!.textContent = project.categoryLabel;
@@ -128,28 +136,83 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
             if (id === epoch && selection && !disposed)
                 cropRemaining(true);
         }, 120);
-        await Promise.all([move(thumb, from, target, from.width / 2, 15), animate(world, [{ transform: "none" }, { transform: camera }])]);
+        // Put the actual thumbnail in its final parent before animating anything.
+        // Image, border and body now share one carrier, with no handoff on arrival.
+        const card = panel.getBoundingClientRect();
+        const scaleFrom = from.width / target.width;
+        const origin = (target.left - card.left) + "px " + (target.top - card.top) + "px";
+        const panelStyle = getComputedStyle(panel);
+        const borderHeight = parseFloat(panelStyle.borderTopWidth) + parseFloat(panelStyle.borderBottomWidth);
+        const borderWidth = parseFloat(panelStyle.borderLeftWidth) + parseFloat(panelStyle.borderRightWidth);
+        const bodyHeight = Math.max(0, card.height - target.height - borderHeight);
+        // Only preserve a gutter that is actually present. Rounded scrollHeight
+        // measurements can report overflow without an allocated scrollbar.
+        const scrollbarGutter = panel.offsetWidth - panel.clientWidth > borderWidth + .5 ? "stable" : "auto";
+        const cardFrames: Keyframe[] = [];
+        const mediaFrames: Keyframe[] = [];
+
+        // A uniform carrier preserves the picture's proportions. Compensate the
+        // media height so its screen rectangle grows continuously from the circle.
+        // Precompute these frames once: no JavaScript animation loop is needed.
+        for (let step = 0; step <= 32; step++) {
+            const progress = step / 32;
+            const scale = scaleFrom + (1 - scaleFrom) * progress;
+            const imageHeight = (from.height + (target.height - from.height) * progress) / scale;
+            const reveal = Math.max(0, Math.min(1, (progress - .12) / .88));
+            const bodyProgress = reveal * reveal * (3 - 2 * reveal);
+            cardFrames.push({
+                offset: progress,
+                transform: "translate(" + ((from.left - target.left) * (1 - progress)) +
+                    "px," + ((from.top - target.top) * (1 - progress)) + "px) scale(" + scale + ")",
+                transformOrigin: origin,
+                height: (imageHeight + borderHeight + bodyHeight * bodyProgress) + "px",
+                borderRadius: ((target.width / 2) * (1 - progress) + 16 * progress) + "px",
+                maxHeight: "none",
+                overflow: "hidden",
+                scrollbarGutter,
+            });
+            mediaFrames.push({ offset: progress, height: imageHeight + "px" });
+        }
+        // Freeze only the outer layout anchor; the card itself opens downward.
+        cardFrame.style.height = card.height + "px";
+        media.append(thumb);
+        await Promise.all([
+            animate(world, [{ transform: "none" }, { transform: camera }]),
+            animate(panel, cardFrames),
+            animate(media, mediaFrames),
+            animate(thumb, [
+                {
+                    offset: 0,
+                    borderRadius: (target.width / 2) + "px",
+                    borderWidth: (sourceBorder / scaleFrom) + "px",
+                    borderStyle: "solid",
+                    borderColor: project.color,
+                },
+                {
+                    offset: .12,
+                    borderWidth: "0px 0px 1px",
+                    borderStyle: "solid",
+                    borderColor: "#ffffff15",
+                },
+                {
+                    offset: 1,
+                    borderRadius: "15px 15px 0 0",
+                    borderWidth: "0px 0px 1px",
+                    borderStyle: "solid",
+                    borderColor: "#ffffff15",
+                },
+            ]),
+            ...(icon && iconFrom ? [animate(icon, [
+                { width: (iconFrom.width / scaleFrom) + "px", height: (iconFrom.height / scaleFrom) + "px" },
+                { width: "48px", height: "48px" },
+            ])] : []),
+        ]);
         clearTimeout(cropTimer);
         if (id !== epoch || !selection || disposed)
             return;
         stop();
         cropRemaining(false);
-        root.dataset.selection = "revealing";
-        // The image has arrived. Reveal the body downward from its lower edge,
-        // keeping the image and the final card position fixed throughout.
-        const bodyHeight = Math.max(0, panel.getBoundingClientRect().height - media.getBoundingClientRect().height);
-        await Promise.all([animate(thumb, [
-                { borderRadius: "15px" },
-                { borderRadius: "15px 15px 0 0" },
-            ], 220), animate(panel, [
-                { clipPath: `inset(0 0 ${bodyHeight}px 0 round 16px)` },
-                { clipPath: "inset(0 0 0 0 round 16px)" },
-            ], 220)]);
-        if (id !== epoch || !selection || disposed)
-            return;
-        stop();
-        media.append(thumb);
-        thumb.removeAttribute("style");
+        cardFrame.style.height = selection.frameHeight;
         root.dataset.selection = "selected";
     }
     async function close() {
@@ -157,9 +220,19 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         if (!state || root.dataset.selection === "closing")
             return;
         const id = ++epoch, from = state.thumb.getBoundingClientRect();
-        const radius = getComputedStyle(state.thumb).borderRadius, camera = getComputedStyle(world).transform;
+        const thumbnailScale = from.width / state.thumb.offsetWidth;
+        const radius = getComputedStyle(state.thumb).borderRadius.replace(/[\d.]+px/g, value =>
+            (parseFloat(value) * thumbnailScale) + "px");
+        const camera = getComputedStyle(world).transform;
         const panelStyle = getComputedStyle(panel);
-        const panelOpacity = panelStyle.opacity, panelClip = panelStyle.clipPath;
+        const panelOpacity = panelStyle.opacity;
+        const panelHeight = panelStyle.height;
+        const mediaHeight = getComputedStyle(media).height;
+        const panelRadius = panelStyle.borderRadius;
+        const scrollbarGutter = panelStyle.scrollbarGutter;
+        // Closing can interrupt any point of the shared opening; freeze the card
+        // where it is before canceling its animations so it never jumps to full size.
+        const panelTransform = panelStyle.transform, panelOrigin = panelStyle.transformOrigin;
         stop();
         terrain.crop();
         world.style.transform = "none";
@@ -168,7 +241,24 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         root.dataset.selection = "closing";
         const motion = move(state.thumb, from, target, radius, target.width / 2);
         world.style.transform = "none";
-        await Promise.all([motion, animate(world, [{ transform: camera }, { transform: "none" }]), animate(panel, [{ opacity: panelOpacity, clipPath: panelClip }, { opacity: 0, clipPath: panelClip }], 140)]);
+        const frozenCard = {
+            height: panelHeight,
+            borderRadius: panelRadius,
+            transform: panelTransform,
+            transformOrigin: panelOrigin,
+            maxHeight: "none",
+            overflow: "hidden",
+            scrollbarGutter,
+        };
+        await Promise.all([
+            motion,
+            animate(world, [{ transform: camera }, { transform: "none" }]),
+            animate(panel, [
+                { ...frozenCard, opacity: panelOpacity },
+                { ...frozenCard, opacity: 0 },
+            ], 140),
+            animate(media, [{ height: mediaHeight }, { height: mediaHeight }], 140),
+        ]);
         if (id === epoch && !disposed)
             restore();
     }
