@@ -1,5 +1,6 @@
+import { advanceAtlasPointer } from "./atlas-pointer-impulse";
 import { atlasMotionReference, atlasSelectionDuration, type AtlasMotionSettings } from "./atlas-motion-settings";
-import { createAtlasString, advanceAtlasString, strikeAtlasString, type AtlasString } from "./atlas-string-response";
+import { createAtlasString, strikeAtlasString, type AtlasString } from "./atlas-string-response";
 import type { AtlasAnchor, AtlasPoint, AtlasContour } from "./atlas-types";
 import type { AtlasBounds } from "./atlas-layout";
 
@@ -15,14 +16,17 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
   let bounds: AtlasBounds = { left: 0, top: 0, right: 1, bottom: 1 }, nx = 1, ny = 1, stepX = 1, stepY = 1;
   let protection = new Float32Array(4);
   let world: World = { width: 1, height: 1 }, scale = 1, screenLeft = 0, screenTop = 0, offsetX = 0, offsetY = 0;
-  let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0, pressure = 0, over = false;
+  let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0, pointerPending = false, over = false;
   let lines: AtlasString[] = [];
   let anchors: readonly AtlasAnchor[] = [], pulse: { x: number; y: number; age: number } | undefined;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const active = () => settings.enabled && !reduced.matches;
-  const running = () => active() && (settings.breath > 0 || (over && settings.pressure > 0) || pressure > .001 || !!pulse) && !document.hidden && visible && !disposed;
+  const hasPointerWaves = () => lines.some(line => line.pointer.impulses.some(impulse => impulse.age >= 0));
+  const following = () => over && settings.pressure > 0 && Math.hypot(targetX-pointerX,targetY-pointerY) > .05/scale;
+  const running = () => active() && (settings.breath > 0 || pointerPending || following() || hasPointerWaves() || !!pulse) && !document.hidden && visible && !disposed;
   function schedule() { canvas.dataset.motionActive = String(running()); if (running() && !frame) frame = requestAnimationFrame(tick); }
-  function clear() { pressure = 0; over = false; pulse = undefined; lines.forEach(line => { line.value = 0; line.strike = undefined; }); }
+  function clear() { pointerPending = false; over = false; pulse = undefined; lines.forEach(line => { line.pointer.armed = true; line.pointer.quietTime = 0; line.pointer.cooldown = 0;
+    line.pointer.impulses.forEach(impulse => { impulse.age = -1; impulse.value = 0; }); line.strike = undefined; }); }
   function policy() {
     cancelAnimationFrame(frame); frame = 0; previous = 0;
     canvas.dataset.motionActive = String(running());
@@ -47,23 +51,24 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
     schedule();
   }
   function advance(dt: number) {
-    const follow = 1 - Math.exp(-dt / .09), release = .12 + settings.returnTime / 100 * 1.2;
+    const beforeX = pointerX, beforeY = pointerY;
+    const follow = 1 - Math.exp(-dt / .09);
     pointerX += (targetX - pointerX) * follow; pointerY += (targetY - pointerY) * follow;
-    pressure += ((over ? 1 : 0) - pressure) * (1 - Math.exp(-dt / (over ? .13 : release)));
+    const speed = dt > 0 ? Math.hypot(pointerX-beforeX,pointerY-beforeY) * scale / dt : 0;
+    if (dt > 0) pointerPending = false;
     if (pulse) { pulse.age += dt; if (pulse.age > atlasSelectionDuration) { pulse = undefined; lines.forEach(line => { line.strike = undefined; }); } }
     const unit = 1 / scale;
-    for (const line of lines) advanceAtlasString(line, pointerX, pointerY, over, settings.pressure, settings.returnTime, dt, unit, settings.mouseRadius);
-    if (!over && pressure < .001) { pressure = 0; lines.forEach(line => { line.value = 0; }); }
+    for (const line of lines) advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure, dt, unit, settings.mouseRadius);
   }
   function pointer(event: PointerEvent) {
-    if (!active() || event.pointerType === "touch" || canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection !== "idle") return;
+    if (!active() || settings.pressure <= 0 || event.pointerType === "touch" || canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection !== "idle") return;
     const rect = canvas.getBoundingClientRect(), width = parseFloat(canvas.style.width);
     if (!rect.width || !width) return;
     const factor = rect.width / width;
     targetX = ((event.clientX - rect.left) / factor + screenLeft - offsetX) / scale;
     targetY = ((event.clientY - rect.top) / factor + screenTop - offsetY) / scale;
-    if (!over && pressure < .01) { pointerX = targetX; pointerY = targetY; }
-    over = true; schedule();
+    if (!over) { pointerX = targetX; pointerY = targetY; }
+    over = true; pointerPending = true; schedule();
   }
   const leave = () => { over = false; };
   viewport.addEventListener("pointermove", pointer); viewport.addEventListener("pointerleave", leave);
@@ -108,7 +113,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
       if (active()) { advance(0); repaint(); }
       policy();
     },
-    pulse(id: string) { if (!active() || !settings.selectionStrength) return; const p = anchors.find(p => p.id === id); if (p) pulse = { x: p.x * world.width, y: p.y * world.height, age: .035 }; over = false; lines.forEach(line => { if (pulse) strikeAtlasString(line,pulse.x,pulse.y,1/scale,settings.mouseRadius); }); advance(0); repaint(); schedule(); },
+    pulse(id: string) { if (!active() || !settings.selectionStrength) return; const p = anchors.find(p => p.id === id); if (p) pulse = { x: p.x * world.width, y: p.y * world.height, age: .035 }; over = false; pointerPending = false; lines.forEach(line => { if (pulse) strikeAtlasString(line,pulse.x,pulse.y,1/scale,settings.mouseRadius); }); advance(0); repaint(); schedule(); },
     dispose() { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); viewport.removeEventListener("pointermove", pointer); viewport.removeEventListener("pointerleave", leave); window.removeEventListener("blur", leave); window.removeEventListener("scroll", leave); document.removeEventListener("visibilitychange", policy); reduced.removeEventListener("change", policy); },
   };
 }

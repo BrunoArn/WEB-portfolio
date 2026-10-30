@@ -17,7 +17,10 @@ export function createAtlasString(contour: AtlasContour, scale = 1) {
   const length = arcs.at(-1)! + (closed ? Math.hypot(path[0][0]-path.at(-1)![0],path[0][1]-path.at(-1)![1]) : 0);
   if (closed) samples.push(path[0][0],path[0][1],length);
   const bendLimits = atlasBendLimits(contour, arcs, normals, scale);
-  return { path, arcs, normals, bendLimits, samples: new Float64Array(samples), closed, length, left, top, right, bottom, value: 0, contact: 0, strike: undefined as { contact: number; value: number } | undefined };
+  return { path, arcs, normals, bendLimits, samples: new Float64Array(samples), closed, length, left, top, right, bottom, pointer: {
+    armed: true, quietTime: 0, cooldown: 0, lastContact: 0,
+    impulses: [{ contact: 0, value: 0, age: -1 }, { contact: 0, value: 0, age: -1 }],
+  }, strike: undefined as { contact: number; value: number } | undefined };
 }
 export type AtlasString = ReturnType<typeof createAtlasString>;
 /** Closest contact belongs to this contour, irrespective of its winding. */
@@ -32,24 +35,6 @@ export function nearestAtlasString(line: AtlasString, x: number, y: number) {
     if (candidate<distance2) { distance2=candidate; signed=(-vy*dx+vx*dy)/Math.sqrt(length2); contact=p[i-1]+t*(p[i+2]-p[i-1]); }
   }
   return {distance2,signed,contact};
-}
-export function advanceAtlasString(line: AtlasString, x: number, y: number, over: boolean, strength: number, returnTime: number, dt: number, unit: number, mouseRadius = 35) {
-  let target = 0, contact = line.contact;
-  const radius = mouseRadius*unit;
-  if (over && strength > 0 && x>line.left-radius*2 && x<line.right+radius*2 && y>line.top-radius*2 && y<line.bottom+radius*2) {
-    const hit = nearestAtlasString(line,x,y);
-    contact = hit.contact;
-    if (Number.isFinite(hit.distance2)) target = strength/100 * 12*unit * hit.signed/Math.hypot(hit.signed,8*unit) * Math.exp(-2*hit.distance2/(radius*radius));
-  }
-  if (Math.abs(line.value)<.001*unit) line.contact=contact;
-  else {
-    let delta=contact-line.contact;
-    if (line.closed) { if (delta>line.length/2) delta-=line.length; if (delta<-line.length/2) delta+=line.length; }
-    line.contact += delta*(1-Math.exp(-dt/.07));
-    if (line.closed) line.contact=(line.contact%line.length+line.length)%line.length;
-  }
-  const tau=target ? .075 : .12+returnTime/100*1.2;
-  line.value += (target-line.value)*(1-Math.exp(-dt/tau));
 }
 /** A click excites each strand at its own nearest contact, like a brief pointer push. */
 export function strikeAtlasString(line: AtlasString, x: number, y: number, unit: number, mouseRadius = 35) {

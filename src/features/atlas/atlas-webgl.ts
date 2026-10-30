@@ -5,7 +5,7 @@ import { atlasRibbonStride, type mountAtlasMotion } from "./atlas-motion";
 
 type Motion = ReturnType<typeof mountAtlasMotion>;
 type Ribbon = { index: number; mesh: ReturnType<Motion["prepare"]> };
-const stateColumns = 5, stateStride = stateColumns * 4;
+const stateColumns = 6, stateStride = stateColumns * 4;
 const vertexStride = 15; // Position, normal/arc/mask, four grid guards, strand, edge/limit.
 
 type View = { scale: number; x: number; y: number; width: number; height: number; pixelRatio: number };
@@ -43,6 +43,15 @@ float packet(float delta, vec4 state) {
   float d=state.w > .5 ? state.z/PI*sin(PI*delta/state.z) : delta;
   return exp(-.5*pow(d/(32.*motion.z),2.));
 }
+float strandWave(vec4 state, float arc, float contact, float value, float age) {
+  if (age < 0. || age >= ${atlasSelectionDuration} || abs(value) == 0.) return 0.;
+  float distance=arcDistance(arc,contact,state);
+  float front=(35.+age*300.)*motion.z;
+  float tail=clamp((${atlasSelectionDuration}-age)/.4,0.,1.);
+  float envelope=(1.-exp(-age/.02))*exp(-age/(.26+response.y/100.*.3))*tail*tail*(3.-2.*tail);
+  float wave=packet(distance-front,state)+packet(distance+front,state);
+  return value*envelope*wave;
+}
 void main() {
   vec4 state=texelFetch(states,ivec2(0,int(strand.x)),0);
   vec4 strike=texelFetch(states,ivec2(1,int(strand.x)),0);
@@ -71,15 +80,10 @@ void main() {
   vec2 f=fract(g), base=grid.xy+floor(g)*grid.zw;
   vec2 ambient=mix(mix(breathe(base)*protection.x,breathe(base+vec2(grid.z,0.))*protection.y,f.x),
     mix(breathe(base+vec2(0.,grid.w))*protection.z,breathe(base+grid.zw)*protection.w,f.x),f.y);
-  float hover=state.y*exp(-.5*pow(arcDistance(normalArc.z,state.x,state)/(response.x*1.3*motion.z),2.));
-  float impulse=0.;
-  if(motion.w>=0. && abs(strike.y)>0.) {
-    float age=motion.w, distance=arcDistance(normalArc.z,strike.x,state);
-    float front=(35.+age*300.)*motion.z;
-    float tail=clamp((${atlasSelectionDuration}-age)/.4,0.,1.);
-    float envelope=(1.-exp(-age/.02))*exp(-age/(.26+response.y/100.*.3))*tail*tail*(3.-2.*tail);
-    impulse=strike.y*envelope*(packet(distance-front,state)+packet(distance+front,state))*response.z/25.;
-  }
+  vec4 pointer=texelFetch(states,ivec2(5,int(strand.x)),0);
+  float hover=strandWave(state,normalArc.z,state.x,state.y,pointer.x)
+    +strandWave(state,normalArc.z,pointer.y,pointer.z,pointer.w);
+  float impulse=strandWave(state,normalArc.z,strike.x,strike.y,motion.w)*response.z/25.;
   float bend=((hover+impulse)*developed+curl)*normalArc.w;
   float ratio=bend/edge.z, square=ratio*ratio;
   bend=bend/sqrt(sqrt(1.+square*square));
@@ -195,9 +199,12 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
       const field=motion.state();
       ribbons.forEach(({mesh:{line}},i) => {
         const offset = i*stateStride;
-        statePixels[offset] = line.contact; statePixels[offset+1] = line.value;
+        const [first, second] = line.pointer.impulses;
+        statePixels[offset] = first.contact; statePixels[offset+1] = first.value;
         statePixels[offset+2] = line.length; statePixels[offset+3] = line.closed ? 1 : 0;
         statePixels[offset+4] = line.strike?.contact ?? 0; statePixels[offset+5] = line.strike?.value ?? 0;
+        statePixels[offset+20] = first.age; statePixels[offset+21] = second.contact;
+        statePixels[offset+22] = second.value; statePixels[offset+23] = second.age;
         const plan = growthPlans[i];
         if (reveal < 1 && plan) {
           const growth = atlasGrowthAt(plan, reveal);
