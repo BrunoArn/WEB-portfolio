@@ -2,11 +2,56 @@
 
 O Atlas é a Home em `/pt` e `/en`. A mesma composição e interação ficam disponíveis em `/pt/atlas-preview` e `/en/atlas-preview`, com `noindex` e controles opcionais. WebGL 2 é o renderizador padrão em todas essas páginas. O protótipo independente `atlas-poc` permanece como referência.
 
+## Comece por aqui para manter o Atlas
+
+O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScene.ts** conecta essa interface aos controladores do navegador e libera seus recursos ao desmontar. Não existe um segundo site ou um segundo motor na prévia: Home e prévia usam os mesmos arquivos.
+
+| Quero alterar… | Onde começar |
+| --- | --- |
+| Fonte do site | `src/styles/globals.css`; carregamento no layout de idioma |
+| Cores/tamanhos compartilhados da interface | `src/styles/tokens.css` |
+| Textos PT/EN, acessibilidade e mensagens | Bloco `atlas` dos dicionários em `src/i18n/dictionaries/` |
+| Projetos, imagens, categorias, posições e massas auxiliares | Sanity; `atlas-content.ts` adapta esses dados |
+| Estrutura dos marcadores, título e card | `AtlasMap.tsx` |
+| Aparência e adaptação da interface do mapa | `AtlasMap.module.css` |
+| Inicialização, recuperação estática e controles locais | `useAtlasScene.ts` |
+| Enquadramento e dimensões do mundo | `atlas-layout.ts` e `atlas-composition.ts` |
+| Formação do relevo / territórios | `atlas-field.ts`; `atlas-engine.ts` extrai e prepara as curvas |
+| Intensidades padrão do movimento | `atlas-motion-settings.ts` |
+| Força por velocidade do mouse | `atlas-pointer-impulse.ts` |
+| Movimento desenhado pela GPU | `atlas-webgl.ts`, em `vertexSource` (GLSL) |
+| Entrada da página | `atlas-entrance.ts` coordena; `atlas-growth.ts` calcula o avanço |
+| Zoom, transformação da miniatura e fechamento | `atlas-interaction.ts` |
+
+### Caminho dos dados e responsabilidades
+
+1. As páginas de idioma carregam dicionário e dados publicados no servidor.
+2. `adaptAtlasContent` produz os projetos e territórios que podem participar da composição.
+3. `AtlasMap` monta a interface e entrega suas referências HTML a `useAtlasScene`.
+4. O hook monta terreno, entrada e câmera, acompanha ajustes e desmonta os três juntos.
+5. O terreno prepara geometria/textura; o movimento atualiza o estado das curvas; WebGL desenha. Mover o mouse não refaz o campo inteiro.
+
+### Limites que devem permanecer claros
+
+- Dicionários guardam textos da interface; Sanity guarda o conteúdo editorial. CSS global guarda padrões do site; CSS do Atlas guarda a composição e suas medidas específicas.
+- React mantém a estrutura da interface e o estado de seleção/carregamento. Para preservar a transição aprovada, `atlas-interaction.ts` preenche os campos do card e move **a mesma miniatura HTML** entre mapa, transformação e card. Não renderize uma segunda cópia ou passe a preencher esses mesmos campos por React sem revisar esse contrato.
+- Os atributos `data-atlas-*` não são decoração: conectam o HTML aos controladores. Renomeá-los exige conferir seus usos. O nome histórico `data-atlas-preview` também identifica a Home.
+- A geometria e os materiais são específicos do Atlas; não precisam virar estilos globais. Os shaders continuam em strings GLSL dentro de TypeScript para usar a configuração de build existente.
+- Os controles da prévia não publicam conteúdo. Os ajustes desaparecem ao recarregar.
+- O hook cuida de ouvintes, ciclos, animações e recursos. Uma nova interação precisa ter uma forma de parar e limpar seu estado.
+
+### Revisão de uma alteração
+
+Faça uma mudança por responsabilidade. Rode TypeScript, lint e build; abra Home e prévia nos dois idiomas quando alterar textos ou estrutura. Ao mexer em layout/interação, confira desktop, celular, 760/761 px, entrada, abertura/fechamento e retorno ao mapa, teclado e movimento reduzido. Mudanças em WebGL também exigem conferir a recuperação estática. Em mudanças visuais ou de desempenho, complemente a simulação com aparelho físico.
+
+Esta manutenção extraiu a montagem antes embutida em `AtlasMap` para um único hook, abriu código compactado e formatou o CSS mantendo seletores, ordem e valores. Não adicionou dependências, novas funcionalidades ou outro renderizador. As fórmulas do relevo e os shaders não foram alterados. Validação desta manutenção: build de produção, TypeScript e lint passaram; foram repetidos 36 ciclos de cards em PT/EN e seis tamanhos, os 15 cenários de entrada, controles e recuperação estática. As capturas da Home em 1440 px e 384 px ficaram idênticas pixel a pixel às anteriores. Uma comparação da estrutura do código confirmou a preservação da lógica extraída para o hook; a formatação do CSS preservou regras, ordem e valores. Mobile foi simulado, sem nova avaliação física. O histórico de validações e os detalhes técnicos seguem abaixo.
+
 ## Estrutura atual
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `AtlasMap.tsx` | Componente compartilhado pela Home e pela prévia; projetos HTML, card, controles locais e recuperação do renderizador. |
+| `AtlasMap.tsx` | Interface compartilhada pela Home e pela prévia: marcadores, introdução, card e painéis. |
+| `useAtlasScene.ts` | Estado local, refs, montagem e limpeza dos controladores; entrada, recuperação e atualização dos ajustes. |
 | `atlas-content.ts` | Adapta conteúdo publicado, idiomas, imagens, destinos e participação no mapa. |
 | `atlas-field.ts` | Prepara o campo escalar e a influência espacial das cores. |
 | `atlas-engine.ts` | Gera/suaviza curvas de nível, prepara fitas de espessura variável, enquadramento, cores e cache de geometria. |
