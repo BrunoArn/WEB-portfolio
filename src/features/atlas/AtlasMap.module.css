@@ -733,12 +733,13 @@
   .selectedCopy { transition: none; }
 }
 
-/* Let the desktop terrain continue behind the fixed navigation.
-   Keep the intro below the controls; art-directed world coordinates stay unchanged. */
+/* Let the desktop terrain continue behind navigation and Footer.
+   Shell controls stay above the map; art-directed world coordinates stay unchanged. */
 @media (min-width: 48rem) {
   .root {
     margin-top: calc(0px - var(--shell-header-offset));
-    height: var(--atlas-available-height, calc(100dvh - var(--shell-footer-reserve)));
+    margin-bottom: calc(0px - var(--shell-footer-reserve));
+    height: var(--atlas-available-height, 100dvh);
   }
   .intro {
     top: calc(var(--shell-header-offset) + 7%);
@@ -748,5 +749,12 @@
 @media (min-width: 48rem) and (max-height: 700px) {
   .intro {
     top: calc(var(--shell-header-offset) + var(--space-8));
+  }
+}
+
+/* In short landscape windows, place the title beside the navigation instead of near the first marker. */
+@media (min-width: 48rem) and (max-height: 450px) {
+  .intro {
+    top: var(--space-16);
   }
 }

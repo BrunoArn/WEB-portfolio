@@ -41,7 +41,7 @@ O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.
 
 Na Home, a navegação fica a 40 px das laterais da janela, sem o limite de 1280 px. Nas páginas internas, volta ao alinhamento do Container de conteúdo. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
 
-A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa o espaço reservado do shell e mede a altura da janela menos a reserva do Footer. O título conserva um deslocamento abaixo da navegação, inclusive em paisagem baixa. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
+A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa os espaços do shell e ocupa a altura inteira da janela, permitindo que o relevo passe também sob o Footer. O título fica abaixo da navegação em alturas usuais; em paisagem de até 450 px de altura, ocupa o espaço livre à esquerda dos links, preservando os 44 px aprovados e evitando o primeiro marcador. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
 
 Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
 
@@ -52,6 +52,14 @@ O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo pr
 O ciclo existente de foco inclui agora os links de idioma no cabeçalho e os links do painel. A troca de idioma usa o mesmo fechamento da navegação interna, liberando o bloqueio de scroll e o conteúdo inerte. Escape, retorno de foco e fechamento ao atingir 48rem foram preservados. O painel permite rolagem própria em janelas baixas e respeita movimento reduzido e a área segura inferior.
 
 Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, Projetos, Sobre e detalhe em PT/EN, com larguras de 320, 390, 760 e 767 px e uma janela de 390×320. Foram conferidos estados aberto/fechado, tipografia, foco nos dois sentidos, Escape, retorno do scroll, navegação, idioma e breakpoint 767→768 px. Mobile foi simulado no navegador.
+
+### Footer minimalista
+
+O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: a 40 px das bordas na Home e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent neutro.
+
+O token --shell-footer-reserve define a altura mínima do Footer e a compensação de fluxo do Atlas: 56 px no desktop e 96 px abaixo de 48rem. O breakpoint acompanha exatamente o layout. Na Home desktop, o mapa ocupa a viewport inteira e compensa a altura do Footer com margem inferior negativa; o rodapé transparente fica acima do relevo, sem posição fixa ou scroll adicional. Nas páginas internas e no mobile, permanece no fluxo após o conteúdo. Uma sombra discreta protege a leitura dos textos sobre as curvas.
+
+Validação do Footer: 48 cenários PT/EN de layout, foco e hover; 16 cenários de integração com o Atlas sem colisões entre controles do Footer e marcadores; animação medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Build, TypeScript e lint aprovados. Mobile foi simulado no navegador.
 
 ### Caminho dos dados e responsabilidades
 

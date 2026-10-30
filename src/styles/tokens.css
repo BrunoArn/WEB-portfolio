@@ -33,9 +33,9 @@
     --layout-margin-desktop: 40px;
     --layout-margin-mobile: 20px;
 
-    /* Shared shell reservations; keep the current header/footer footprint. */
+    /* Shared shell reservations, consumed by the layout, Footer and Atlas. */
     --shell-header-offset: calc(var(--space-40) + var(--space-20) + 1px);
-    --shell-footer-reserve: 68px;
+    --shell-footer-reserve: 56px;
 
     /* Semantic spacing */
     --section-spacing-desktop: var(--space-80);
@@ -91,9 +91,9 @@
     --line-height-label: 1.4;
 }
 /* Matches the shell's md breakpoint, independently of the Atlas's 760px map breakpoint. */
-@media (max-width: 767px) {
+@media (width < 48rem) {
     :root {
-        --shell-footer-reserve: 104px;
+        --shell-footer-reserve: 96px;
     }
 }
 
