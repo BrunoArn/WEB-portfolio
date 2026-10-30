@@ -8,12 +8,12 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 
 | Quero alterar… | Onde começar |
 | --- | --- |
-| Fonte do site | `src/styles/globals.css`; carregamento no layout de idioma |
+| Fontes do site | Famílias semânticas em `src/styles/tokens.css`, mapeamento em `globals.css`; carregamento no layout de idioma |
 | Cores/tamanhos compartilhados da interface | `src/styles/tokens.css` |
 | Textos PT/EN, acessibilidade e mensagens | Bloco `atlas` dos dicionários em `src/i18n/dictionaries/` |
 | Projetos, imagens, categorias, posições e massas auxiliares | Sanity; `atlas-content.ts` adapta esses dados |
 | Estrutura dos marcadores, título e card | `AtlasMap.tsx` |
-| Aparência e adaptação da interface do mapa | `AtlasMap.module.css` |
+| Aparência e adaptação da interface do mapa | `AtlasMap.module.css`; tokens `--atlas-*` locais e exceções responsivas junto aos seletores |
 | Inicialização, recuperação estática e controles locais | `useAtlasScene.ts` |
 | Enquadramento e dimensões do mundo | `atlas-layout.ts` e `atlas-composition.ts` |
 | Formação do relevo / territórios | `atlas-field.ts`; `atlas-engine.ts` extrai e prepara as curvas |
@@ -23,6 +23,13 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 | Entrada da página | `atlas-entrance.ts` coordena; `atlas-growth.ts` calcula o avanço |
 | Passagem do card para o detalhe | `components/projects/ProjectCoverTransition.tsx`, navegação em `useAtlasScene.ts`, estilos de snapshots em `styles/globals.css` |
 | Zoom, transformação da miniatura e fechamento | `atlas-interaction.ts` |
+
+### Tokens e escopo dos estilos
+
+- styles/tokens.css concentra a escala compartilhada, famílias semânticas e reservas de cabeçalho/rodapé do shell. As famílias são resolvidas no body, onde o layout instala as variáveis do next/font.
+- styles/globals.css aplica os padrões e expõe as famílias ao Tailwind. O layout carrega as fontes e consome o deslocamento compartilhado do cabeçalho.
+- AtlasMap.module.css mantém os tokens tipográficos exclusivos do Atlas no escopo local, com exceções responsivas nos próprios seletores. Cores cartográficas, geometria, câmera e medidas da composição continuam locais.
+- Esta organização preserva os valores atuais. A escala e a fonte aprovadas para DS2.1-B ainda não foram aplicadas.
 
 ### Caminho dos dados e responsabilidades
 

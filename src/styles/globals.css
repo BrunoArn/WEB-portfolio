@@ -4,7 +4,9 @@
 
 @theme inline {
   /* Fonts */
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-family-body);
+  --font-heading: var(--font-family-heading);
+  --font-interface: var(--font-family-interface);
   --font-mono: var(--font-geist-mono);
 
   /* Colors */
@@ -25,7 +27,7 @@ body {
   margin: 0;
   background: var(--color-background);
   color: var(--color-text-body);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-family-body);
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-body);

@@ -32,6 +32,10 @@
     --layout-margin-desktop: 40px;
     --layout-margin-mobile: 20px;
 
+    /* Shared shell reservations; keep the current header/footer footprint. */
+    --shell-header-offset: calc(var(--space-40) + var(--space-20) + 1px);
+    --shell-footer-reserve: 68px;
+
     /* Semantic spacing */
     --section-spacing-desktop: var(--space-80);
     --section-spacing-mobile: var(--space-56);
@@ -83,4 +87,18 @@
     --line-height-card: 1.3;
     --line-height-body: 1.6;
     --line-height-label: 1.4;
+}
+/* Matches the shell's md breakpoint, independently of the Atlas's 760px map breakpoint. */
+@media (max-width: 767px) {
+    :root {
+        --shell-footer-reserve: 104px;
+    }
+}
+
+/* next/font variables are attached to body by the locale layout.
+   Resolve family tokens here, where those variables are available. */
+body {
+    --font-family-body: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+    --font-family-heading: var(--font-family-body);
+    --font-family-interface: var(--font-family-body);
 }

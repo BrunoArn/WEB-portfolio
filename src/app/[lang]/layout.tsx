@@ -70,7 +70,7 @@ export default async function RootLayout({
             The mobile menu button inherits body typography through globals.css. */}
         <div
           data-app-shell-content
-          className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-20)+1px)]"
+          className="flex min-h-dvh flex-col pt-(--shell-header-offset)"
         >
           <div className="flex-1">
             {children}
