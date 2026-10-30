@@ -22,7 +22,7 @@ export function RelatedProjects({
 
     return (
         <section>
-            <h2 className="text-(length:--font-size-section-mobile) font-semibold leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
+            <h2 className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
                 {title}
             </h2>
 
@@ -66,7 +66,7 @@ export function RelatedProjects({
                                 {project.categories[0]?.name}
                             </p>
 
-                            <h3 className="mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="font-heading mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {project.title}
                             </h3>
 

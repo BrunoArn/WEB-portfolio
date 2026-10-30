@@ -21,7 +21,7 @@ export function AboutEducation({
         >
             <h2
                 id="about-education-title"
-                className="text-(length:--font-size-section-mobile) font-semibold leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
+                className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
             >
                 {title}
             </h2>
@@ -33,7 +33,7 @@ export function AboutEducation({
                         className="border-t border-app-border py-(--space-24)"
                     >
                         <div className="flex flex-col gap-(--space-8) md:flex-row md:items-baseline md:justify-between md:gap-(--space-24)">
-                            <h3 className="min-w-0 wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="font-heading min-w-0 wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {entry.degree}
                             </h3>
 

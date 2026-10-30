@@ -61,17 +61,17 @@
     --motion-project-cover: 520ms;
 
     /* Typography — font sizes */
-    --font-size-hero-desktop: 56px;
-    --font-size-hero-mobile: 36px;
+    --font-size-hero-desktop: 64px;
+    --font-size-hero-mobile: 44px;
 
-    --font-size-page-desktop: 42px;
-    --font-size-page-mobile: 32px;
+    --font-size-page-desktop: 54px;
+    --font-size-page-mobile: 40px;
 
-    --font-size-section-desktop: 28px;
-    --font-size-section-mobile: 22px;
+    --font-size-section-desktop: 36px;
+    --font-size-section-mobile: 28px;
 
-    --font-size-card-desktop: 20px;
-    --font-size-card-mobile: 18px;
+    --font-size-card-desktop: 24px;
+    --font-size-card-mobile: 22px;
 
     --font-size-body: 16px;
     --font-size-label: 12px;
@@ -99,6 +99,6 @@
    Resolve family tokens here, where those variables are available. */
 body {
     --font-family-body: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-    --font-family-heading: var(--font-family-body);
+    --font-family-heading: var(--font-space-grotesk), var(--font-family-body);
     --font-family-interface: var(--font-family-body);
 }

@@ -29,7 +29,9 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 - styles/tokens.css concentra a escala compartilhada, famílias semânticas e reservas de cabeçalho/rodapé do shell. As famílias são resolvidas no body, onde o layout instala as variáveis do next/font.
 - styles/globals.css aplica os padrões e expõe as famílias ao Tailwind. O layout carrega as fontes e consome o deslocamento compartilhado do cabeçalho.
 - AtlasMap.module.css mantém os tokens tipográficos exclusivos do Atlas no escopo local, com exceções responsivas nos próprios seletores. Cores cartográficas, geometria, câmera e medidas da composição continuam locais.
-- Esta organização preserva os valores atuais. A escala e a fonte aprovadas para DS2.1-B ainda não foram aplicadas.
+- DS2.1-B aplica Space Grotesk 500 aos títulos e marcadores, com Geist nos textos, metadados e controles. Tamanhos desktop/mobile: hero 64/44, página 54/40, seção 36/28, card 24/22 e marcador 14/12 px. Em paisagem com altura até 700 px, o Atlas usa o hero mobile de 44 px e marcadores de 12 px para preservar a área do mapa.
+
+Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados; 34 cenários de páginas PT/EN e nove tamanhos de viewport do Atlas, 108 aberturas/fechamentos com movimento reduzido e 24 navegações animadas dos seis cards para os detalhes em desktop/mobile. Fontes carregadas, tamanhos, pesos, foco, limites dos cards e ausência de scroll horizontal foram conferidos. Em até 380 px, a entrelinha e o espaço superior dos metadados foram compactados para evitar colisões, sem mover as âncoras ou reduzir a fonte. Capturas desktop/mobile foram inspecionadas; mobile foi simulado no navegador.
 
 ### Caminho dos dados e responsabilidades
 

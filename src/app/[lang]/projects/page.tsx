@@ -50,7 +50,7 @@ export default async function ProjectsPage({
                     <header>
                         <div className="grid gap-(--space-24) lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-(--space-40)">
                             <div>
-                                <h1 className="text-(length:--font-size-page-mobile) font-semibold leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
+                                <h1 className="font-heading text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
                                     {dictionary.projects.title}
                                 </h1>
 

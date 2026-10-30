@@ -11,7 +11,7 @@ export function ProjectAbout({
 }: ProjectAboutProps) {
     return (
         <section>
-            <h2 className="text-(length:--font-size-section-mobile) font-semibold leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
+            <h2 className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
                 {title}
             </h2>
 

@@ -41,7 +41,7 @@ export function ProjectsGrid({
                             {project.categories[0]?.name}
                         </p>
 
-                        <h2 className="mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                        <h2 className="font-heading mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                             {project.title}
                         </h2>
 
