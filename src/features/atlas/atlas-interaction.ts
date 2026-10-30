@@ -11,13 +11,13 @@ type Elements = {
     morph: HTMLElement;
 };
 /** One opening timeline for the camera, thumbnail and card; scoped to this map. */
-export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void) {
+export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void, onNavigateProject: (href: string) => void) {
     const { root, viewport, world, dialog, panel, media, morph } = elements;
     const cardFrame = panel.parentElement!;
     const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const layout = matchMedia(atlasMobileQuery);
-    let epoch = 0, disposed = false;
+    let epoch = 0, disposed = false, leaving = false;
     let animations: Animation[] = [];
     let selection: {
         item: HTMLElement;
@@ -48,7 +48,12 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         Object.assign(thumb.style, rectangle(to), { borderRadius: finalRadius });
         return animate(thumb, [{ ...rectangle(from), borderRadius: typeof radius === "number" ? radius + "px" : radius }, { ...rectangle(to), borderRadius: finalRadius }]);
     }
-    function restore(focus = true) {
+    function releaseScrollLock() {
+        if (!selection) return;
+        document.body.style.overflow = selection.overflow;
+        document.body.style.paddingRight = selection.padding;
+    }
+    function restore(focus = true, restoreScroll = true) {
         const state = selection;
         if (!state)
             return;
@@ -60,13 +65,12 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         state.trigger.setAttribute("aria-expanded", "false");
         root.dataset.selection = "idle";
         dialog.close();
-        document.body.style.overflow = state.overflow;
-        document.body.style.paddingRight = state.padding;
+        releaseScrollLock();
         cardFrame.style.height = state.frameHeight;
         selection = undefined;
         onSelectionChange(null);
         terrain.extend();
-        window.scrollTo({ top: state.scroll, behavior: "instant" });
+        if (restoreScroll) window.scrollTo({ top: state.scroll, behavior: "instant" });
         if (focus && state.trigger.isConnected)
             state.trigger.focus({ preventScroll: true });
     }
@@ -90,12 +94,10 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         dialog.querySelector("[data-atlas-description]")!.textContent = project.description ?? missingDescription;
         const detail = dialog.querySelector<HTMLAnchorElement>("[data-atlas-detail]")!;
         detail.hidden = !project.href;
-        dialog.querySelectorAll<HTMLAnchorElement>("[data-atlas-project-link]").forEach(link => {
-            if (project.href)
-                link.setAttribute("href", project.href);
-            else
-                link.removeAttribute("href");
-        });
+        // React supplies real hrefs. Missing destinations remain non-links in the DOM.
+        if (!project.href) {
+            dialog.querySelectorAll<HTMLAnchorElement>("[data-atlas-project-link]").forEach(link => link.removeAttribute("href"));
+        }
         media.setAttribute("aria-label", project.title);
         dialog.querySelector<HTMLElement>("[data-atlas-media-note]")!.hidden = thumb.dataset.atlasMissing !== "true";
         dialog.style.setProperty("--atlas-tone", project.color);
@@ -217,7 +219,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     }
     async function close() {
         const state = selection;
-        if (!state || root.dataset.selection === "closing")
+        if (!state || leaving || root.dataset.selection === "closing")
             return;
         const id = ++epoch, from = state.thumb.getBoundingClientRect();
         const thumbnailScale = from.width / state.thumb.offsetWidth;
@@ -263,9 +265,23 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
             restore();
     }
     function onClick(event: MouseEvent) {
-        const trigger = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-atlas-trigger]");
-        if (trigger && root.contains(trigger))
-            void open(trigger);
+        const target = event.target as HTMLElement;
+        const link = target.closest<HTMLAnchorElement>("[data-atlas-project-link]");
+        if (link && dialog.contains(link)) {
+            const href = projects.find(project => project.id === selection?.item.dataset.atlasProject)?.href;
+            if (!href) { event.preventDefault(); return; }
+            // The thumbnail's DOM parent changes, but its React event ancestry does
+            // not. Handle all card links here so image, title and CTA use the same
+            // client navigation. Modified clicks keep the browser's native behavior.
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+                event.shiftKey || event.altKey || link.hasAttribute("download") ||
+                (link.target && link.target !== "_self")) return;
+            event.preventDefault();
+            onNavigateProject(href);
+            return;
+        }
+        const trigger = target.closest<HTMLButtonElement>("[data-atlas-trigger]");
+        if (trigger && root.contains(trigger)) void open(trigger);
     }
     function dismiss(event: MouseEvent) {
         if (!panel.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-atlas-close]"))
@@ -288,7 +304,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         void close();
     }
     function resize() {
-        if (selection) {
+        if (selection && !leaving) {
             ++epoch;
             restore();
         }
@@ -300,16 +316,25 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
     dialog.addEventListener("keydown", trapFocus);
     window.addEventListener("resize", resize);
     reduced.addEventListener("change", resize);
-    return () => {
-        disposed = true;
-        ++epoch;
-        restore(false);
-        stop();
-        root.removeEventListener("click", onClick);
-        dialog.removeEventListener("click", dismiss);
-        dialog.removeEventListener("cancel", cancel);
-        dialog.removeEventListener("keydown", trapFocus);
-        window.removeEventListener("resize", resize);
-        reduced.removeEventListener("change", resize);
+    return {
+        releaseForNavigation() {
+            leaving = true;
+            // The old visual is already captured; do not leave the new page inert.
+            if (dialog.open) dialog.close();
+            releaseScrollLock();
+        },
+        dispose() {
+            disposed = true;
+            ++epoch;
+            // Route navigation owns the destination scroll position.
+            restore(false, false);
+            stop();
+            root.removeEventListener("click", onClick);
+            dialog.removeEventListener("click", dismiss);
+            dialog.removeEventListener("cancel", cancel);
+            dialog.removeEventListener("keydown", trapFocus);
+            window.removeEventListener("resize", resize);
+            reduced.removeEventListener("change", resize);
+        },
     };
 }

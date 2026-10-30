@@ -713,3 +713,17 @@
 .root[data-entry="running"] :is(.label, .territory) {
   translate: 0 var(--atlas-entry-y,7px);
 }
+
+/* Keep the current card readable while its destination image is prepared. */
+.root[data-navigation="pending"] .selectedCopy {
+  opacity: .65;
+}
+.selectedCopy {
+  transition: opacity var(--motion-fast);
+}
+.root[data-navigation="pending"] :is(.selectedMedia, .titleLink, .detailLink) {
+  cursor: progress;
+}
+@media (prefers-reduced-motion: reduce) {
+  .selectedCopy { transition: none; }
+}

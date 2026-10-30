@@ -21,6 +21,7 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 | Força por velocidade do mouse | `atlas-pointer-impulse.ts` |
 | Movimento desenhado pela GPU | `atlas-webgl.ts`, em `vertexSource` (GLSL) |
 | Entrada da página | `atlas-entrance.ts` coordena; `atlas-growth.ts` calcula o avanço |
+| Passagem do card para o detalhe | `components/projects/ProjectCoverTransition.tsx`, navegação em `useAtlasScene.ts`, estilos de snapshots em `styles/globals.css` |
 | Zoom, transformação da miniatura e fechamento | `atlas-interaction.ts` |
 
 ### Caminho dos dados e responsabilidades
@@ -28,7 +29,7 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 1. As páginas de idioma carregam dicionário e dados publicados no servidor.
 2. `adaptAtlasContent` produz os projetos e territórios que podem participar da composição.
 3. `AtlasMap` monta a interface e entrega suas referências HTML a `useAtlasScene`.
-4. O hook monta terreno, entrada e câmera, acompanha ajustes e desmonta os três juntos.
+4. O hook monta terreno, entrada e câmera, acompanha ajustes e desmonta os três juntos. Também coordena a preparação da capa e a navegação para o detalhe.
 5. O terreno prepara geometria/textura; o movimento atualiza o estado das curvas; WebGL desenha. Mover o mouse não refaz o campo inteiro.
 
 ### Limites que devem permanecer claros
@@ -155,6 +156,18 @@ O enquadramento final fica ancorado durante a abertura, evitando que a mudança 
 Validação: 30 ciclos nos seis projetos em 1440, 384, 760, 761 e 844 px, incluindo hover antes de selecionar em desktop; 210 quadros amostrados conferiram identidade do elemento e permanência dentro da mídia. A diferença máxima da caixa inicial foi inferior a 0,003 px; não houve alteração da caixa ao encerrar a abertura. Quinze fechamentos interrompidos preservaram a caixa corrente, com diferença inferior a 0,016 px. O placeholder também foi conferido. Home/prévia PT/EN e os caminhos de recuperação passaram nas verificações de regressão. Capturas intermediárias desktop/mobile foram inspecionadas; a avaliação física e a percepção final do movimento dependem da revisão do usuário.
 
 Hover e foco em dispositivo com ponteiro fino ampliam a miniatura em 20%, sem mover o título. A miniatura pede resolução pequena, incluindo a ampliação de hover; a imagem maior só é montada na seleção. A pequena permanece visível até a maior carregar/decodificar e aparecer em 120 ms. Falha da maior conserva a pequena; imagem ausente/falha da miniatura conserva o placeholder. Fechar desmonta a camada maior, que pode aproveitar cache HTTP em nova abertura.
+
+## Do card para a página do projeto
+
+As capas do Atlas e do hero compartilham uma identidade por slug em components/projects/ProjectCoverTransition.tsx. O componente usa ViewTransition do React disponibilizado pelo App Router instalado, sem biblioteca adicional ou flag experimental. No desktop, o destino inclui a imagem, o degradê e os textos já sobrepostos no hero; no mobile, os textos abaixo da capa acompanham a entrada da página. A transformação dura --motion-project-cover (520 ms em styles/tokens.css); a saída do mapa/card dura 160 ms e a entrada do conteúdo usa 360 ms com 100 ms de atraso. Os pseudo-elementos de transição pertencem ao documento, por isso seus estilos ficam em styles/globals.css.
+
+Imagem, título e ação usam Next Link com hrefs localizados derivados do projeto selecionado e pré-carregamento da rota. A miniatura mantém sua árvore React original mesmo sendo movida para dentro do card. Por isso, o controlador recebe o clique real no DOM e entrega a navegação ao hook, que usa startTransition/router.push. Isso evita recarga completa especificamente no clique da imagem. Cliques modificados, nova aba e downloads conservam o comportamento do navegador; dados sem destino não disparam navegação.
+
+Ao clicar normalmente, prepareProjectCover escolhe e decodifica a imagem com getImageProps e os mesmos sizes do hero. Só essa intenção explícita prepara a capa nesse tamanho. O card permanece visível, com aria-busy e indicação discreta de espera. A espera é limitada a 1,8 s. Falha/tempo excedido desativa o par de imagem nesta navegação e mantém uma entrada simples; movimento reduzido ou ausência da API pula a espera e a transformação. Fechar o card durante a preparação cancela a navegação ainda não enviada. Cliques repetidos não iniciam preparações simultâneas.
+
+A limpeza de layout libera o modal e a trava do body antes de medir/focar o destino. A limpeza passiva continua liberando os demais recursos da cena. Restaurar o scroll da Home na desmontagem sobrescreveria o enquadramento do detalhe; apenas o fechamento normal devolve a rolagem salva. Essa ordem também evita um deslocamento ao reaparecer a barra de rolagem no desktop. Não são mantidas cópias manuais da imagem entre rotas nem criada outra câmera de navegação.
+
+Verificação desta rodada: build de produção, TypeScript e lint; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, cobrindo os três links e teclado. Foram conferidos navegação no mesmo documento, capa pronta na captura, ausência de modal bloqueando o destino e estabilidade do hero até o fim, também com scrollbars visíveis. Casos adicionais cobriram voltar ao mapa, nova aba, ausência da API, movimento reduzido e carregamento lento de rota/imagem. Testes de falha/timeout da imagem e cancelamento durante a preparação passaram. A navegação de volta mantém o funcionamento normal do histórico; a transformação compartilhada é priorizada no percurso card → detalhe. Capturas intermediárias foram inspecionadas; não houve teste físico no S23 ou revisão em outros navegadores nesta rodada.
 
 ## Diagnóstico local
 

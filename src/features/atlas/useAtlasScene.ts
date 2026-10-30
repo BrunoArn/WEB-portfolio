@@ -1,5 +1,8 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { startTransition, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
+import { prepareProjectCover } from "@/components/projects/ProjectCoverTransition";
+import { useRouter } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { atlasTerrainReference, type AtlasTerrainSettings, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import type { AtlasContent } from "./atlas-types";
@@ -26,11 +29,15 @@ function getServerLayout() {
 }
 /** Connect React to the scene; no markup, translations or terrain formulas live here. */
 export function useAtlasScene({ locale, content, missingDescription }: AtlasSceneOptions) {
+    const router = useRouter();
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+    const [shareCover, setShareCover] = useState(true);
+    const [navigating, setNavigating] = useState(false);
     const [webglFailed, setWebglFailed] = useState(false);
     const [motionSettings, setMotionSettings] = useState({ ...atlasMotionReference });
     const latestMotion = useRef(motionSettings);
     const entranceFinished = useRef(false);
+    const releaseSceneNavigation = useRef<(() => void) | null>(null);
     const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
     // Overrides belong to this preview session; published settings stay untouched.
     const [override, setOverride] = useState<{
@@ -52,13 +59,42 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     const viewport = useRef<HTMLDivElement>(null);
     const intro = useRef<HTMLDivElement>(null);
     const mobile = useSyncExternalStore(subscribeToLayout, getLayout, getServerLayout);
+    // View transitions capture the destination before passive cleanup runs. Release
+    // the outgoing modal and its body lock during layout cleanup, before the new
+    // page is measured or focused. Passive cleanup still releases scene resources.
+    useLayoutEffect(() => () => { releaseSceneNavigation.current?.(); }, []);
     // Own the lifetime of the terrain, entrance and camera together.
     useEffect(() => {
         if (!canvas.current || !viewport.current || !intro.current)
             return;
         if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current)
             return;
-        let cancelled = false;
+        let cancelled = false, navigationPending = false, navigationEpoch = 0;
+        const selectProject = (id: string | null) => {
+            navigationEpoch++;
+            navigationPending = false;
+            setNavigating(false);
+            setShareCover(true);
+            setSelectedProjectId(id);
+        };
+        const navigateProject = async (href: string) => {
+            if (navigationPending || cancelled) return;
+            navigationPending = true;
+            const token = ++navigationEpoch;
+            setNavigating(true);
+            const project = content.projects.find(project => project.href === href);
+            const canAnimate = typeof document.startViewTransition === "function" &&
+                !matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const ready = !canAnimate || !project?.image || await prepareProjectCover(project.image.src);
+            if (cancelled || token !== navigationEpoch || root.current?.dataset.selection !== "selected") {
+                navigationPending = false;
+                if (!cancelled) setNavigating(false);
+                return;
+            }
+            // Snapshot the normal page fade when the destination cover is unavailable.
+            if (!ready) flushSync(() => setShareCover(false));
+            startTransition(() => router.push(href));
+        };
         const terrain = mountAtlasTerrain(
             canvas.current,
             viewport.current,
@@ -83,7 +119,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         terrainController.current = terrain;
         terrain.setMotion(latestMotion.current);
         terrain.setSettings(latestTerrain.current);
-        const disposeInteraction = mountAtlasInteraction(
+        const interaction = mountAtlasInteraction(
             {
                 root: root.current,
                 viewport: viewport.current,
@@ -96,16 +132,19 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             terrain,
             content.projects,
             missingDescription,
-            setSelectedProjectId,
+            selectProject,
+            href => { void navigateProject(href); },
         );
+        releaseSceneNavigation.current = interaction.releaseForNavigation;
         return () => {
             cancelled = true;
             entrance?.dispose();
-            disposeInteraction();
+            interaction.dispose();
+            if (releaseSceneNavigation.current === interaction.releaseForNavigation) releaseSceneNavigation.current = null;
             terrain.dispose();
             terrainController.current = null;
         };
-    }, [locale, content.projects, content.territories, content.terrain, missingDescription, webglFailed]);
+    }, [locale, content.projects, content.territories, content.terrain, missingDescription, webglFailed, router]);
     useEffect(() => {
         latestTerrain.current = settings;
         terrainController.current?.setSettings(settings);
@@ -136,7 +175,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     }
     return {
         refs: { root, canvas, viewport, intro, world, dialog, panel, media, morph },
-        selectedProjectId, webglFailed, mobile,
+        selectedProjectId, webglFailed, mobile, shareCover, navigating,
         motionSettings, setMotionSettings,
         settings, updateControls, resetControls,
     };

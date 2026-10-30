@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ProjectCoverTransition } from "@/components/projects/ProjectCoverTransition";
 import { useState } from "react";
 import type { AtlasProject } from "./atlas-types";
 import styles from "./AtlasMap.module.css";
@@ -16,20 +17,22 @@ function DetailImage({ src }: { src: string }) {
     onLoad={() => setReady(true)} onError={() => setReady(false)} />;
 }
 
-export function AtlasThumbnail({ image, unavailable, selected }: {
-  image: AtlasProject["image"]; unavailable: string; selected: boolean;
+export function AtlasThumbnail({ image, unavailable, selected, slug, shareCover = true }: {
+  image: AtlasProject["image"]; unavailable: string; selected: boolean; slug: string; shareCover?: boolean;
 }) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const available = image && failedSource !== image.src;
   // This wrapper is moved into the card and back by the interaction controller.
   // Keep it and the small image mounted throughout the complete transition.
-  return <span className={styles.thumb} role="img" aria-label={available ? image.alt : unavailable} data-atlas-missing={!available}>
-    {available ? <>
-      <Image src={image.src} alt="" fill sizes={thumbnailSizes} className={styles.thumbImage}
-        onError={() => setFailedSource(image.src)} />
-      {selected && <DetailImage key={image.src} src={image.src} />}
-    </> : <svg className={styles.thumbIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
-      <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="9" r="1.5" /><path d="m3 17 6-5 4 3 3-3 5 5" />
-    </svg>}
-  </span>;
+  return <ProjectCoverTransition slug={slug} enabled={Boolean(available && selected && shareCover)}>
+    <span className={styles.thumb} role="img" aria-label={available ? image.alt : unavailable} data-atlas-missing={!available}>
+      {available ? <>
+        <Image src={image.src} alt="" fill sizes={thumbnailSizes} className={styles.thumbImage}
+          onError={() => setFailedSource(image.src)} />
+        {selected && <DetailImage key={image.src} src={image.src} />}
+      </> : <svg className={styles.thumbIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="9" r="1.5" /><path d="m3 17 6-5 4 3 3-3 5 5" />
+      </svg>}
+    </span>
+  </ProjectCoverTransition>;
 }
