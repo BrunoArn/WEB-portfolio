@@ -208,6 +208,10 @@ A limpeza de layout libera o modal e a trava do body antes de medir/focar o dest
 
 Verificação desta rodada: build de produção, TypeScript e lint; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, cobrindo os três links e teclado. Foram conferidos navegação no mesmo documento, capa pronta na captura, ausência de modal bloqueando o destino e estabilidade do hero até o fim, também com scrollbars visíveis. Casos adicionais cobriram voltar ao mapa, nova aba, ausência da API, movimento reduzido e carregamento lento de rota/imagem. Testes de falha/timeout da imagem e cancelamento durante a preparação passaram. A navegação de volta mantém o funcionamento normal do histórico; a transformação compartilhada é priorizada no percurso card → detalhe. Capturas intermediárias foram inspecionadas; não houve teste físico no S23 ou revisão em outros navegadores nesta rodada.
 
+A foto do card aceita clique e toque já durante a abertura: apenas a mídia recupera os eventos de ponteiro enquanto o restante do card mantém a proteção existente. A navegação aceita os estados opening e selected, sem exigir o término dos 400 ms. O preparo antecipado da capa, o bloqueio de cliques repetidos e o cancelamento por fechamento continuam ativos.
+
+Verificação da navegação antecipada: lint, TypeScript e build aprovados; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, incluindo teclado. Foram exercitados cliques com a abertura mantida em quadros intermediários e um clique real com a foto em movimento; o cancelamento por Escape durante o preparo de uma capa lenta também passou, sem deixar modal ou scroll bloqueados.
+
 ### Preparo antecipado da navegação
 
 Ao selecionar um projeto, useAtlasScene chama router.prefetch e prepara a capa responsiva do detalhe. O clique reutiliza a mesma promessa; não começa outro download enquanto ela estiver pendente. Uma mudança de largura/DPR exige novo preparo; falhas e timeout permitem nova tentativa. A navegação mantém o limite de espera de 1,8 s e o fallback visual existente. Somente o projeto selecionado é preparado. A pré-geração e a revalidação das páginas estão descritas no README da raiz.

@@ -520,6 +520,10 @@
 .root[data-selection="opening"] .card {
   pointer-events: none;
 }
+/* The moving photo remains a usable link before the card finishes opening. */
+.root[data-selection="opening"] .selectedMedia {
+  pointer-events: auto;
+}
 @media (prefers-reduced-motion: reduce) {
   .project, .territory {
     transition: none;
