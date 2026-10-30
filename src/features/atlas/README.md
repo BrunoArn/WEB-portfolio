@@ -45,6 +45,14 @@ A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: su
 
 Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
 
+### Navbar mobile
+
+O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo próprio. O painel aberto ocupa a viewport com fundo opaco e links em Space Grotesk 500 alinhados à direita, indicador ativo neutro e GitHub/LinkedIn na base. O botão alterna para FECHAR × / CLOSE ×. A reserva do cabeçalho permanece em 61 px.
+
+O ciclo existente de foco inclui agora os links de idioma no cabeçalho e os links do painel. A troca de idioma usa o mesmo fechamento da navegação interna, liberando o bloqueio de scroll e o conteúdo inerte. Escape, retorno de foco e fechamento ao atingir 48rem foram preservados. O painel permite rolagem própria em janelas baixas e respeita movimento reduzido e a área segura inferior.
+
+Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, Projetos, Sobre e detalhe em PT/EN, com larguras de 320, 390, 760 e 767 px e uma janela de 390×320. Foram conferidos estados aberto/fechado, tipografia, foco nos dois sentidos, Escape, retorno do scroll, navegação, idioma e breakpoint 767→768 px. Mobile foi simulado no navegador.
+
 ### Caminho dos dados e responsabilidades
 
 1. As páginas de idioma carregam dicionário e dados publicados no servidor.

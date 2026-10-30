@@ -1,5 +1,7 @@
 const pt = {
   navigation: {
+    menu: "MENU",
+    close: "FECHAR",
     home: "Início",
     projects: "Projetos",
     about: "Sobre",

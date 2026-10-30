@@ -62,7 +62,6 @@ export default async function RootLayout({
         />
 
         <NavbarMobile
-          name="Bruno Arnaud"
           openMenuLabel={dictionary.navigation.openMenu}
           closeMenuLabel={dictionary.navigation.closeMenu}
           labels={dictionary.navigation}
@@ -73,8 +72,7 @@ export default async function RootLayout({
           currentLocale={lang}
         />
 
-        {/* Header padding + text line box + bottom border; desktop also has link padding.
-            The mobile menu button inherits body typography through globals.css. */}
+        {/* Reserve the fixed header footprint; the desktop Atlas compensates this space locally. */}
         <div
           data-app-shell-content
           className="flex min-h-dvh flex-col pt-(--shell-header-offset)"

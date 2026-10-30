@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +10,7 @@ type Locale = (typeof locales)[number];
 
 type LocaleSwitcherProps = {
   currentLocale: Locale;
+  onNavigate?: (event: MouseEvent<HTMLAnchorElement>, destination: string) => void;
 };
 
 function getLocalizedPath(pathname: string, locale: Locale) {
@@ -25,6 +27,7 @@ function getLocalizedPath(pathname: string, locale: Locale) {
 
 export function LocaleSwitcher({
   currentLocale,
+  onNavigate,
 }: LocaleSwitcherProps) {
   const pathname = usePathname();
 
@@ -54,6 +57,7 @@ export function LocaleSwitcher({
             ) : (
               <Link
                 href={getLocalizedPath(pathname, locale)}
+                onClick={(event) => onNavigate?.(event, getLocalizedPath(pathname, locale))}
                 className="text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-text-primary"
               >
                 {locale.toUpperCase()}
