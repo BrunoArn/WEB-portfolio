@@ -56,6 +56,22 @@
   line-height: 1.05;
   letter-spacing: -1.5px;
 }
+.aboutLink {
+  color: inherit;
+  pointer-events: auto;
+  transition: color var(--motion-fast);
+}
+.aboutLink:hover {
+  color: var(--color-accent);
+}
+.aboutLink:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 6px;
+  border-radius: var(--radius-control);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aboutLink { transition: none; }
+}
 .description {
   max-width: 280px;
   margin: 0;

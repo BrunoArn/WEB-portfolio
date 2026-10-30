@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, type CSSProperties } from "react";
+import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
@@ -134,7 +135,11 @@ export function AtlasMap({
                 </div>
 
                 <div className={styles.intro} ref={intro}>
-                    <h1 className={styles.title}>{text.title}</h1>
+                    <h1 className={styles.title}>
+                        <Link href={`/${locale}/about`} className={styles.aboutLink}>
+                            {text.title}
+                        </Link>
+                    </h1>
                     <p className={styles.description}>{text.description}</p>
                 </div>
             </div>
