@@ -28,7 +28,14 @@ export function adaptCategory(
     );
   }
 
+  const color = category.atlas?.color;
+  const accentColor = category.atlas?.isTerritory === true &&
+    typeof color === "string" && /^#[\da-f]{6}$/i.test(color)
+      ? color
+      : undefined;
+
   return {
+    ...(accentColor ? { accentColor } : {}),
     name: resolveLocalizedValue(category.name, language),
     slug,
     order: category.order,

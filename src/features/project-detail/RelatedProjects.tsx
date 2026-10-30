@@ -1,6 +1,7 @@
 "use client";
 
 import type { Project } from "@/content/types/project";
+import { accentStyle } from "@/styles/accent";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -30,6 +31,7 @@ export function RelatedProjects({
                 {projects.map((project) => (
                     <Link
                         key={project.slug}
+                        style={accentStyle(project.accentColor)}
                         href={`/${locale}/projects/${project.slug}`}
                         onFocus={(event) => {
                             const card = event.currentTarget;

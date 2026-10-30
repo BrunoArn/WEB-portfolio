@@ -33,6 +33,10 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 
 Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados; 34 cenários de páginas PT/EN e nove tamanhos de viewport do Atlas, 108 aberturas/fechamentos com movimento reduzido e 24 navegações animadas dos seis cards para os detalhes em desktop/mobile. Fontes carregadas, tamanhos, pesos, foco, limites dos cards e ausência de scroll horizontal foram conferidos. Em até 380 px, a entrelinha e o espaço superior dos metadados foram compactados para evitar colisões, sem mover as âncoras ou reduzir a fonte. Capturas desktop/mobile foram inspecionadas; mobile foi simulado no navegador.
 
+### Accent por categoria
+
+O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o neutro. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais permanecem neutros.
+
 ### Caminho dos dados e responsabilidades
 
 1. As páginas de idioma carregam dicionário e dados publicados no servidor.

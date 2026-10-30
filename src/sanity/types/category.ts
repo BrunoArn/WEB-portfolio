@@ -10,4 +10,9 @@ export interface SanityCategory {
   };
 
   order: number;
+
+  atlas?: {
+    isTerritory?: boolean;
+    color?: string | null;
+  } | null;
 }
