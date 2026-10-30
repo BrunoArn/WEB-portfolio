@@ -15,7 +15,7 @@
 }
 
 .header[data-home="true"] .navigation {
-  padding-inline: var(--layout-margin-desktop);
+  padding-inline: var(--layout-home-inset);
 }
 
 @media (prefers-reduced-motion: reduce) {

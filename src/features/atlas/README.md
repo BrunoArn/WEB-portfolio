@@ -39,11 +39,13 @@ O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.
 
 ### Navbar desktop e área do Atlas
 
-Na Home, a navegação fica a 40 px das laterais da janela, sem o limite de 1280 px. Nas páginas internas, volta ao alinhamento do Container de conteúdo. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
+A Navbar desktop fica alinhada à esquerda. Na Home, compartilha com o título o token --layout-home-inset: 5% da largura, ou 12 px em paisagem de até 450 px de altura. Nas páginas internas, volta ao alinhamento esquerdo do Container de 1280 px. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
 
-A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa os espaços do shell e ocupa a altura inteira da janela, permitindo que o relevo passe também sob o Footer. O título fica abaixo da navegação em alturas usuais; em paisagem de até 450 px de altura, ocupa o espaço livre à esquerda dos links, preservando os 44 px aprovados e evitando o primeiro marcador. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
+A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa os espaços do shell e ocupa a altura inteira da janela, permitindo que o relevo passe também sob o Footer. O título permanece abaixo da navegação, inclusive em paisagem baixa. Até 450 px de altura, o rótulo do Bloomancer fica à direita da miniatura para evitar colisões; a âncora da miniatura e os 44 px do título são preservados. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
 
 Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
+
+Validação do alinhamento à esquerda: 48 cenários desktop PT/EN conferiram igualdade com o recuo do título na Home, alinhamento interno, foco e ausência de scroll horizontal. A animação foi medida nos dois sentidos, incluindo movimento reduzido. Mais 24 ciclos de cards em quatro cenários de paisagem baixa verificaram o rótulo compacto e a ausência de colisões. A Navbar mobile conservou seu alinhamento.
 
 ### Navbar mobile
 
@@ -55,7 +57,7 @@ Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, P
 
 ### Footer minimalista
 
-O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: a 40 px das bordas na Home e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent neutro.
+O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: com o mesmo recuo lateral do título e da Navbar na Home (--layout-home-inset), e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent neutro.
 
 O token --shell-footer-reserve define a altura mínima do Footer e a compensação de fluxo do Atlas: 56 px no desktop e 96 px abaixo de 48rem. O breakpoint acompanha exatamente o layout. Na Home desktop, o mapa ocupa a viewport inteira e compensa a altura do Footer com margem inferior negativa; o rodapé transparente fica acima do relevo, sem posição fixa ou scroll adicional. Nas páginas internas e no mobile, permanece no fluxo após o conteúdo. Uma sombra discreta protege a leitura dos textos sobre as curvas.
 

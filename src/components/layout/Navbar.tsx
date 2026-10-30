@@ -44,7 +44,7 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
         >
             <nav
                 data-primary-navigation="desktop"
-                className={`${styles.navigation} flex h-(--shell-header-offset) items-center justify-end gap-(--space-32) font-interface`}
+                className={`${styles.navigation} flex h-(--shell-header-offset) items-center justify-start gap-(--space-32) font-interface`}
             >
                 <ul className="flex items-center gap-(--space-24)">
                     <li>

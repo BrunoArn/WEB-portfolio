@@ -59,7 +59,7 @@
 }
 .intro {
   position: absolute;
-  left: 5%;
+  left: var(--layout-home-inset);
   top: 7%;
   pointer-events: none;
 }
@@ -752,9 +752,16 @@
   }
 }
 
-/* In short landscape windows, place the title beside the navigation instead of near the first marker. */
+/* Keep the compact title below the left-aligned navigation.
+   Only the label changes sides; the thumbnail keeps its existing map anchor. */
 @media (min-width: 48rem) and (max-height: 450px) {
   .intro {
-    top: var(--space-16);
+    left: var(--layout-home-inset);
+    top: calc(var(--shell-header-offset) + var(--space-8));
+  }
+  .project[data-atlas-placement="bloomancer"] {
+    flex-direction: row;
+    transform: translate(-12px, -50%);
+    text-align: left;
   }
 }

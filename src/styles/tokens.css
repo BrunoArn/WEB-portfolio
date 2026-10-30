@@ -32,6 +32,7 @@
     --layout-max-width: 1280px;
     --layout-margin-desktop: 40px;
     --layout-margin-mobile: 20px;
+    --layout-home-inset: 5%;
 
     /* Shared shell reservations, consumed by the layout, Footer and Atlas. */
     --shell-header-offset: calc(var(--space-40) + var(--space-20) + 1px);
@@ -94,6 +95,13 @@
 @media (width < 48rem) {
     :root {
         --shell-footer-reserve: 96px;
+    }
+}
+
+/* Share the compact Home title inset with desktop navigation. */
+@media (min-width: 48rem) and (max-height: 450px) {
+    :root {
+        --layout-home-inset: var(--space-12);
     }
 }
 
