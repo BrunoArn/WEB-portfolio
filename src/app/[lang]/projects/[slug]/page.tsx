@@ -1,9 +1,10 @@
+import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
-import { getProjectBySlug, getProjects, } from "@/sanity/repositories/projects";
+import { getProjectBySlug, getProjects, getProjectSlugs } from "@/sanity/repositories/projects";
 import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
@@ -11,6 +12,15 @@ import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
+
+// Prebuild existing projects; new published slugs can still render on demand.
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+    const slugs = await getProjectSlugs();
+    return slugs.map(slug => ({ slug }));
+}
 
 type ProjectPageProps = {
     params: Promise<{
@@ -112,63 +122,65 @@ export default async function ProjectPage({
 
 
     return (
-        <main>
-            <Container>
-                <div className="pt-(--space-24) md:pt-(--space-32)">
-                    <ProjectHero
-                        project={project}
-                        actions={dictionary.projectDetail.actions}
-                        hasPlayable={Boolean(resolvedPlayable)}
-                    />
-                </div>
-
-                <div className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
-                    <div className="grid gap-(--space-40) md:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-                        <ProjectAbout
+        <ViewTransition default="none" enter="project-page-enter">
+            <main data-project-detail>
+                <Container>
+                    <div className="pt-(--space-24) md:pt-(--space-32)">
+                        <ProjectHero
                             project={project}
-                            title={dictionary.projectDetail.about}
-                        />
-
-                        <ProjectInfo
-                            project={project}
-                            labels={dictionary.projectDetail.info}
+                            actions={dictionary.projectDetail.actions}
+                            hasPlayable={Boolean(resolvedPlayable)}
                         />
                     </div>
-                </div>
 
-                {project.media.length > 0 && (
-                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                        <ProjectMediaPreview
-                            media={project.media}
-                            labels={dictionary.projectDetail.media}
-                        />
+                    <div className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
+                        <div className="grid gap-(--space-40) md:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+                            <ProjectAbout
+                                project={project}
+                                title={dictionary.projectDetail.about}
+                            />
+
+                            <ProjectInfo
+                                project={project}
+                                labels={dictionary.projectDetail.info}
+                            />
+                        </div>
                     </div>
-                )}
+
+                    {project.media.length > 0 && (
+                        <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                            <ProjectMediaPreview
+                                media={project.media}
+                                labels={dictionary.projectDetail.media}
+                            />
+                        </div>
+                    )}
 
 
-                {resolvedPlayable && (
-                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                        <ProjectPlayable
-                            source={resolvedPlayable.source}
-                            projectTitle={project.title}
-                            width={resolvedPlayable.width}
-                            height={resolvedPlayable.height}
-                            labels={dictionary.projectDetail.playable}
-                            poster={project.cover}
-                        />
-                    </div>
-                )}
+                    {resolvedPlayable && (
+                        <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                            <ProjectPlayable
+                                source={resolvedPlayable.source}
+                                projectTitle={project.title}
+                                width={resolvedPlayable.width}
+                                height={resolvedPlayable.height}
+                                labels={dictionary.projectDetail.playable}
+                                poster={project.cover}
+                            />
+                        </div>
+                    )}
 
-                {relatedProjects.length > 0 && (
-                    <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
-                        <RelatedProjects
-                            projects={relatedProjects}
-                            title={dictionary.projectDetail.related.title}
-                            locale={lang}
-                        />
-                    </div>
-                )}
-            </Container>
-        </main>
+                    {relatedProjects.length > 0 && (
+                        <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+                            <RelatedProjects
+                                projects={relatedProjects}
+                                title={dictionary.projectDetail.related.title}
+                                locale={lang}
+                            />
+                        </div>
+                    )}
+                </Container>
+            </main>
+        </ViewTransition>
     );
 }

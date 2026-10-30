@@ -180,6 +180,12 @@ export const project = defineType({
             title: 'SEO',
             type: 'seo',
         }),
+        defineField({
+            name: 'atlas',
+            title: 'Atlas — mapa',
+            type: 'atlasProjectSettings',
+            description: 'Território principal, posições e influência usados na prévia Atlas após publicar.',
+        }),
     ],
 
     preview: {

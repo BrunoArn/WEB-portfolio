@@ -32,6 +32,12 @@ export const category = defineType({
       validation: (rule) =>
         rule.required().integer().min(0),
     }),
+    defineField({
+      name: 'atlas',
+      title: 'Atlas — território',
+      type: 'atlasCategorySettings',
+      description: 'Configuração opcional do mapa. Uma categoria só vira território quando habilitada aqui.',
+    }),
   ],
 
   preview: {

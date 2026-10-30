@@ -6,22 +6,51 @@ const en = {
     openMenu: "Open navigation menu",
     closeMenu: "Close navigation menu",
   },
-  home: {
-    hero: {
-      eyebrow: "DESIGNER / DEVELOPER · GAME DEVELOPER",
-      title: "Creating games and digital experiences.",
-      description:
-        "Game development, VR experiences and web applications, combining technical execution with design sensibility.",
-      cta: "EXPLORE PROJECTS",
+  atlas: {
+    title: "Bruno Arnaud",
+    description: "A landscape of games, interfaces and interactive experiences.",
+    projects: "Atlas projects",
+    unavailable: "Thumbnail unavailable",
+    close: "Back to map",
+    contentNote: "Description unavailable.",
+    detail: "View full project",
+    previewTitle: "Atlas — Preview",
+    fallback: "Simplified view enabled.",
+    motion: {
+      title: "Motion · experiment",
+      description: "Move between the contours or open a project. Turn off to compare. Local, unsaved adjustments.",
+      enabled: "Living landscape",
+      reduced: "Your device requests reduced motion: the landscape stays still.",
+      reset: "Reset experiment",
+      controls: {
+        breath: "Breathing",
+        pressure: "Line response",
+        returnTime: "Return time",
+        mouseRadius: "Pointer reach",
+        selectionStrength: "Selection impulse",
+      },
     },
-    featured: {
-      eyebrow: "SELECTED WORK",
-      title: "Featured Projects",
-      viewAll: "VIEW ALL",
-      selectProject: "Select project",
+    terrain: {
+      title: "Adjust terrain",
+      mobile: "mobile",
+      desktop: "desktop",
+      description: "Local preview: does not save to Sanity. Publish through Atlas — Topografia in Studio.",
+      reset: "Restore reference",
+      controls: {
+        amplitude: "Spread",
+        elongation: "Elongation",
+        direction: "Direction",
+        connection: "Connection",
+        negativeSpace: "Open space",
+      },
     },
-    moreProjects: {
-      title: "More Projects",
+    content: {
+      unavailable: "unavailable",
+      territoryIncomplete: "incomplete territory settings",
+      titleUnavailable: "Title unavailable",
+      destinationUnavailable: "destination unavailable",
+      placementInvalid: "check main territory, positions and influence",
+      imageUnavailable: "cover or alt text unavailable",
     },
   },
   projects: {

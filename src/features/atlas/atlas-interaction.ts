@@ -1,0 +1,340 @@
+import { atlasMobileQuery } from "./atlas-composition";
+import type { AtlasProject } from "./atlas-types";
+import type { mountAtlasTerrain } from "./atlas-engine";
+type Elements = {
+    root: HTMLElement;
+    viewport: HTMLElement;
+    world: HTMLElement;
+    dialog: HTMLDialogElement;
+    panel: HTMLElement;
+    media: HTMLElement;
+    morph: HTMLElement;
+};
+/** One opening timeline for the camera, thumbnail and card; scoped to this map. */
+export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void, onNavigateProject: (href: string) => void) {
+    const { root, viewport, world, dialog, panel, media, morph } = elements;
+    const cardFrame = panel.parentElement!;
+    const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const layout = matchMedia(atlasMobileQuery);
+    let epoch = 0, disposed = false, leaving = false;
+    let animations: Animation[] = [];
+    let selection: {
+        item: HTMLElement;
+        trigger: HTMLButtonElement;
+        thumb: HTMLElement;
+        slot: HTMLElement;
+        overflow: string;
+        padding: string;
+        scroll: number;
+        frameHeight: string;
+    } | undefined;
+    const stop = () => {
+        animations.forEach(animation => animation.cancel());
+        animations = [];
+    };
+    function animate(node: Element, frames: Keyframe[], duration = 400, delay = 0) {
+        const animation = node.animate(frames, { duration: reduced.matches ? 0 : duration, delay: reduced.matches ? 0 : delay, easing: "cubic-bezier(.22,.72,.18,1)", fill: "both" });
+        animations.push(animation);
+        return animation.finished.catch(() => {
+        });
+    }
+    function rectangle(rect: DOMRect) {
+        return { left: rect.left + "px", top: rect.top + "px", width: rect.width + "px", height: rect.height + "px" };
+    }
+    function move(thumb: HTMLElement, from: DOMRect, to: DOMRect, radius: number | string, endRadius: number | string) {
+        morph.append(thumb);
+        const finalRadius = typeof endRadius === "number" ? endRadius + "px" : endRadius;
+        Object.assign(thumb.style, rectangle(to), { borderRadius: finalRadius });
+        return animate(thumb, [{ ...rectangle(from), borderRadius: typeof radius === "number" ? radius + "px" : radius }, { ...rectangle(to), borderRadius: finalRadius }]);
+    }
+    function releaseScrollLock() {
+        if (!selection) return;
+        document.body.style.overflow = selection.overflow;
+        document.body.style.paddingRight = selection.padding;
+    }
+    function restore(focus = true, restoreScroll = true) {
+        const state = selection;
+        if (!state)
+            return;
+        stop();
+        world.style.transform = "";
+        state.slot.append(state.thumb);
+        state.thumb.removeAttribute("style");
+        state.item.removeAttribute("data-selected");
+        state.trigger.setAttribute("aria-expanded", "false");
+        root.dataset.selection = "idle";
+        dialog.close();
+        releaseScrollLock();
+        cardFrame.style.height = state.frameHeight;
+        selection = undefined;
+        onSelectionChange(null);
+        terrain.extend();
+        if (restoreScroll) window.scrollTo({ top: state.scroll, behavior: "instant" });
+        if (focus && state.trigger.isConnected)
+            state.trigger.focus({ preventScroll: true });
+    }
+    async function open(trigger: HTMLButtonElement) {
+        if (selection || disposed)
+            return;
+        const item = trigger.closest<HTMLElement>("[data-atlas-project]")!;
+        const project = projects.find(project => project.id === item.dataset.atlasProject);
+        if (!project)
+            return;
+        const thumb = item.querySelector<HTMLElement>("[role=img]")!, slot = thumb.parentElement!;
+        const from = thumb.getBoundingClientRect(), id = ++epoch;
+        const sourceScale = from.width / thumb.offsetWidth;
+        const sourceBorder = parseFloat(getComputedStyle(thumb).borderTopWidth) * sourceScale;
+        const icon = thumb.querySelector("svg");
+        const iconFrom = icon?.getBoundingClientRect();
+        selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY, frameHeight: cardFrame.style.height };
+        onSelectionChange(project.id);
+        dialog.querySelector("[data-atlas-title]")!.textContent = project.title;
+        dialog.querySelector("[data-atlas-category]")!.textContent = project.categoryLabel;
+        dialog.querySelector("[data-atlas-description]")!.textContent = project.description ?? missingDescription;
+        const detail = dialog.querySelector<HTMLAnchorElement>("[data-atlas-detail]")!;
+        detail.hidden = !project.href;
+        // React supplies real hrefs. Missing destinations remain non-links in the DOM.
+        if (!project.href) {
+            dialog.querySelectorAll<HTMLAnchorElement>("[data-atlas-project-link]").forEach(link => link.removeAttribute("href"));
+        }
+        media.setAttribute("aria-label", project.title);
+        dialog.querySelector<HTMLElement>("[data-atlas-media-note]")!.hidden = thumb.dataset.atlasMissing !== "true";
+        dialog.style.setProperty("--atlas-tone", project.color);
+        // Compensate only the removed scrollbar, keeping the approved map width intact.
+        const scrollbar = innerWidth - document.documentElement.clientWidth;
+        document.body.style.paddingRight = (parseFloat(getComputedStyle(document.body).paddingRight) + scrollbar) + "px";
+        document.body.style.overflow = "hidden";
+        dialog.showModal();
+        panel.scrollTop = 0;
+        window.scrollTo({ top: selection.scroll, behavior: "instant" });
+        const target = media.getBoundingClientRect(), frame = viewport.getBoundingClientRect();
+        const zoom = layout.matches ? 1.65 : 1.85;
+        const point = { x: from.left + from.width / 2 - frame.left, y: from.top + from.height / 2 - frame.top };
+        const cx = target.left + target.width / 2 - frame.left, cy = target.top + target.height / 2 - frame.top;
+        const tx = cx - zoom * point.x, ty = cy - zoom * point.y;
+        // Inverse-camera corner extrema occur at the transition endpoints because scale
+        // and translation share the same interpolation. Include both plus a guard.
+        terrain.extend({ left: Math.floor(Math.min(0, -tx / zoom) - 24), top: Math.floor(Math.min(0, -ty / zoom) - 24), right: Math.ceil(Math.max(frame.width, (frame.width - tx) / zoom) + 24), bottom: Math.ceil(Math.max(frame.height, (frame.height - ty) / zoom) + 24) }, zoom);
+        terrain.pulse(project.id);
+        root.dataset.selection = "opening";
+        item.dataset.selected = "true";
+        trigger.setAttribute("aria-expanded", "true");
+        const camera = `translate(${tx}px,${ty}px) scale(${zoom})`;
+        world.style.transform = camera;
+        closeButton.focus({ preventScroll: true });
+        // Keep the full terrain domain, but stop repainting pixels outside the remaining
+        // camera path. Requested density stays fixed; only the backing surface is cropped.
+        function cropRemaining(includeCurrent: boolean) {
+            const current = includeCurrent ? new DOMMatrixReadOnly(getComputedStyle(world).transform) : new DOMMatrixReadOnly(camera);
+            terrain.crop({
+                left: Math.floor(Math.min(-current.e / current.a, -tx / zoom) - 24),
+                top: Math.floor(Math.min(-current.f / current.d, -ty / zoom) - 24),
+                right: Math.ceil(Math.max((frame.width - current.e) / current.a, (frame.width - tx) / zoom) + 24),
+                bottom: Math.ceil(Math.max((frame.height - current.f) / current.d, (frame.height - ty) / zoom) + 24),
+            });
+        }
+        const cropTimer = window.setTimeout(() => {
+            if (id === epoch && selection && !disposed)
+                cropRemaining(true);
+        }, 120);
+        // Put the actual thumbnail in its final parent before animating anything.
+        // Image, border and body now share one carrier, with no handoff on arrival.
+        const card = panel.getBoundingClientRect();
+        const scaleFrom = from.width / target.width;
+        const origin = (target.left - card.left) + "px " + (target.top - card.top) + "px";
+        const panelStyle = getComputedStyle(panel);
+        const borderHeight = parseFloat(panelStyle.borderTopWidth) + parseFloat(panelStyle.borderBottomWidth);
+        const borderWidth = parseFloat(panelStyle.borderLeftWidth) + parseFloat(panelStyle.borderRightWidth);
+        const bodyHeight = Math.max(0, card.height - target.height - borderHeight);
+        // Only preserve a gutter that is actually present. Rounded scrollHeight
+        // measurements can report overflow without an allocated scrollbar.
+        const scrollbarGutter = panel.offsetWidth - panel.clientWidth > borderWidth + .5 ? "stable" : "auto";
+        const cardFrames: Keyframe[] = [];
+        const mediaFrames: Keyframe[] = [];
+
+        // A uniform carrier preserves the picture's proportions. Compensate the
+        // media height so its screen rectangle grows continuously from the circle.
+        // Precompute these frames once: no JavaScript animation loop is needed.
+        for (let step = 0; step <= 32; step++) {
+            const progress = step / 32;
+            const scale = scaleFrom + (1 - scaleFrom) * progress;
+            const imageHeight = (from.height + (target.height - from.height) * progress) / scale;
+            const reveal = Math.max(0, Math.min(1, (progress - .12) / .88));
+            const bodyProgress = reveal * reveal * (3 - 2 * reveal);
+            cardFrames.push({
+                offset: progress,
+                transform: "translate(" + ((from.left - target.left) * (1 - progress)) +
+                    "px," + ((from.top - target.top) * (1 - progress)) + "px) scale(" + scale + ")",
+                transformOrigin: origin,
+                height: (imageHeight + borderHeight + bodyHeight * bodyProgress) + "px",
+                borderRadius: ((target.width / 2) * (1 - progress) + 16 * progress) + "px",
+                maxHeight: "none",
+                overflow: "hidden",
+                scrollbarGutter,
+            });
+            mediaFrames.push({ offset: progress, height: imageHeight + "px" });
+        }
+        // Freeze only the outer layout anchor; the card itself opens downward.
+        cardFrame.style.height = card.height + "px";
+        media.append(thumb);
+        await Promise.all([
+            animate(world, [{ transform: "none" }, { transform: camera }]),
+            animate(panel, cardFrames),
+            animate(media, mediaFrames),
+            animate(thumb, [
+                {
+                    offset: 0,
+                    borderRadius: (target.width / 2) + "px",
+                    borderWidth: (sourceBorder / scaleFrom) + "px",
+                    borderStyle: "solid",
+                    borderColor: project.color,
+                },
+                {
+                    offset: .12,
+                    borderWidth: "0px 0px 1px",
+                    borderStyle: "solid",
+                    borderColor: "#ffffff15",
+                },
+                {
+                    offset: 1,
+                    borderRadius: "15px 15px 0 0",
+                    borderWidth: "0px 0px 1px",
+                    borderStyle: "solid",
+                    borderColor: "#ffffff15",
+                },
+            ]),
+            ...(icon && iconFrom ? [animate(icon, [
+                { width: (iconFrom.width / scaleFrom) + "px", height: (iconFrom.height / scaleFrom) + "px" },
+                { width: "48px", height: "48px" },
+            ])] : []),
+        ]);
+        clearTimeout(cropTimer);
+        if (id !== epoch || !selection || disposed)
+            return;
+        stop();
+        cropRemaining(false);
+        cardFrame.style.height = selection.frameHeight;
+        root.dataset.selection = "selected";
+    }
+    async function close() {
+        const state = selection;
+        if (!state || leaving || root.dataset.selection === "closing")
+            return;
+        const id = ++epoch, from = state.thumb.getBoundingClientRect();
+        const thumbnailScale = from.width / state.thumb.offsetWidth;
+        const radius = getComputedStyle(state.thumb).borderRadius.replace(/[\d.]+px/g, value =>
+            (parseFloat(value) * thumbnailScale) + "px");
+        const camera = getComputedStyle(world).transform;
+        const panelStyle = getComputedStyle(panel);
+        const panelOpacity = panelStyle.opacity;
+        const panelHeight = panelStyle.height;
+        const mediaHeight = getComputedStyle(media).height;
+        const panelRadius = panelStyle.borderRadius;
+        const scrollbarGutter = panelStyle.scrollbarGutter;
+        // Closing can interrupt any point of the shared opening; freeze the card
+        // where it is before canceling its animations so it never jumps to full size.
+        const panelTransform = panelStyle.transform, panelOrigin = panelStyle.transformOrigin;
+        stop();
+        terrain.crop();
+        world.style.transform = "none";
+        const target = state.slot.getBoundingClientRect();
+        world.style.transform = camera;
+        root.dataset.selection = "closing";
+        const motion = move(state.thumb, from, target, radius, target.width / 2);
+        world.style.transform = "none";
+        const frozenCard = {
+            height: panelHeight,
+            borderRadius: panelRadius,
+            transform: panelTransform,
+            transformOrigin: panelOrigin,
+            maxHeight: "none",
+            overflow: "hidden",
+            scrollbarGutter,
+        };
+        await Promise.all([
+            motion,
+            animate(world, [{ transform: camera }, { transform: "none" }]),
+            animate(panel, [
+                { ...frozenCard, opacity: panelOpacity },
+                { ...frozenCard, opacity: 0 },
+            ], 140),
+            animate(media, [{ height: mediaHeight }, { height: mediaHeight }], 140),
+        ]);
+        if (id === epoch && !disposed)
+            restore();
+    }
+    function onClick(event: MouseEvent) {
+        const target = event.target as HTMLElement;
+        const link = target.closest<HTMLAnchorElement>("[data-atlas-project-link]");
+        if (link && dialog.contains(link)) {
+            const href = projects.find(project => project.id === selection?.item.dataset.atlasProject)?.href;
+            if (!href) { event.preventDefault(); return; }
+            // The thumbnail's DOM parent changes, but its React event ancestry does
+            // not. Handle all card links here so image, title and CTA use the same
+            // client navigation. Modified clicks keep the browser's native behavior.
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+                event.shiftKey || event.altKey || link.hasAttribute("download") ||
+                (link.target && link.target !== "_self")) return;
+            event.preventDefault();
+            onNavigateProject(href);
+            return;
+        }
+        const trigger = target.closest<HTMLButtonElement>("[data-atlas-trigger]");
+        if (trigger && root.contains(trigger)) void open(trigger);
+    }
+    function dismiss(event: MouseEvent) {
+        if (!panel.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-atlas-close]"))
+            void close();
+    }
+    function trapFocus(event: KeyboardEvent) {
+        if (event.key !== "Tab")
+            return;
+        const targets = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]')).filter(node => !node.hidden && getComputedStyle(node).visibility !== "hidden");
+        const first = targets[0], last = targets.at(-1);
+        if (!first || !last)
+            return;
+        if (event.shiftKey ? document.activeElement === first : document.activeElement === last) {
+            event.preventDefault();
+            (event.shiftKey ? last : first).focus({ preventScroll: true });
+        }
+    }
+    function cancel(event: Event) {
+        event.preventDefault();
+        void close();
+    }
+    function resize() {
+        if (selection && !leaving) {
+            ++epoch;
+            restore();
+        }
+    }
+    root.dataset.selection = "idle";
+    root.addEventListener("click", onClick);
+    dialog.addEventListener("click", dismiss);
+    dialog.addEventListener("cancel", cancel);
+    dialog.addEventListener("keydown", trapFocus);
+    window.addEventListener("resize", resize);
+    reduced.addEventListener("change", resize);
+    return {
+        releaseForNavigation() {
+            leaving = true;
+            // The old visual is already captured; do not leave the new page inert.
+            if (dialog.open) dialog.close();
+            releaseScrollLock();
+        },
+        dispose() {
+            disposed = true;
+            ++epoch;
+            // Route navigation owns the destination scroll position.
+            restore(false, false);
+            stop();
+            root.removeEventListener("click", onClick);
+            dialog.removeEventListener("click", dismiss);
+            dialog.removeEventListener("cancel", cancel);
+            dialog.removeEventListener("keydown", trapFocus);
+            window.removeEventListener("resize", resize);
+            reduced.removeEventListener("change", resize);
+        },
+    };
+}

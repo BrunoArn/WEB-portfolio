@@ -6,22 +6,51 @@ const pt = {
     openMenu: "Abrir menu de navegação",
     closeMenu: "Fechar menu de navegação",
   },
-  home: {
-    hero: {
-      eyebrow: "DESIGNER / DEVELOPER · GAME DEVELOPER",
-      title: "Criando jogos e experiências digitais.",
-      description:
-        "Desenvolvimento de jogos, experiências VR e aplicações web, unindo execução técnica e sensibilidade de design.",
-      cta: "EXPLORAR PROJETOS",
+  atlas: {
+    title: "Bruno Arnaud",
+    description: "Um território de jogos, interfaces e experiências interativas.",
+    projects: "Projetos do Atlas",
+    unavailable: "Miniatura indisponível",
+    close: "Voltar ao mapa",
+    contentNote: "Descrição indisponível.",
+    detail: "Ver projeto completo",
+    previewTitle: "Atlas — Prévia",
+    fallback: "Visualização simplificada ativada.",
+    motion: {
+      title: "Movimento · experimento",
+      description: "Passe o mouse entre as curvas ou abra um projeto. Desligue para comparar. Ajustes locais, sem salvar.",
+      enabled: "Cenário vivo",
+      reduced: "Seu dispositivo pede movimento reduzido: o cenário permanece estático.",
+      reset: "Restaurar experimento",
+      controls: {
+        breath: "Respiração",
+        pressure: "Resposta das linhas",
+        returnTime: "Tempo de retorno",
+        mouseRadius: "Alcance do mouse",
+        selectionStrength: "Impulso da seleção",
+      },
     },
-    featured: {
-      eyebrow: "TRABALHOS SELECIONADOS",
-      title: "Projetos em destaque",
-      viewAll: "VER TODOS",
-      selectProject: "Selecionar projeto",
+    terrain: {
+      title: "Ajustar relevo",
+      mobile: "celular",
+      desktop: "desktop",
+      description: "Teste local: não salva no Sanity. Para publicar, use Atlas — Topografia no Studio.",
+      reset: "Restaurar referência",
+      controls: {
+        amplitude: "Amplitude",
+        elongation: "Alongamento",
+        direction: "Direção",
+        connection: "Conexão",
+        negativeSpace: "Respiro",
+      },
     },
-    moreProjects: {
-      title: "Mais projetos",
+    content: {
+      unavailable: "indisponível",
+      territoryIncomplete: "configuração de território incompleta",
+      titleUnavailable: "Título indisponível",
+      destinationUnavailable: "destino indisponível",
+      placementInvalid: "confira território principal, posições e influência",
+      imageUnavailable: "capa ou texto alternativo indisponível",
     },
   },
   projects: {
