@@ -37,6 +37,14 @@ Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados
 
 O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o neutro. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais permanecem neutros.
 
+### Navbar desktop e área do Atlas
+
+Na Home, a navegação fica a 40 px das laterais da janela, sem o limite de 1280 px. Nas páginas internas, volta ao alinhamento do Container de conteúdo. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
+
+A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa o espaço reservado do shell e mede a altura da janela menos a reserva do Footer. O título conserva um deslocamento abaixo da navegação, inclusive em paisagem baixa. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
+
+Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
+
 ### Caminho dos dados e responsabilidades
 
 1. As páginas de idioma carregam dicionário e dados publicados no servidor.

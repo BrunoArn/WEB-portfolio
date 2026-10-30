@@ -60,6 +60,7 @@
     --motion-ui: 250ms;
     --motion-featured: 300ms;
     --motion-project-cover: 520ms;
+    --motion-navigation: 360ms;
 
     /* Typography — font sizes */
     --font-size-hero-desktop: 64px;
