@@ -6,6 +6,17 @@ import { adaptProject } from "@/content/adapters/project";
 import { sanityClient } from "@/sanity/client";
 import { projectProjection } from "@/sanity/queries/project";
 
+// Keep published project data fresh without querying Sanity on every visit.
+const projectFetchOptions = { next: { revalidate: 60 } };
+
+/** Only published slugs are needed to enumerate detail pages during the build. */
+export async function getProjectSlugs(): Promise<string[]> {
+    const slugs = await sanityClient.fetch<string[]>(
+        '*[_type == "project" && defined(slug.current) && slug.current != ""].slug.current',
+    );
+    return [...new Set(slugs)];
+}
+
 const projectsQuery = `
   *[_type == "project"] | order(order asc) {
     ${projectProjection}
@@ -17,6 +28,8 @@ export async function getProjects(
 ): Promise<Project[]> {
     const projects = await sanityClient.fetch<SanityProject[]>(
         projectsQuery,
+        {},
+        projectFetchOptions,
     );
 
     return projects.map((project) =>
@@ -37,6 +50,7 @@ export async function getProjectBySlug(
     const project = await sanityClient.fetch<SanityProject | null>(
         projectBySlugQuery,
         { slug },
+        projectFetchOptions,
     );
 
     return project
@@ -58,6 +72,8 @@ export async function getFeaturedProjects(
 ): Promise<Project[]> {
     const projects = await sanityClient.fetch<SanityProject[]>(
         featuredProjectsQuery,
+        {},
+        projectFetchOptions,
     );
 
     return projects.map((project) =>

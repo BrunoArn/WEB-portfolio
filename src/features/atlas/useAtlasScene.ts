@@ -70,12 +70,30 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current)
             return;
         let cancelled = false, navigationPending = false, navigationEpoch = 0;
+        // Reuse preparation for the selected cover. Recheck the responsive image
+        // after a viewport/DPR change; failed attempts can be retried on click.
+        let preparedCover: { key: string; ready: Promise<boolean> } | undefined;
+        const prepareCover = (src: string) => {
+            const key = src + ":" + window.innerWidth + ":" + window.devicePixelRatio;
+            if (preparedCover?.key === key) return preparedCover.ready;
+            const ready = prepareProjectCover(src);
+            preparedCover = { key, ready };
+            void ready.then(success => {
+                if (!success && preparedCover?.ready === ready) preparedCover = undefined;
+            });
+            return ready;
+        };
         const selectProject = (id: string | null) => {
             navigationEpoch++;
             navigationPending = false;
             setNavigating(false);
             setShareCover(true);
             setSelectedProjectId(id);
+            const project = content.projects.find(project => project.id === id);
+            if (project?.href) {
+                router.prefetch(project.href);
+                if (project.image) void prepareCover(project.image.src);
+            }
         };
         const navigateProject = async (href: string) => {
             if (navigationPending || cancelled) return;
@@ -85,7 +103,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             const project = content.projects.find(project => project.href === href);
             const canAnimate = typeof document.startViewTransition === "function" &&
                 !matchMedia("(prefers-reduced-motion: reduce)").matches;
-            const ready = !canAnimate || !project?.image || await prepareProjectCover(project.image.src);
+            const ready = !canAnimate || !project?.image || await prepareCover(project.image.src);
             if (cancelled || token !== navigationEpoch || root.current?.dataset.selection !== "selected") {
                 navigationPending = false;
                 if (!cancelled) setNavigating(false);

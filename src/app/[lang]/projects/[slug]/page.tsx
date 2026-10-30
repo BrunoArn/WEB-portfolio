@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
-import { getProjectBySlug, getProjects, } from "@/sanity/repositories/projects";
+import { getProjectBySlug, getProjects, getProjectSlugs } from "@/sanity/repositories/projects";
 import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
@@ -12,6 +12,15 @@ import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
+
+// Prebuild existing projects; new published slugs can still render on demand.
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+    const slugs = await getProjectSlugs();
+    return slugs.map(slug => ({ slug }));
+}
 
 type ProjectPageProps = {
     params: Promise<{

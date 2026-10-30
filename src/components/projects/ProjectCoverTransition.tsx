@@ -20,7 +20,7 @@ export function ProjectCoverTransition({ slug, children, enabled = true }: Proje
 // Keep preload selection identical to the existing responsive project hero.
 export const projectHeroSizes = "(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)";
 
-/** Called only after a normal card-link click. Failed/slow images never block navigation indefinitely. */
+/** Prepare on card opening and reuse on click. Failed/slow images never block navigation indefinitely. */
 export async function prepareProjectCover(src: string): Promise<boolean> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
