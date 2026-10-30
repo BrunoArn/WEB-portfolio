@@ -5,7 +5,7 @@
   position: relative;
   --atlas-world-width: var(--atlas-desktop-width);
   --atlas-world-height: var(--atlas-desktop-height);
-  --atlas-background: #0b1211;
+  --atlas-background: var(--color-background);
   --atlas-text: var(--color-text-body);
   --atlas-text-secondary: var(--color-text-secondary);
   /* Shared type scale; only markers and map-specific adjustments remain local. */
@@ -113,7 +113,7 @@
   position: absolute;
   z-index: -1;
   inset: -30px -25px;
-  background: radial-gradient(ellipse, var(--atlas-background) 25%, #0b1211d9 50%, transparent 73%);
+  background: radial-gradient(ellipse, var(--atlas-background) 25%, rgb(from var(--atlas-background) r g b / calc(217 / 255)) 50%, transparent 73%);
   pointer-events: none;
 }
 .thumb {
@@ -167,7 +167,7 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   opacity: 1;
-  text-shadow: 0 2px 8px #0b1211, 0 0 18px #0b1211;
+  text-shadow: 0 2px 8px var(--atlas-background), 0 0 18px var(--atlas-background);
 }
 @media (min-width: 761px) and (max-width: 1000px) {
   .project {
@@ -694,7 +694,7 @@
   z-index: 3;
   margin: 0;
   padding: 5px 9px;
-  background: #0b1211df;
+  background: rgb(from var(--atlas-background) r g b / calc(223 / 255));
   border: 1px solid #34483e;
   border-radius: 5px;
   color: var(--color-text-secondary);
