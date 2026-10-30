@@ -24,6 +24,14 @@ O Atlas é a Home em `/pt` e `/en`. A mesma composição e interação ficam dis
 
 A implementação animada anterior em Canvas 2D foi removida: não há segundo cálculo de respiração, deformação por vértice em JavaScript ou seletor de renderizador. Canvas 2D continua sendo usado para preparar a textura de cores e para a recuperação estática de compatibilidade.
 
+## Integração com o site
+
+Home e prévia carregam o dicionário no servidor com `getDictionary`, junto dos dados publicados. Apenas o bloco `atlas` do idioma ativo é passado ao componente, como nos demais recursos do site. Textos da interface, acessibilidade, diagnóstico, metadados da prévia e mensagens de dados ausentes ficam em `src/i18n/dictionaries/pt.ts` e `en.ts`. Conteúdo editorial dos projetos e territórios continua vindo do Sanity; os dicionários não substituem esses dados. Os componentes usam tipos derivados do dicionário, sem importar suas traduções em tempo de execução no cliente.
+
+A família tipográfica é herdada do `body` em `src/styles/globals.css` (fonte carregada pelo layout). Atlas não declara família própria, nem mesmo nos títulos/cards. Cores de texto, acento dos controles, pesos, tamanhos compartilhados e espaçamentos usam `src/styles/tokens.css`. A paleta artística do terreno, coordenadas, escala dos marcadores, medidas responsivas e tempos da câmera permanecem locais para preservar a composição e a interação aprovadas. CSS Modules continuam isolando essas regras; não é necessário migrar geometria para classes utilitárias ou expor as animações no CSS global. Traduções da Home anterior sem consumidores foram removidas.
+
+Nesta organização, build de produção, TypeScript e lint passaram. A revisão no navegador conferiu PT/EN em 1440×900, 384×844, 760×900, 761×900, 1000×900 e 844×390: herança da fonte nos títulos, marcadores, cards e botão de fechar; marcadores dentro da largura visível; 36 aberturas/fechamentos de três projetos; oito verificações adicionais de Home/prévia; metadados, controles e recuperação estática nos dois idiomas; páginas Projetos/Sobre. Capturas desktop/mobile e card mobile foram inspecionadas. A adaptação de conteúdo foi comparada com o commit anterior em 14 cenários (publicado e dados ausentes/inválidos, PT/EN), sem diferença de resultado. Os 15 cenários de entrada também passaram após a integração. Mobile foi simulado; não houve teste físico nesta rodada.
+
 ## Conteúdo e Sanity
 
 `getAtlasData()` consulta a perspectiva publicada com o cliente existente, sem CDN e com `cache: no-store`. A leitura reúne projetos, territórios habilitados e configurações do Atlas. Publicar e recarregar aplica as alterações; não há assinatura ao vivo nem leitura de rascunhos nesta página.

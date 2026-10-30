@@ -8,3 +8,5 @@ const dictionaries = {
 export function getDictionary(locale: Locale) {
   return dictionaries[locale]();
 }
+
+export type Dictionary = Awaited<ReturnType<typeof getDictionary>>;

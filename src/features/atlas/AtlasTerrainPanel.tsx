@@ -1,26 +1,22 @@
 "use client";
 import { useId } from "react";
 import { atlasTerrainControlKeys, atlasTerrainLimits, type AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
-import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
 import styles from "./AtlasMap.module.css";
 
-const names = {
-  pt: {amplitude: "Amplitude", elongation: "Alongamento", direction: "Direção", connection: "Conexão", negativeSpace: "Respiro"},
-  en: {amplitude: "Spread", elongation: "Elongation", direction: "Direction", connection: "Connection", negativeSpace: "Open space"},
-};
-export function AtlasTerrainPanel({ locale, mobile, value, onChange, onReset }: {
-  locale: Locale; mobile: boolean; value: AtlasTerrainControls;
+export function AtlasTerrainPanel({ labels, mobile, value, onChange, onReset }: {
+  labels: Dictionary["atlas"]["terrain"]; mobile: boolean; value: AtlasTerrainControls;
   onChange: (key: keyof AtlasTerrainControls, value: number) => void;
   onReset: () => void;
 }) {
-  const id = useId(), pt = locale === "pt";
+  const id = useId();
   return <details className={styles.terrainPanel} data-atlas-controls>
-    <summary>{pt ? "Ajustar relevo" : "Adjust terrain"} · {mobile ? (pt ? "celular" : "mobile") : "desktop"}</summary>
-    <p>{pt ? "Teste local: não salva no Sanity. Para publicar, use Atlas — Topografia no Studio." : "Local preview: does not save to Sanity. Publish through Atlas — Topografia in Studio."}</p>
+    <summary>{labels.title} · {mobile ? labels.mobile : labels.desktop}</summary>
+    <p>{labels.description}</p>
     {atlasTerrainControlKeys.map(key => <label key={key} htmlFor={`${id}-${key}`}>
-      <span>{names[locale][key]} <output>{value[key]}{key === "direction" ? "°" : ""}</output></span>
+      <span>{labels.controls[key]} <output>{value[key]}{key === "direction" ? "°" : ""}</output></span>
       <input id={`${id}-${key}`} data-terrain-control={key} type="range" {...atlasTerrainLimits(key)} value={value[key]} onChange={event => onChange(key, Number(event.currentTarget.value))} />
     </label>)}
-    <button type="button" onClick={onReset}>{pt ? "Restaurar referência" : "Restore reference"}</button>
+    <button type="button" onClick={onReset}>{labels.reset}</button>
   </details>;
 }

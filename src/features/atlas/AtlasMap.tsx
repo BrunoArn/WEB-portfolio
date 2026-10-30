@@ -8,33 +8,13 @@ import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
 import { AtlasThumbnail } from "./AtlasThumbnail";
 import type { AtlasContent } from "./atlas-types";
 import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/get-dictionary";
 import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain, positionAtlasProjects } from "./atlas-engine";
 import styles from "./AtlasMap.module.css";
 import { mountAtlasInteraction } from "./atlas-interaction";
 import { atlasWorlds } from "./atlas-layout";
 import { mountAtlasEntrance } from "./atlas-entrance";
-
-const copy = {
-  pt: {
-    title: "Bruno Arnaud",
-    description: "Um território de jogos, interfaces e experiências interativas.",
-    projects: "Projetos do Atlas",
-    unavailable: "Miniatura indisponível",
-    close: "Voltar ao mapa",
-    contentNote: "Descrição indisponível.",
-    detail: "Ver projeto completo",
-  },
-  en: {
-    title: "Bruno Arnaud",
-    description: "A landscape of games, interfaces and interactive experiences.",
-    projects: "Atlas projects",
-    unavailable: "Thumbnail unavailable",
-    close: "Back to map",
-    contentNote: "Description unavailable.",
-    detail: "View full project",
-  },
-} as const;
 
 function subscribeToLayout(callback: () => void) {
   const query = window.matchMedia(atlasMobileQuery);
@@ -44,10 +24,9 @@ function subscribeToLayout(callback: () => void) {
 function getLayout() { return window.matchMedia(atlasMobileQuery).matches; }
 function getServerLayout() { return false; }
 
-type AtlasMapProps = { locale: Locale; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
+type AtlasMapProps = { locale: Locale; labels: Dictionary["atlas"]; content: AtlasContent; showTerrainControls?: boolean; showMotionControls?: boolean };
 
-export function AtlasMap({ locale, content, showTerrainControls = false, showMotionControls = false }: AtlasMapProps) {
-  const text = copy[locale];
+export function AtlasMap({ locale, labels: text, content, showTerrainControls = false, showMotionControls = false }: AtlasMapProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);
   const [motionSettings, setMotionSettings] = useState({ ...atlasMotionReference });
@@ -158,9 +137,9 @@ export function AtlasMap({ locale, content, showTerrainControls = false, showMot
         </div>
         <div ref={morph} className={styles.morph} aria-hidden="true" />
       </dialog>
-      {webglFailed && <p className={styles.fallbackNotice} role="status">{locale === "pt" ? "Visualização simplificada ativada." : "Simplified view enabled."}</p>}
-      {showMotionControls && !webglFailed && <AtlasMotionPanel locale={locale} value={motionSettings} onChange={setMotionSettings} />}
-      {showTerrainControls && <AtlasTerrainPanel locale={locale} mobile={mobile} value={settings[mobile ? "mobile" : "desktop"]} onChange={updateControls} onReset={resetControls} />}
+      {webglFailed && <p className={styles.fallbackNotice} role="status">{text.fallback}</p>}
+      {showMotionControls && !webglFailed && <AtlasMotionPanel labels={text.motion} value={motionSettings} onChange={setMotionSettings} />}
+      {showTerrainControls && <AtlasTerrainPanel labels={text.terrain} mobile={mobile} value={settings[mobile ? "mobile" : "desktop"]} onChange={updateControls} onReset={resetControls} />}
     </main>
   );
 }
