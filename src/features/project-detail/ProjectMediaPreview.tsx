@@ -331,9 +331,9 @@ export function ProjectMediaPreview({
                                     onClick={() => setActiveIndex(index)}
                                     aria-label={`${labels.select} ${index + 1}`}
                                     aria-pressed={isActive}
-                                    className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-(--radius-control) border bg-app-surface-elevated motion-safe:transition-colors motion-safe:duration-(--motion-fast) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
-                                        ? "border-app-accent"
-                                        : "border-app-border hover:border-app-text-secondary"
+                                    className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-(--radius-control) border bg-app-surface-elevated motion-safe:transition-colors motion-safe:duration-(--motion-fast) focus-visible:border-app-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
+                                        ? "border-app-accent outline-2 -outline-offset-2 outline-app-accent"
+                                        : "border-app-border hover:border-app-accent/60"
                                         }`}
                                 >
                                     {item.type === "image" ? (

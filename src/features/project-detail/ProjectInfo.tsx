@@ -31,7 +31,7 @@ export function ProjectInfo({
 
             <dl className="mt-(--space-24) grid gap-(--space-20)">
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.role}
                     </dt>
 
@@ -41,7 +41,7 @@ export function ProjectInfo({
                 </div>
 
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.year}
                     </dt>
 
@@ -52,7 +52,7 @@ export function ProjectInfo({
 
                 {project.team.length > 0 && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.team}
                         </dt>
 
@@ -76,7 +76,7 @@ export function ProjectInfo({
 
                 {project.technologies.length > 0 && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.technologies}
                         </dt>
 
@@ -88,7 +88,7 @@ export function ProjectInfo({
 
                 {project.organization && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.organization}
                         </dt>
 
@@ -99,7 +99,7 @@ export function ProjectInfo({
                 )}
 
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.status}
                     </dt>
 

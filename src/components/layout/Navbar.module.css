@@ -1,6 +1,31 @@
-/* Keep the fixed navigation readable over imagery without painting a header bar. */
+/* Internal pages use an opaque header; Atlas pages retain the transparent overlay. */
 .header {
+  background-color: var(--color-background);
   text-shadow: 0 1px 2px var(--color-background), 0 0 8px var(--color-background);
+}
+
+/* Ease the fade at both ends so the opaque header has no abrupt edge. */
+.header[data-atlas="false"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--space-32);
+  background: linear-gradient(
+    to bottom,
+    var(--color-background) 0%,
+    color-mix(in srgb, var(--color-background) 96%, transparent) 15%,
+    color-mix(in srgb, var(--color-background) 78%, transparent) 35%,
+    color-mix(in srgb, var(--color-background) 44%, transparent) 55%,
+    color-mix(in srgb, var(--color-background) 16%, transparent) 75%,
+    color-mix(in srgb, var(--color-background) 3%, transparent) 90%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.header[data-atlas="true"] {
+  background-color: transparent;
 }
 
 .header a:focus-visible {

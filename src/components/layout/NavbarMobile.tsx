@@ -52,6 +52,7 @@ export function NavbarMobile({
     const aboutPath = `/${currentLocale}/about`;
 
     const isHomeActive = pathname === homePath;
+    const isAtlasPage = isHomeActive || pathname === `${homePath}/atlas-preview`;
     const isProjectsActive =
         pathname === projectsPath || pathname.startsWith(`${projectsPath}/`);
     const isAboutActive =
@@ -227,6 +228,7 @@ export function NavbarMobile({
         <>
             <header
                 ref={headerRef}
+                data-atlas={isAtlasPage}
                 className={`${styles.header} fixed inset-x-0 top-0 z-50 md:hidden`}
             >
                 <Container>

@@ -51,7 +51,7 @@ export function RelatedProjects({
                                 });
                             }
                         }}
-                        className="group w-[82%] shrink-0 snap-start overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent sm:w-[60%] md:w-[40%] lg:w-[calc((100%-60px)/4)]"
+                        className="group w-[82%] shrink-0 snap-start overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-accent focus-visible:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent sm:w-[60%] md:w-[40%] lg:w-[calc((100%-60px)/4)]"
                     >
                         <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
                             <Image
