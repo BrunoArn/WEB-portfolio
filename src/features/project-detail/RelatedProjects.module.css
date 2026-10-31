@@ -1,0 +1,41 @@
+.rail {
+  display: flex;
+  gap: var(--card-gap);
+  margin-top: var(--space-20);
+  padding-bottom: var(--space-4);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  cursor: grab;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.rail[data-dragging="true"] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.rail[data-dragging="true"] .card {
+  cursor: grabbing;
+}
+
+.card {
+  width: 85%;
+  cursor: grab;
+  user-select: none;
+}
+
+@media (min-width: 40rem) {
+  .card {
+    width: calc((100% - var(--card-gap)) / 1.5);
+  }
+}
+
+@media (min-width: 64rem) {
+  .card {
+    width: calc((100% - var(--card-gap) * 2) / 2.5);
+  }
+}
