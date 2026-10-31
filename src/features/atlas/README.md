@@ -29,13 +29,13 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 - styles/tokens.css concentra a escala compartilhada, famílias semânticas e reservas de cabeçalho/rodapé do shell. As famílias são resolvidas no body, onde o layout instala as variáveis do next/font.
 - styles/globals.css aplica os padrões e expõe as famílias ao Tailwind. O layout carrega as fontes e consome o deslocamento compartilhado do cabeçalho.
 - AtlasMap.module.css mantém os tokens tipográficos exclusivos do Atlas no escopo local, com exceções responsivas nos próprios seletores. Cores cartográficas, geometria, câmera e medidas da composição continuam locais.
-- DS2.1-B aplica Space Grotesk 500 aos títulos e marcadores, com Geist nos textos, metadados e controles. Tamanhos desktop/mobile: hero 64/44, página 54/40, seção 36/28, card 24/22 e marcador 14/12 px. Em paisagem com altura até 700 px, o Atlas usa o hero mobile de 44 px e marcadores de 12 px para preservar a área do mapa.
+- DS2.1-B aplica Inter Black 900 aos títulos e marcadores, com Geist nos textos, metadados e controles. Tamanhos desktop/mobile: hero 64/44, página 54/40, seção 36/28, card 24/22 e marcador 14/12 px. Em paisagem com altura até 700 px, o Atlas usa o hero mobile de 44 px e marcadores de 12 px para preservar a área do mapa.
 
 Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados; 34 cenários de páginas PT/EN e nove tamanhos de viewport do Atlas, 108 aberturas/fechamentos com movimento reduzido e 24 navegações animadas dos seis cards para os detalhes em desktop/mobile. Fontes carregadas, tamanhos, pesos, foco, limites dos cards e ausência de scroll horizontal foram conferidos. Em até 380 px, a entrelinha e o espaço superior dos metadados foram compactados para evitar colisões, sem mover as âncoras ou reduzir a fonte. Capturas desktop/mobile foram inspecionadas; mobile foi simulado no navegador.
 
 ### Accent por categoria
 
-O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o neutro. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais permanecem neutros.
+O accent global é âmbar suave (#E1BE86). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o accent global. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais usam o accent global.
 
 ### Navbar desktop e área do Atlas
 
@@ -49,7 +49,7 @@ Validação do alinhamento à esquerda: 48 cenários desktop PT/EN conferiram ig
 
 ### Navbar mobile
 
-O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo próprio. O painel aberto ocupa a viewport com fundo opaco e links em Space Grotesk 500 alinhados à direita, indicador ativo neutro e GitHub/LinkedIn na base. O botão alterna para FECHAR × / CLOSE ×. A reserva do cabeçalho permanece em 61 px.
+O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo próprio. O painel aberto ocupa a viewport com fundo opaco e links em Inter Black 900 alinhados à direita, indicador ativo em âmbar suave e GitHub/LinkedIn na base. O botão alterna para FECHAR × / CLOSE ×. A reserva do cabeçalho permanece em 61 px.
 
 O ciclo existente de foco inclui agora os links de idioma no cabeçalho e os links do painel. A troca de idioma usa o mesmo fechamento da navegação interna, liberando o bloqueio de scroll e o conteúdo inerte. Escape, retorno de foco e fechamento ao atingir 48rem foram preservados. O painel permite rolagem própria em janelas baixas e respeita movimento reduzido e a área segura inferior.
 
@@ -57,7 +57,7 @@ Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, P
 
 ### Footer minimalista
 
-O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: com o mesmo recuo lateral do título e da Navbar na Home (--layout-home-inset), e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent neutro.
+O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: com o mesmo recuo lateral do título e da Navbar na Home (--layout-home-inset), e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent global em âmbar suave.
 
 O token --shell-footer-reserve define a altura mínima do Footer e a compensação de fluxo do Atlas: 56 px no desktop e 96 px abaixo de 48rem. O breakpoint acompanha exatamente o layout. Na Home desktop, o mapa ocupa a viewport inteira e compensa a altura do Footer com margem inferior negativa; o rodapé transparente fica acima do relevo, sem posição fixa ou scroll adicional. Nas páginas internas e no mobile, permanece no fluxo após o conteúdo. Uma sombra discreta protege a leitura dos textos sobre as curvas.
 

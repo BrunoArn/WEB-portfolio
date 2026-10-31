@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { NavbarMobile } from "@/components/layout/NavbarMobile";
@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const interBlack = Inter({
+  variable: "--font-inter-black",
   subsets: ["latin"],
-  weight: "500",
+  weight: "900",
   display: "swap",
 });
 
@@ -55,7 +55,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lang}>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${interBlack.variable}`}>
         <Navbar
           currentLocale={lang}
           labels={dictionary.navigation}

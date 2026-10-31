@@ -21,7 +21,7 @@ export function AboutAchievements({
         >
             <h2
                 id="about-achievements-title"
-                className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
+                className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
             >
                 {title}
             </h2>
@@ -37,7 +37,7 @@ export function AboutAchievements({
                         </span>
 
                         <div className="min-w-0">
-                            <h3 className="font-heading wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="font-heading wrap-break-word text-(length:--font-size-card-mobile) font-black leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {achievement.title}
                             </h3>
 

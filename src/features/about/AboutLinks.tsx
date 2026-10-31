@@ -32,7 +32,7 @@ export function AboutLinks({
     >
       <h2
         id="about-links-title"
-        className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
+        className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
       >
         {title}
       </h2>

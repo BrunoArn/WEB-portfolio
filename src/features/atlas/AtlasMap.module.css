@@ -67,7 +67,7 @@
   font-family: var(--font-family-heading);
   margin: 0 0 22px;
   font-size: var(--atlas-font-size-title);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
   line-height: var(--atlas-line-height-title);
   letter-spacing: var(--atlas-letter-spacing-title);
 }
@@ -151,7 +151,7 @@
   font-family: var(--font-family-heading);
   font-size: var(--atlas-font-size-marker);
   color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
 }
 .left {
   flex-direction: row-reverse;
@@ -415,7 +415,7 @@
 .selectedCopy h2 {
   font-family: var(--font-family-heading);
   font-size: var(--atlas-font-size-card-title);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
   line-height: var(--atlas-line-height-card-title);
   letter-spacing: var(--atlas-letter-spacing-card-title);
   margin: 0 0 var(--space-16);

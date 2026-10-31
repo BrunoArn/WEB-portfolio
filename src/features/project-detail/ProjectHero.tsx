@@ -45,7 +45,7 @@ export function ProjectHero({
                                 {project.categories[0]?.name}
                             </p>
 
-                            <h1 className="font-heading mt-(--space-8) max-w-4xl text-(length:--font-size-hero-desktop) font-medium leading-(--line-height-hero) text-app-text-primary">
+                            <h1 className="font-heading mt-(--space-8) max-w-4xl text-(length:--font-size-hero-desktop) font-black leading-(--line-height-hero) text-app-text-primary">
                                 {project.title}
                             </h1>
 
@@ -97,7 +97,7 @@ export function ProjectHero({
                         {project.categories[0]?.name}
                     </p>
 
-                    <h1 className="font-heading mt-(--space-8) text-(length:--font-size-hero-mobile) font-medium leading-(--line-height-hero) text-app-text-primary">
+                    <h1 className="font-heading mt-(--space-8) text-(length:--font-size-hero-mobile) font-black leading-(--line-height-hero) text-app-text-primary">
                         {project.title}
                     </h1>
 

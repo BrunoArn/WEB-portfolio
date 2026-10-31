@@ -58,7 +58,7 @@ export function NavbarMobile({
         pathname === aboutPath || pathname.startsWith(`${aboutPath}/`);
 
     const mobileNavLinkClass = (isActive: boolean) =>
-        `relative inline-block font-heading text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none ${isActive
+        `relative inline-block font-heading text-(length:--font-size-page-mobile) font-black leading-(--line-height-title) text-app-text-primary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none ${isActive
             ? "after:absolute after:right-0 after:-bottom-(--space-4) after:h-[2px] after:w-(--space-24) after:bg-app-accent"
             : ""
         }`;
