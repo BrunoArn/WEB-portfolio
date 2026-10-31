@@ -12,11 +12,11 @@ import { usePathname } from "next/navigation";
 import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { locales } from "@/i18n/config";
+import styles from "./NavbarMobile.module.css";
 
 type Locale = (typeof locales)[number];
 
 type NavbarMobileProps = {
-    name: string;
     openMenuLabel: string;
     closeMenuLabel: string;
     currentLocale: Locale;
@@ -25,6 +25,8 @@ type NavbarMobileProps = {
         linkedin?: string;
     };
     labels: {
+        menu: string;
+        close: string;
         home: string;
         projects: string;
         about: string;
@@ -32,7 +34,6 @@ type NavbarMobileProps = {
 };
 
 export function NavbarMobile({
-    name,
     openMenuLabel,
     closeMenuLabel,
     currentLocale,
@@ -40,6 +41,7 @@ export function NavbarMobile({
     labels,
 }: NavbarMobileProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const headerRef = useRef<HTMLElement>(null);
     const menuButtonRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -56,12 +58,10 @@ export function NavbarMobile({
         pathname === aboutPath || pathname.startsWith(`${aboutPath}/`);
 
     const mobileNavLinkClass = (isActive: boolean) =>
-        `block text-[length:var(--font-size-page-mobile)] font-semibold transition-colors duration-[var(--motion-fast)] ${isActive
-            ? "text-app-accent"
-            : "text-app-text-primary hover:text-app-accent"
+        `relative inline-block font-heading text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none ${isActive
+            ? "after:absolute after:right-0 after:-bottom-(--space-4) after:h-[2px] after:w-(--space-24) after:bg-app-accent"
+            : ""
         }`;
-
-
 
     useEffect(() => {
         if (!isOpen) {
@@ -115,9 +115,10 @@ export function NavbarMobile({
         }
 
         const panel = panelRef.current;
+        const header = headerRef.current;
         const menuButton = menuButtonRef.current;
 
-        if (!panel || !menuButton) {
+        if (!panel || !header || !menuButton) {
             return;
         }
 
@@ -159,7 +160,10 @@ export function NavbarMobile({
                 return;
             }
 
-            const focusableElements = [menuButton, ...panelElements];
+            const headerElements = Array.from(
+                header.querySelectorAll<HTMLElement>(focusableSelector),
+            );
+            const focusableElements = [...headerElements, ...panelElements];
 
             const firstElement = focusableElements[0];
             const lastElement = focusableElements[focusableElements.length - 1];
@@ -221,23 +225,24 @@ export function NavbarMobile({
 
     return (
         <>
-            <header className="fixed inset-x-0 top-0 z-50 border-b border-app-border bg-app-background md:hidden">
+            <header
+                ref={headerRef}
+                className={`${styles.header} fixed inset-x-0 top-0 z-50 md:hidden`}
+            >
                 <Container>
-                    <div className="flex items-center justify-between py-(--space-20)">
-                        <span className="text-(length:--font-size-label) font-medium text-app-text-primary">
-                            {name}
-                        </span>
-
+                    <div className="flex h-(--shell-header-offset) items-center justify-end gap-(--space-24) font-interface">
+                        <LocaleSwitcher currentLocale={currentLocale} onNavigate={handleInternalNavigation} />
                         <button
                             ref={menuButtonRef}
                             type="button"
-                            className="text-(length:--font-size-label) font-medium text-app-text-primary"
+                            className="inline-flex items-center gap-(--space-8) text-(length:--font-size-label) font-medium text-app-text-primary"
                             aria-label={isOpen ? closeMenuLabel : openMenuLabel}
                             aria-expanded={isOpen}
                             aria-controls="mobile-navigation-panel"
                             onClick={() => setIsOpen((current) => !current)}
                         >
-                            [MENU]
+                            {isOpen ? labels.close : labels.menu}
+                            {isOpen && <span aria-hidden="true">×</span>}
                         </button>
                     </div>
                 </Container>
@@ -248,7 +253,7 @@ export function NavbarMobile({
                 id="mobile-navigation-panel"
                 inert={!isOpen}
                 aria-hidden={!isOpen}
-                className={`fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
+                className={`${styles.panel} fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-app-background transition-[opacity,transform] duration-(--motion-ui) ease-out motion-reduce:transition-none md:hidden ${isOpen
                     ? "pointer-events-auto translate-y-0 opacity-100"
                     : "pointer-events-none -translate-y-2 opacity-0"
                     }`}
@@ -256,9 +261,9 @@ export function NavbarMobile({
                 <Container>
                     <nav
                         aria-label={openMenuLabel}
-                        className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-40))]"
+                        className="flex min-h-dvh flex-col items-end gap-(--space-40) pt-[calc(var(--shell-header-offset)+var(--space-32))] text-right"
                     >
-                        <ul className="flex flex-col gap-(--space-20)">
+                        <ul className="flex flex-col items-end gap-(--space-20)">
                             <li>
                                 <Link
                                     href={homePath}
@@ -293,17 +298,15 @@ export function NavbarMobile({
                             </li>
                         </ul>
 
-                        <div className="mt-auto flex flex-col gap-(--space-20) pb-(--space-24)">
-                            <LocaleSwitcher currentLocale={currentLocale} />
-
+                        <div className="mt-auto w-full pt-(--space-24)">
                             {(professionalLinks.github || professionalLinks.linkedin) && (
-                                <div className="flex gap-(--space-20) text-(length:--font-size-label) font-medium">
+                                <div className="flex flex-wrap justify-end gap-(--space-20) text-(length:--font-size-label) font-medium">
                                     {professionalLinks.github && (
                                         <a
                                             href={professionalLinks.github}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="text-app-text-secondary"
+                                            className="inline-flex min-h-10 items-center text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none"
                                         >
                                             GITHUB ↗
                                         </a>
@@ -314,7 +317,7 @@ export function NavbarMobile({
                                             href={professionalLinks.linkedin}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="text-app-text-secondary"
+                                            className="inline-flex min-h-10 items-center text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none"
                                         >
                                             LINKEDIN ↗
                                         </a>

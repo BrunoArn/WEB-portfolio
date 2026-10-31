@@ -104,7 +104,9 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             const canAnimate = typeof document.startViewTransition === "function" &&
                 !matchMedia("(prefers-reduced-motion: reduce)").matches;
             const ready = !canAnimate || !project?.image || await prepareCover(project.image.src);
-            if (cancelled || token !== navigationEpoch || root.current?.dataset.selection !== "selected") {
+            const selectionState = root.current?.dataset.selection;
+            if (cancelled || token !== navigationEpoch ||
+                (selectionState !== "opening" && selectionState !== "selected")) {
                 navigationPending = false;
                 if (!cancelled) setNavigating(false);
                 return;

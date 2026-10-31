@@ -8,12 +8,12 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 
 | Quero alterar… | Onde começar |
 | --- | --- |
-| Fonte do site | `src/styles/globals.css`; carregamento no layout de idioma |
+| Fontes do site | Famílias semânticas em `src/styles/tokens.css`, mapeamento em `globals.css`; carregamento no layout de idioma |
 | Cores/tamanhos compartilhados da interface | `src/styles/tokens.css` |
 | Textos PT/EN, acessibilidade e mensagens | Bloco `atlas` dos dicionários em `src/i18n/dictionaries/` |
 | Projetos, imagens, categorias, posições e massas auxiliares | Sanity; `atlas-content.ts` adapta esses dados |
 | Estrutura dos marcadores, título e card | `AtlasMap.tsx` |
-| Aparência e adaptação da interface do mapa | `AtlasMap.module.css` |
+| Aparência e adaptação da interface do mapa | `AtlasMap.module.css`; tokens `--atlas-*` locais e exceções responsivas junto aos seletores |
 | Inicialização, recuperação estática e controles locais | `useAtlasScene.ts` |
 | Enquadramento e dimensões do mundo | `atlas-layout.ts` e `atlas-composition.ts` |
 | Formação do relevo / territórios | `atlas-field.ts`; `atlas-engine.ts` extrai e prepara as curvas |
@@ -23,6 +23,45 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 | Entrada da página | `atlas-entrance.ts` coordena; `atlas-growth.ts` calcula o avanço |
 | Passagem do card para o detalhe | `components/projects/ProjectCoverTransition.tsx`, navegação em `useAtlasScene.ts`, estilos de snapshots em `styles/globals.css` |
 | Zoom, transformação da miniatura e fechamento | `atlas-interaction.ts` |
+
+### Tokens e escopo dos estilos
+
+- styles/tokens.css concentra a escala compartilhada, famílias semânticas e reservas de cabeçalho/rodapé do shell. As famílias são resolvidas no body, onde o layout instala as variáveis do next/font.
+- styles/globals.css aplica os padrões e expõe as famílias ao Tailwind. O layout carrega as fontes e consome o deslocamento compartilhado do cabeçalho.
+- AtlasMap.module.css mantém os tokens tipográficos exclusivos do Atlas no escopo local, com exceções responsivas nos próprios seletores. Cores cartográficas, geometria, câmera e medidas da composição continuam locais.
+- DS2.1-B aplica Space Grotesk 500 aos títulos e marcadores, com Geist nos textos, metadados e controles. Tamanhos desktop/mobile: hero 64/44, página 54/40, seção 36/28, card 24/22 e marcador 14/12 px. Em paisagem com altura até 700 px, o Atlas usa o hero mobile de 44 px e marcadores de 12 px para preservar a área do mapa.
+
+Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados; 34 cenários de páginas PT/EN e nove tamanhos de viewport do Atlas, 108 aberturas/fechamentos com movimento reduzido e 24 navegações animadas dos seis cards para os detalhes em desktop/mobile. Fontes carregadas, tamanhos, pesos, foco, limites dos cards e ausência de scroll horizontal foram conferidos. Em até 380 px, a entrelinha e o espaço superior dos metadados foram compactados para evitar colisões, sem mover as âncoras ou reduzir a fonte. Capturas desktop/mobile foram inspecionadas; mobile foi simulado no navegador.
+
+### Accent por categoria
+
+O accent global é neutro (#E2E5E3). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o neutro. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais permanecem neutros.
+
+### Navbar desktop e área do Atlas
+
+A Navbar desktop fica alinhada à esquerda. Na Home, compartilha com o título o token --layout-home-inset: 5% da largura, ou 12 px em paisagem de até 450 px de altura. Nas páginas internas, volta ao alinhamento esquerdo do Container de 1280 px. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
+
+A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa os espaços do shell e ocupa a altura inteira da janela, permitindo que o relevo passe também sob o Footer. O título permanece abaixo da navegação, inclusive em paisagem baixa. Até 450 px de altura, o rótulo do Bloomancer fica à direita da miniatura para evitar colisões; a âncora da miniatura e os 44 px do título são preservados. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
+
+Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
+
+Validação do alinhamento à esquerda: 48 cenários desktop PT/EN conferiram igualdade com o recuo do título na Home, alinhamento interno, foco e ausência de scroll horizontal. A animação foi medida nos dois sentidos, incluindo movimento reduzido. Mais 24 ciclos de cards em quatro cenários de paisagem baixa verificaram o rótulo compacto e a ausência de colisões. A Navbar mobile conservou seu alinhamento.
+
+### Navbar mobile
+
+O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo próprio. O painel aberto ocupa a viewport com fundo opaco e links em Space Grotesk 500 alinhados à direita, indicador ativo neutro e GitHub/LinkedIn na base. O botão alterna para FECHAR × / CLOSE ×. A reserva do cabeçalho permanece em 61 px.
+
+O ciclo existente de foco inclui agora os links de idioma no cabeçalho e os links do painel. A troca de idioma usa o mesmo fechamento da navegação interna, liberando o bloqueio de scroll e o conteúdo inerte. Escape, retorno de foco e fechamento ao atingir 48rem foram preservados. O painel permite rolagem própria em janelas baixas e respeita movimento reduzido e a área segura inferior.
+
+Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, Projetos, Sobre e detalhe em PT/EN, com larguras de 320, 390, 760 e 767 px e uma janela de 390×320. Foram conferidos estados aberto/fechado, tipografia, foco nos dois sentidos, Escape, retorno do scroll, navegação, idioma e breakpoint 767→768 px. Mobile foi simulado no navegador.
+
+### Footer minimalista
+
+O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: com o mesmo recuo lateral do título e da Navbar na Home (--layout-home-inset), e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent neutro.
+
+O token --shell-footer-reserve define a altura mínima do Footer e a compensação de fluxo do Atlas: 56 px no desktop e 96 px abaixo de 48rem. O breakpoint acompanha exatamente o layout. Na Home desktop, o mapa ocupa a viewport inteira e compensa a altura do Footer com margem inferior negativa; o rodapé transparente fica acima do relevo, sem posição fixa ou scroll adicional. Nas páginas internas e no mobile, permanece no fluxo após o conteúdo. Uma sombra discreta protege a leitura dos textos sobre as curvas.
+
+Validação do Footer: 48 cenários PT/EN de layout, foco e hover; 16 cenários de integração com o Atlas sem colisões entre controles do Footer e marcadores; animação medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Build, TypeScript e lint aprovados. Mobile foi simulado no navegador.
 
 ### Caminho dos dados e responsabilidades
 
@@ -168,6 +207,10 @@ Ao abrir o card, prepareProjectCover escolhe e decodifica a imagem com getImageP
 A limpeza de layout libera o modal e a trava do body antes de medir/focar o destino. A limpeza passiva continua liberando os demais recursos da cena. Restaurar o scroll da Home na desmontagem sobrescreveria o enquadramento do detalhe; apenas o fechamento normal devolve a rolagem salva. Essa ordem também evita um deslocamento ao reaparecer a barra de rolagem no desktop. Não são mantidas cópias manuais da imagem entre rotas nem criada outra câmera de navegação.
 
 Verificação desta rodada: build de produção, TypeScript e lint; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, cobrindo os três links e teclado. Foram conferidos navegação no mesmo documento, capa pronta na captura, ausência de modal bloqueando o destino e estabilidade do hero até o fim, também com scrollbars visíveis. Casos adicionais cobriram voltar ao mapa, nova aba, ausência da API, movimento reduzido e carregamento lento de rota/imagem. Testes de falha/timeout da imagem e cancelamento durante a preparação passaram. A navegação de volta mantém o funcionamento normal do histórico; a transformação compartilhada é priorizada no percurso card → detalhe. Capturas intermediárias foram inspecionadas; não houve teste físico no S23 ou revisão em outros navegadores nesta rodada.
+
+A foto do card aceita clique e toque já durante a abertura: apenas a mídia recupera os eventos de ponteiro enquanto o restante do card mantém a proteção existente. A navegação aceita os estados opening e selected, sem exigir o término dos 400 ms. O preparo antecipado da capa, o bloqueio de cliques repetidos e o cancelamento por fechamento continuam ativos.
+
+Verificação da navegação antecipada: lint, TypeScript e build aprovados; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, incluindo teclado. Foram exercitados cliques com a abertura mantida em quadros intermediários e um clique real com a foto em movimento; o cancelamento por Escape durante o preparo de uma capa lenta também passou, sem deixar modal ou scroll bloqueados.
 
 ### Preparo antecipado da navegação
 

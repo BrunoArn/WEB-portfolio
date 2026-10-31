@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { accentStyle } from "@/styles/accent";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
@@ -123,7 +124,7 @@ export default async function ProjectPage({
 
     return (
         <ViewTransition default="none" enter="project-page-enter">
-            <main data-project-detail>
+            <main data-project-detail style={accentStyle(project.accentColor)}>
                 <Container>
                     <div className="pt-(--space-24) md:pt-(--space-32)">
                         <ProjectHero

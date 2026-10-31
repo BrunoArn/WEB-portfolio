@@ -17,10 +17,13 @@ export const projectProjection = `
     _id,
     name,
     slug,
-    order
+    order,
+    atlas{isTerritory, color}
   },
   []
 ),
+
+  atlas{territory{_ref}},
 
   "technologies": coalesce(technologies, []),
 

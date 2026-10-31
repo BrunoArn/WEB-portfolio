@@ -58,7 +58,7 @@ export default async function AboutPage({
                             {dictionary.navigation.about}
                         </p>
 
-                        <h1 className="wrap-break-word mt-(--space-16) text-(length:--font-size-hero-mobile) font-semibold leading-(--line-height-hero) text-app-text-primary md:text-(length:--font-size-hero-desktop)">
+                        <h1 className="font-heading wrap-break-word mt-(--space-16) text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
                             {about.name}
                         </h1>
 

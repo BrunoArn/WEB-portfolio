@@ -5,18 +5,32 @@
   position: relative;
   --atlas-world-width: var(--atlas-desktop-width);
   --atlas-world-height: var(--atlas-desktop-height);
-  --atlas-background: #0b1211;
+  --atlas-background: var(--color-background);
   --atlas-text: var(--color-text-body);
   --atlas-text-secondary: var(--color-text-secondary);
-  --atlas-footer-reserve: 68px;
-  height: var(--atlas-available-height, calc(100dvh - 61px - var(--atlas-footer-reserve)));
+  /* Shared type scale; only markers and map-specific adjustments remain local. */
+  --atlas-font-size-title: var(--font-size-hero-desktop);
+  --atlas-font-size-marker: 14px;
+  --atlas-font-size-territory: clamp(13px, 1.05vw, var(--font-size-body));
+  --atlas-font-size-marker-meta: var(--font-size-label);
+  --atlas-font-size-card-title: var(--font-size-card-desktop);
+  --atlas-font-size-body: var(--font-size-body);
+  --atlas-font-size-caption: var(--font-size-label);
+  --atlas-font-size-control: var(--font-size-label);
+  --atlas-line-height-interface: 1.5;
+  --atlas-line-height-title: var(--line-height-hero);
+  --atlas-line-height-card-title: var(--line-height-card);
+  --atlas-line-height-body: var(--line-height-body);
+  --atlas-letter-spacing-title: -1.5px;
+  --atlas-letter-spacing-card-title: -.7px;
+  height: var(--atlas-available-height, calc(100dvh - var(--shell-header-offset) - var(--shell-footer-reserve)));
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--atlas-background);
   color: var(--atlas-text);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--atlas-font-size-body);
+  line-height: var(--atlas-line-height-interface);
 }
 .viewport {
   position: relative;
@@ -45,16 +59,17 @@
 }
 .intro {
   position: absolute;
-  left: 5%;
+  left: var(--layout-home-inset);
   top: 7%;
   pointer-events: none;
 }
 .title {
+  font-family: var(--font-family-heading);
   margin: 0 0 22px;
-  font-size: clamp(30px, 3.7vw, var(--font-size-hero-desktop));
-  font-weight: var(--font-weight-regular);
-  line-height: 1.05;
-  letter-spacing: -1.5px;
+  font-size: var(--atlas-font-size-title);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--atlas-line-height-title);
+  letter-spacing: var(--atlas-letter-spacing-title);
 }
 .aboutLink {
   color: inherit;
@@ -76,7 +91,7 @@
   max-width: 280px;
   margin: 0;
   color: var(--atlas-text-secondary);
-  font-size: var(--font-size-label);
+  font-size: var(--font-size-body);
 }
 .projects {
   list-style: none;
@@ -98,7 +113,7 @@
   position: absolute;
   z-index: -1;
   inset: -30px -25px;
-  background: radial-gradient(ellipse, var(--atlas-background) 25%, #0b1211d9 50%, transparent 73%);
+  background: radial-gradient(ellipse, var(--atlas-background) 25%, rgb(from var(--atlas-background) r g b / calc(217 / 255)) 50%, transparent 73%);
   pointer-events: none;
 }
 .thumb {
@@ -129,12 +144,14 @@
 .projectMeta {
   display: block;
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: var(--atlas-font-size-marker-meta);
   margin-top: 5px;
 }
 .projectTitle {
-  font-size: 13px;
+  font-family: var(--font-family-heading);
+  font-size: var(--atlas-font-size-marker);
   color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
 }
 .left {
   flex-direction: row-reverse;
@@ -144,13 +161,13 @@
 .territory {
   position: absolute;
   pointer-events: none;
-  font-size: clamp(13px, 1.05vw, 16px);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.2;
+  font-size: var(--atlas-font-size-territory);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-title);
   letter-spacing: 3px;
   text-transform: uppercase;
   opacity: 1;
-  text-shadow: 0 2px 8px #0b1211, 0 0 18px #0b1211;
+  text-shadow: 0 2px 8px var(--atlas-background), 0 0 18px var(--atlas-background);
 }
 @media (min-width: 761px) and (max-width: 1000px) {
   .project {
@@ -158,13 +175,7 @@
     gap: 10px;
   }
   .label {
-    font-size: 11px;
-  }
-  .projectTitle {
-    font-size: var(--font-size-label);
-  }
-  .title {
-    font-size: 34px;
+    font-size: var(--atlas-font-size-control);
   }
 }
 @media (max-width: 760px) {
@@ -192,7 +203,7 @@
     left: 7%;
   }
   .title {
-    font-size: 39px;
+    --atlas-font-size-title: var(--font-size-hero-mobile);
     margin: 0 0 var(--space-16);
   }
   .project {
@@ -209,23 +220,18 @@
     transform: translate(calc(-100% + 23px), -50%);
   }
   .label, .projectTitle {
-    font-size: 11px;
-  }
-  .projectMeta {
-    font-size: 9px;
+    --atlas-font-size-marker: 12px;
+    font-size: var(--atlas-font-size-marker);
   }
 }
 @media (max-width: 380px) {
   .project {
     max-width: 176px;
   }
-  .title {
-    font-size: 35px;
-  }
-}
-@media (max-width: 767px) {
-  .root {
-    --atlas-footer-reserve: 104px;
+  /* Keep multi-line metadata clear of adjacent markers on narrow phones. */
+  .projectMeta {
+    margin-top: var(--space-4);
+    line-height: var(--line-height-title);
   }
 }
 @media (min-width: 761px) and (max-height: 700px) {
@@ -239,7 +245,8 @@
     display: none;
   }
   .title {
-    font-size: 28px;
+    /* Short landscape viewports use the approved mobile hero size to preserve map space. */
+    --atlas-font-size-title: var(--font-size-hero-mobile);
     margin: 0;
   }
   .project {
@@ -258,8 +265,9 @@
     height: 16px;
   }
   .label, .projectTitle {
-    font-size: 10px;
-    line-height: 1.2;
+    --atlas-font-size-marker: 12px;
+    font-size: var(--atlas-font-size-marker);
+    line-height: var(--line-height-title);
   }
   .projectMeta {
     display: none;
@@ -272,10 +280,6 @@
 @media (min-width: 761px) and (max-height: 450px) {
   .intro {
     left: var(--space-12);
-  }
-  .title {
-    font-size: 18px;
-    max-width: 130px;
   }
   .territory {
     display: none;
@@ -409,28 +413,29 @@
   padding: 24px 28px 26px;
 }
 .selectedCopy h2 {
-  font-size: 36px;
-  font-weight: var(--font-weight-regular);
-  line-height: 1.12;
-  letter-spacing: -.7px;
+  font-family: var(--font-family-heading);
+  font-size: var(--atlas-font-size-card-title);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--atlas-line-height-card-title);
+  letter-spacing: var(--atlas-letter-spacing-card-title);
   margin: 0 0 var(--space-16);
   color: var(--color-text-primary);
   overflow-wrap: break-word;
 }
 .selectedCopy p {
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--atlas-font-size-body);
+  line-height: var(--atlas-line-height-body);
   color: var(--color-text-body);
   margin: 0;
 }
 .selectedCopy .selectedCategory {
   color: var(--atlas-tone);
-  font-size: 10px;
+  font-size: var(--atlas-font-size-caption);
   letter-spacing: 2px;
   margin: 0 0 10px;
 }
 .selectedCopy .mediaNote {
-  font-size: 10px;
+  font-size: var(--atlas-font-size-caption);
   color: var(--color-text-secondary);
   margin: 20px 0 0;
 }
@@ -446,7 +451,7 @@
   border: 1px solid #ffffff30;
   color: var(--color-text-primary);
   padding: 9px 12px;
-  font-size: 11px;
+  font-size: var(--atlas-font-size-control);
   border-radius: var(--radius-card);
   cursor: pointer;
 }
@@ -495,7 +500,7 @@
     padding: 22px;
   }
   .selectedCopy h2 {
-    font-size: 29px;
+    --atlas-font-size-card-title: var(--font-size-card-mobile);
   }
 }
 @media (min-width: 761px) and (max-height: 700px) {
@@ -514,6 +519,10 @@
 }
 .root[data-selection="opening"] .card {
   pointer-events: none;
+}
+/* The moving photo remains a usable link before the card finishes opening. */
+.root[data-selection="opening"] .selectedMedia {
+  pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
   .project, .territory {
@@ -544,7 +553,7 @@
 }
 @media (max-width: 760px) {
   .territory {
-    font-size: 13px;
+    --atlas-font-size-territory: 13px;
     letter-spacing: 2.5px;
   }
 }
@@ -590,8 +599,8 @@
 }
 .terrainPanel p {
   color: var(--atlas-text-secondary);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: var(--atlas-font-size-control);
+  line-height: var(--atlas-line-height-interface);
 }
 .terrainPanel label {
   display: grid;
@@ -689,11 +698,11 @@
   z-index: 3;
   margin: 0;
   padding: 5px 9px;
-  background: #0b1211df;
+  background: rgb(from var(--atlas-background) r g b / calc(223 / 255));
   border: 1px solid #34483e;
   border-radius: 5px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: var(--atlas-font-size-control);
   pointer-events: none;
 }
 /* The entrance shares its spatial wave with the shader; anchoring stays intact. */
@@ -726,4 +735,37 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .selectedCopy { transition: none; }
+}
+
+/* Let the desktop terrain continue behind navigation and Footer.
+   Shell controls stay above the map; art-directed world coordinates stay unchanged. */
+@media (min-width: 48rem) {
+  .root {
+    margin-top: calc(0px - var(--shell-header-offset));
+    margin-bottom: calc(0px - var(--shell-footer-reserve));
+    height: var(--atlas-available-height, 100dvh);
+  }
+  .intro {
+    top: calc(var(--shell-header-offset) + 7%);
+  }
+}
+
+@media (min-width: 48rem) and (max-height: 700px) {
+  .intro {
+    top: calc(var(--shell-header-offset) + var(--space-8));
+  }
+}
+
+/* Keep the compact title below the left-aligned navigation.
+   Only the label changes sides; the thumbnail keeps its existing map anchor. */
+@media (min-width: 48rem) and (max-height: 450px) {
+  .intro {
+    left: var(--layout-home-inset);
+    top: calc(var(--shell-header-offset) + var(--space-8));
+  }
+  .project[data-atlas-placement="bloomancer"] {
+    flex-direction: row;
+    transform: translate(-12px, -50%);
+    text-align: left;
+  }
 }

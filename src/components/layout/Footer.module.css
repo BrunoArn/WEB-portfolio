@@ -1,0 +1,26 @@
+.footer {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px var(--color-background), 0 0 8px var(--color-background);
+}
+
+.content {
+  padding-inline: var(--layout-margin-mobile);
+}
+
+@media (min-width: 48rem) {
+  .content {
+    padding-inline: max(var(--layout-margin-desktop), calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop)));
+    transition: padding-inline var(--motion-navigation) cubic-bezier(.22, .72, .18, 1);
+  }
+
+  .footer[data-home="true"] .content {
+    padding-inline: var(--layout-home-inset);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    transition: none;
+  }
+}

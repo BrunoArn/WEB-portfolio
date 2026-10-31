@@ -1,6 +1,7 @@
 "use client";
 
 import type { Category } from "@/content/types/category";
+import { accentStyle } from "@/styles/accent";
 
 type ProjectsFiltersProps = {
     categories: Category[];
@@ -42,6 +43,7 @@ export function ProjectsFilters({
                 return (
                     <button
                         key={category.slug}
+                        style={accentStyle(category.accentColor)}
                         type="button"
                         aria-pressed={isActive}
                         onClick={() => onFilterChange(category.slug)}

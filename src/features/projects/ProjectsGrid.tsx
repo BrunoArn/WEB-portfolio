@@ -1,4 +1,5 @@
 import type { Project } from "@/content/types/project";
+import { accentStyle } from "@/styles/accent";
 import type { Locale } from "@/i18n/config";
 import Link from "next/link";
 
@@ -23,6 +24,7 @@ export function ProjectsGrid({
             {projects.map((project) => (
                 <Link
                     key={project.slug}
+                        style={accentStyle(project.accentColor)}
                     href={`/${locale}/projects/${project.slug}`}
                     className="group block overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                 >
@@ -41,7 +43,7 @@ export function ProjectsGrid({
                             {project.categories[0]?.name}
                         </p>
 
-                        <h2 className="mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                        <h2 className="font-heading mt-(--space-8) text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                             {project.title}
                         </h2>
 

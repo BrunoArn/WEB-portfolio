@@ -25,7 +25,7 @@ export function ProjectInfo({
 }: ProjectInfoProps) {
     return (
         <aside className="min-w-0 [overflow-wrap:anywhere] rounded-(--radius-card) border border-app-border bg-app-surface p-(--panel-padding-mobile) md:p-(--panel-padding)">
-            <h2 className="text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+            <h2 className="font-heading text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                 {labels.title}
             </h2>
 

@@ -55,6 +55,7 @@ export interface Project {
     organization?: string;
 
     categories: Category[];
+    accentColor?: string;
     technologies: string[];
     team: ProjectTeamMember[];
 

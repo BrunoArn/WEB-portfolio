@@ -1,11 +1,12 @@
 :root {
     /* Colors */
-    --color-background: #0e1012;
+    --color-background: #0b1211;
 
     --color-surface: #171c20;
     --color-surface-elevated: #20272d;
 
-    --color-accent: #a6d86e;
+    --color-accent-default: #E2E5E3;
+    --color-accent: var(--color-accent-default);
 
     --color-text-primary: #f2f3f4;
     --color-text-body: #c5cace;
@@ -31,6 +32,11 @@
     --layout-max-width: 1280px;
     --layout-margin-desktop: 40px;
     --layout-margin-mobile: 20px;
+    --layout-home-inset: 5%;
+
+    /* Shared shell reservations, consumed by the layout, Footer and Atlas. */
+    --shell-header-offset: calc(var(--space-40) + var(--space-20) + 1px);
+    --shell-footer-reserve: 56px;
 
     /* Semantic spacing */
     --section-spacing-desktop: var(--space-80);
@@ -55,19 +61,20 @@
     --motion-ui: 250ms;
     --motion-featured: 300ms;
     --motion-project-cover: 520ms;
+    --motion-navigation: 360ms;
 
     /* Typography — font sizes */
-    --font-size-hero-desktop: 56px;
-    --font-size-hero-mobile: 36px;
+    --font-size-hero-desktop: 64px;
+    --font-size-hero-mobile: 44px;
 
-    --font-size-page-desktop: 42px;
-    --font-size-page-mobile: 32px;
+    --font-size-page-desktop: 54px;
+    --font-size-page-mobile: 40px;
 
-    --font-size-section-desktop: 28px;
-    --font-size-section-mobile: 22px;
+    --font-size-section-desktop: 36px;
+    --font-size-section-mobile: 28px;
 
-    --font-size-card-desktop: 20px;
-    --font-size-card-mobile: 18px;
+    --font-size-card-desktop: 24px;
+    --font-size-card-mobile: 22px;
 
     --font-size-body: 16px;
     --font-size-label: 12px;
@@ -83,4 +90,25 @@
     --line-height-card: 1.3;
     --line-height-body: 1.6;
     --line-height-label: 1.4;
+}
+/* Matches the shell's md breakpoint, independently of the Atlas's 760px map breakpoint. */
+@media (width < 48rem) {
+    :root {
+        --shell-footer-reserve: 96px;
+    }
+}
+
+/* Share the compact Home title inset with desktop navigation. */
+@media (min-width: 48rem) and (max-height: 450px) {
+    :root {
+        --layout-home-inset: var(--space-12);
+    }
+}
+
+/* next/font variables are attached to body by the locale layout.
+   Resolve family tokens here, where those variables are available. */
+body {
+    --font-family-body: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+    --font-family-heading: var(--font-space-grotesk), var(--font-family-body);
+    --font-family-interface: var(--font-family-body);
 }

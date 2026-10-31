@@ -42,6 +42,7 @@ export interface SanityProject {
     organization: LocalizedValue | null;
 
     categories: Array<SanityCategory | null>;
+    atlas?: { territory?: { _ref?: string } | null } | null;
     technologies: string[];
     team: SanityProjectTeamMember[];
 

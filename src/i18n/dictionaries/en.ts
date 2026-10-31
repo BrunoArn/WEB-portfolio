@@ -1,5 +1,7 @@
 const en = {
   navigation: {
+    menu: "MENU",
+    close: "CLOSE",
     home: "Home",
     projects: "Projects",
     about: "About",

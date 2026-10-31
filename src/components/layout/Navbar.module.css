@@ -1,0 +1,25 @@
+/* Keep the fixed navigation readable over imagery without painting a header bar. */
+.header {
+  text-shadow: 0 1px 2px var(--color-background), 0 0 8px var(--color-background);
+}
+
+.header a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-control);
+}
+
+.navigation {
+  padding-inline: max(var(--layout-margin-desktop), calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop)));
+  transition: padding-inline var(--motion-navigation) cubic-bezier(.22, .72, .18, 1);
+}
+
+.header[data-home="true"] .navigation {
+  padding-inline: var(--layout-home-inset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation {
+    transition: none;
+  }
+}

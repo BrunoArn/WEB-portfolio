@@ -10,7 +10,8 @@ const categoriesQuery = `
     _id,
     name,
     slug,
-    order
+    order,
+    atlas{isTerritory, color}
   }
 `;
 

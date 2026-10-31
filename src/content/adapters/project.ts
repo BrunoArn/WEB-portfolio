@@ -154,7 +154,20 @@ export function adaptProject(
     );
   }
 
+  const categories = validCategories.map((category) =>
+    adaptCategory(category, language),
+  );
+  const territoryId = project.atlas?.territory?._ref?.replace(/^drafts\./, "");
+  // Match the Atlas territory even when it is not the first category.
+  // An explicitly selected but invalid territory must not borrow another color.
+  const accentCategory = territoryId
+    ? categories[validCategories.findIndex((category) =>
+      category._id.replace(/^drafts\./, "") === territoryId,
+    )]
+    : categories.find((category) => category.accentColor);
+
   return {
+    ...(accentCategory?.accentColor ? { accentColor: accentCategory.accentColor } : {}),
     title: resolveLocalizedValue(project.title, language),
     slug,
     year: project.year,
@@ -176,9 +189,7 @@ export function adaptProject(
       ? resolveLocalizedValue(project.organization, language)
       : undefined,
 
-    categories: validCategories.map((category) =>
-      adaptCategory(category, language),
-    ),
+    categories,
 
     technologies: project.technologies,
 

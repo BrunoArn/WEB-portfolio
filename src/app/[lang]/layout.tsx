@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { NavbarMobile } from "@/components/layout/NavbarMobile";
@@ -17,6 +17,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: "500",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -48,14 +55,13 @@ export default async function RootLayout({
 
   return (
     <html lang={lang}>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}>
         <Navbar
           currentLocale={lang}
           labels={dictionary.navigation}
         />
 
         <NavbarMobile
-          name="Bruno Arnaud"
           openMenuLabel={dictionary.navigation.openMenu}
           closeMenuLabel={dictionary.navigation.closeMenu}
           labels={dictionary.navigation}
@@ -66,11 +72,10 @@ export default async function RootLayout({
           currentLocale={lang}
         />
 
-        {/* Header padding + text line box + bottom border; desktop also has link padding.
-            The mobile menu button inherits body typography through globals.css. */}
+        {/* Reserve the fixed header footprint; the desktop Atlas compensates this space locally. */}
         <div
           data-app-shell-content
-          className="flex min-h-dvh flex-col pt-[calc(var(--space-40)+var(--space-20)+1px)]"
+          className="flex min-h-dvh flex-col pt-(--shell-header-offset)"
         >
           <div className="flex-1">
             {children}
