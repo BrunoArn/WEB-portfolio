@@ -13,6 +13,8 @@ import { ProjectInfo } from "@/features/project-detail/ProjectInfo";
 import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPreview";
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
+import { ProjectAtlasBackground } from "@/features/project-detail/ProjectAtlasBackground";
+import backgroundStyles from "@/features/project-detail/ProjectAtlasBackground.module.css";
 
 // Prebuild existing projects; new published slugs can still render on demand.
 export const revalidate = 60;
@@ -124,7 +126,12 @@ export default async function ProjectPage({
 
     return (
         <ViewTransition default="none" enter="project-page-enter">
-            <main data-project-detail style={accentStyle(project.accentColor)}>
+            <main data-project-detail className={backgroundStyles.page} style={accentStyle(project.accentColor)}>
+                <ProjectAtlasBackground
+                    slug={project.slug}
+                    locale={lang}
+                    labels={dictionary.atlas.content}
+                />
                 <Container>
                     <div className="pt-(--space-24) md:pt-(--space-32)">
                         <ProjectHero
