@@ -5,17 +5,17 @@ import { mountAtlasTerrain } from "@/features/atlas/atlas-engine";
 import { getAtlasView } from "@/features/atlas/atlas-layout";
 import { atlasMobileQuery } from "@/features/atlas/atlas-composition";
 import type { AtlasAnchor, AtlasContent, AtlasTerritory } from "@/features/atlas/atlas-types";
-import styles from "./ProjectAtlasBackground.module.css";
+import styles from "./AtlasBackground.module.css";
 
-type ProjectAtlasBackdropProps = {
-    slug: string;
-    projectId: string;
+type AtlasBackdropProps = {
+    projectSlug?: string;
+    projectId?: string;
     projects: AtlasAnchor[];
     territories: AtlasTerritory[];
     terrain: AtlasContent["terrain"];
 };
 
-export function ProjectAtlasBackdrop({ slug, projectId, projects, territories, terrain }: ProjectAtlasBackdropProps) {
+export function AtlasBackdrop({ projectSlug, projectId, projects, territories, terrain }: AtlasBackdropProps) {
     const viewportRef = useRef<HTMLDivElement>(null);
     const worldRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,7 +27,7 @@ export function ProjectAtlasBackdrop({ slug, projectId, projects, territories, t
         const canvas = canvasRef.current;
         const clearing = clearingRef.current;
         const project = projects.find(anchor => anchor.id === projectId);
-        if (!viewport || !world || !canvas || !clearing || !project) return;
+        if (!viewport || !world || !canvas || !clearing || (projectId && !project)) return;
 
         // Reuse the resting Atlas renderer: no WebGL context, animation or pointer listeners.
         const controller = mountAtlasTerrain(canvas, viewport, clearing, projects, territories, atlasMobileQuery, terrain, {
@@ -44,11 +44,12 @@ export function ProjectAtlasBackdrop({ slug, projectId, projects, territories, t
 
             const mobile = media.matches;
             const view = getAtlasView(width, height, mobile);
-            const zoom = mobile ? 1.65 : 1.85;
-            const x = view.offsetX + (mobile ? project.mx : project.x) * view.world.width * view.scale;
-            const y = view.offsetY + (mobile ? project.my : project.y) * view.world.height * view.scale;
-            const tx = width / 2 - x * zoom;
-            const ty = height / 2 - y * zoom;
+            // Full views retain the Atlas composition; mobile fits its entire tall world.
+            const zoom = project ? (mobile ? 1.65 : 1.85) : Math.min(1, height / (view.world.height * view.scale));
+            const x = project ? view.offsetX + (mobile ? project.mx : project.x) * view.world.width * view.scale : 0;
+            const y = project ? view.offsetY + (mobile ? project.my : project.y) * view.world.height * view.scale : 0;
+            const tx = project ? width / 2 - x * zoom : (width - view.world.width * view.scale * zoom) / 2 - view.offsetX * zoom;
+            const ty = project ? height / 2 - y * zoom : height - view.world.height * view.scale * zoom - view.offsetY * zoom;
             world.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
 
             // Rasterize only the visible region at resting density; the faded background
@@ -81,7 +82,7 @@ export function ProjectAtlasBackdrop({ slug, projectId, projects, territories, t
     }, [projectId, projects, territories, terrain]);
 
     return (
-        <div ref={viewportRef} className={styles.backdrop} data-project-atlas-background={slug} aria-hidden="true">
+        <div ref={viewportRef} className={styles.backdrop} data-atlas-background={projectSlug ? "project" : "full"} data-project-atlas-background={projectSlug} aria-hidden="true">
             <div ref={worldRef} className={styles.world}>
                 <canvas ref={canvasRef} className={styles.canvas} />
             </div>
