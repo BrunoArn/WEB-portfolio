@@ -26,7 +26,7 @@ export function ProjectsGrid({
                     key={project.slug}
                         style={accentStyle(project.accentColor)}
                     href={`/${locale}/projects/${project.slug}`}
-                    className="group block overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                    className="group block overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-accent focus-visible:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                 >
                     <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
                         <Image
