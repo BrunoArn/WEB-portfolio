@@ -186,6 +186,9 @@
     --atlas-world-height: var(--atlas-mobile-height);
   }
   .viewport {
+    /* Keep terrain gestures in place while preserving native vertical scroll and pinch zoom. */
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: none;
     flex: none;
     height: auto;
     aspect-ratio: var(--atlas-world-width) / var(--atlas-world-height);

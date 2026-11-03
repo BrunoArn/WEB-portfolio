@@ -1,5 +1,6 @@
+import { mountAtlasTouch } from "./atlas-touch";
 import { advanceAtlasPointer } from "./atlas-pointer-impulse";
-import { atlasMotionReference, atlasSelectionDuration, type AtlasMotionSettings } from "./atlas-motion-settings";
+import { atlasMotionReference, atlasSelectionDuration, atlasTouchReference, type AtlasMotionSettings } from "./atlas-motion-settings";
 import { createAtlasString, strikeAtlasString, type AtlasString } from "./atlas-string-response";
 import type { AtlasAnchor, AtlasPoint, AtlasContour } from "./atlas-types";
 import type { AtlasBounds } from "./atlas-layout";
@@ -22,6 +23,8 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
     let protection = new Float32Array(4);
     let world: World = { width: 1, height: 1 }, scale = 1, screenLeft = 0, screenTop = 0, offsetX = 0, offsetY = 0;
     let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0, pointerPending = false, over = false;
+    let touchInput = false, touchSample = 0, touchTargetSpeed = 0, touchSpeed = 0;
+    let touchPoint: { clientX: number; clientY: number } | undefined;
     let lines: AtlasString[] = [];
     let anchors: readonly AtlasAnchor[] = [], pulse: {
         x: number;
@@ -39,6 +42,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
             frame = requestAnimationFrame(tick);
     }
     function clear() {
+        touch.reset();
         pointerPending = false;
         over = false;
         pulse = undefined;
@@ -58,7 +62,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         frame = 0;
         previous = 0;
         canvas.dataset.motionActive = String(running());
-        if (!active()) {
+        if (!active() || document.hidden || !visible) {
             clear();
             repaint();
         }
@@ -88,11 +92,25 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         schedule();
     }
     function advance(dt: number) {
+        const touchAge = performance.now() - touchSample;
+        if (touchInput && touchAge > atlasTouchReference.idleTimeout)
+            over = false;
         const beforeX = pointerX, beforeY = pointerY;
-        const follow = 1 - Math.exp(-dt / .09);
-        pointerX += (targetX - pointerX) * follow;
-        pointerY += (targetY - pointerY) * follow;
-        const speed = dt > 0 ? Math.hypot(pointerX - beforeX, pointerY - beforeY) * scale / dt : 0;
+        if (touchInput) {
+            // Read the current scroll transform in the rendering frame. Smooth
+            // energy, not the contact position: impulses originate under the finger.
+            if (over && touchPoint) locate(touchPoint);
+            pointerX = targetX;
+            pointerY = targetY;
+            const targetSpeed = touchTargetSpeed * Math.exp(-Math.max(0, touchAge - atlasTouchReference.sampleInterval) / 60);
+            touchSpeed += (targetSpeed - touchSpeed) * (1 - Math.exp(-dt / .05));
+        } else {
+            const follow = 1 - Math.exp(-dt / .09);
+            pointerX += (targetX - pointerX) * follow;
+            pointerY += (targetY - pointerY) * follow;
+        }
+        const speed = touchInput ? Math.min(touchSpeed, atlasTouchReference.maximumSpeed) :
+            dt > 0 ? Math.hypot(pointerX - beforeX, pointerY - beforeY) * scale / dt : 0;
         if (dt > 0)
             pointerPending = false;
         if (pulse) {
@@ -106,27 +124,62 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         }
         const unit = 1 / scale;
         for (const line of lines)
-            advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure, dt, unit, settings.mouseRadius);
+            advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure * (touchInput ? atlasTouchReference.pressureGain : 1), dt, unit, settings.mouseRadius);
+    }
+    const acceptsInput = () => active() && settings.pressure > 0 && visible && !document.hidden &&
+        canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection === "idle";
+    // Inverse raster crop, world offset, profile scale and current camera.
+    // Both input types use exactly the same screen-to-world transform.
+    function locate(point: { clientX: number; clientY: number }) {
+        const rect = canvas.getBoundingClientRect(), width = parseFloat(canvas.style.width);
+        if (!rect.width || !width) return false;
+        const factor = rect.width / width;
+        targetX = ((point.clientX - rect.left) / factor + screenLeft - offsetX) / scale;
+        targetY = ((point.clientY - rect.top) / factor + screenTop - offsetY) / scale;
+        if (!over) { pointerX = targetX; pointerY = targetY; }
+        return true;
     }
     function pointer(event: PointerEvent) {
-        if (!active() || settings.pressure <= 0 || event.pointerType === "touch" || canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection !== "idle")
-            return;
-        const rect = canvas.getBoundingClientRect(), width = parseFloat(canvas.style.width);
-        if (!rect.width || !width)
-            return;
-        const factor = rect.width / width;
-        targetX = ((event.clientX - rect.left) / factor + screenLeft - offsetX) / scale;
-        targetY = ((event.clientY - rect.top) / factor + screenTop - offsetY) / scale;
-        if (!over) {
-            pointerX = targetX;
-            pointerY = targetY;
-        }
+        if (event.pointerType === "touch" || touchInput || !acceptsInput() || !locate(event)) return;
         over = true;
         pointerPending = true;
         schedule();
     }
-    const leave = () => {
-        over = false;
+    const touch = mountAtlasTouch(viewport, {
+        allowed: acceptsInput,
+        begin(point) {
+            over = false;
+            touchPoint = { clientX: point.clientX, clientY: point.clientY };
+            touchTargetSpeed = touchSpeed = 0;
+            touchInput = locate(point);
+            over = touchInput;
+            touchSample = performance.now();
+            // Down may become a tap, scroll or marker action; do not excite it yet.
+        },
+        move(point, speed) {
+            touchPoint = { clientX: point.clientX, clientY: point.clientY };
+            touchTargetSpeed = speed;
+            touchInput = true;
+            touchSample = performance.now();
+            over = true;
+            pointerPending = true;
+            schedule();
+        },
+        end() {
+            if (touchInput) { over = false; pointerPending = false; }
+            touchInput = false;
+            touchPoint = undefined;
+            touchTargetSpeed = touchSpeed = 0;
+        },
+        tap(point) {
+            if (!locate(point)) return;
+            for (const line of lines)
+                advanceAtlasPointer(line, targetX, targetY, true, 0, settings.pressure * atlasTouchReference.pressureGain, 0, 1 / scale, settings.mouseRadius, true);
+            schedule();
+        },
+    });
+    const leave = (event: Event) => {
+        if (!touchInput && !(event instanceof PointerEvent && event.pointerType === "touch")) over = false;
     };
     viewport.addEventListener("pointermove", pointer);
     viewport.addEventListener("pointerleave", leave);
@@ -143,6 +196,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         isRunning: running,
         state: () => ({ settings, time, scale, bounds, nx, ny, stepX, stepY, protection, active: active(), pulseAge: pulse?.age ?? -1 }),
         configure(area: AtlasBounds, dimensions: World, zoom: number, left: number, top: number, ox: number, oy: number, projects: readonly AtlasAnchor[], intro: Clearing) {
+            touch.reset();
             lines = [];
             bounds = area;
             world = dimensions;
@@ -198,6 +252,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
             policy();
         },
         pulse(id: string) {
+            touch.reset();
             if (!active() || !settings.selectionStrength)
                 return;
             const p = anchors.find(p => p.id === id);
@@ -215,6 +270,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         },
         dispose() {
             disposed = true;
+            touch.dispose();
             cancelAnimationFrame(frame);
             observer.disconnect();
             viewport.removeEventListener("pointermove", pointer);
