@@ -7,7 +7,7 @@ import { AtlasBackdrop } from "./AtlasBackdrop";
 type AtlasBackgroundProps = {
     projectSlug?: string;
     locale: Locale;
-    labels: Dictionary["atlas"]["content"];
+    labels: Dictionary["atlas"];
 };
 
 export async function AtlasBackground({ projectSlug, locale, labels }: AtlasBackgroundProps) {
@@ -19,7 +19,7 @@ export async function AtlasBackground({ projectSlug, locale, labels }: AtlasBack
         return null;
     }
 
-    const content = adaptAtlasContent(data, locale, labels);
+    const content = adaptAtlasContent(data, locale, labels.content);
     const selected = projectSlug ? content.projects.find(project => project.placement === projectSlug) : undefined;
     if (projectSlug && !selected) return null;
 
@@ -27,6 +27,7 @@ export async function AtlasBackground({ projectSlug, locale, labels }: AtlasBack
         <AtlasBackdrop
             projectSlug={projectSlug}
             projectId={selected?.id}
+            framing={selected ? { title: selected.title, category: selected.categoryLabel, description: selected.description ?? labels.contentNote, detail: labels.detail, unavailable: labels.unavailable, hasImage: Boolean(selected.image), hasDetail: Boolean(selected.href) } : undefined}
             terrain={content.terrain}
             projects={content.projects.map(({ id, c, x, y, mx, my, influence }) => ({ id, c, x, y, mx, my, influence }))}
             territories={content.territories}

@@ -13,22 +13,77 @@
   mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 72%, transparent);
 }
 
-.world {
+.landscape {
   position: absolute;
   inset: 0;
-  transform-origin: 0 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.canvas {
+.mobile {
+  display: none;
+}
+
+/* Match the actual selected-card geometry, including text wrapping, height caps
+   and native scrollbar gutters. This invisible reference has no controls or art. */
+.backdrop .cameraReferenceRoot {
+  --atlas-tone: transparent;
   position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0;
   display: block;
+  background: none;
+  visibility: hidden;
 }
 
-/* The Atlas renderer's intro clearing stays outside this purely decorative view. */
-.clearing {
-  position: absolute;
-  left: -10000px;
-  top: -10000px;
-  width: 0;
-  height: 0;
+.cameraFocus {
+  anchor-name: --atlas-detail-focus;
+}
+
+.landscape.projectScene {
+  inset: auto;
+  width: 100vw;
+  height: 100dvh;
+  left: calc(100vw - clamp(24px, 8vw, 150px) - min(460px, calc(100vw - 40px)) / 2);
+  top: 50%;
+  left: anchor(--atlas-detail-focus center);
+  top: anchor(--atlas-detail-focus center);
+  position-visibility: always;
+  transform: translate(-50%, -50%);
+}
+
+/* Here the desktop Atlas still reserves the mobile shell's header/footer. */
+@media (min-width: 761px) and (max-width: 767px) {
+  .landscape.projectScene {
+    height: calc(100dvh - var(--shell-header-offset) - var(--shell-footer-reserve));
+  }
+}
+
+@media (max-width: 760px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+    inset: auto;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, 390px);
+    height: min(100%, 1160px);
+    transform: translateX(-50%);
+  }
+
+  .landscape.mobileProject {
+    bottom: auto;
+    width: min(100vw, 390px);
+    height: auto;
+    left: 50%;
+    left: anchor(--atlas-detail-focus center);
+    aspect-ratio: 390 / 1160;
+  }
 }

@@ -1,11 +1,7 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import { mountAtlasTerrain } from "@/features/atlas/atlas-engine";
-import { getAtlasView } from "@/features/atlas/atlas-layout";
-import { atlasMobileQuery } from "@/features/atlas/atlas-composition";
-import type { AtlasAnchor, AtlasContent, AtlasTerritory } from "@/features/atlas/atlas-types";
+import type { AtlasAnchor, AtlasContent, AtlasTerritory } from "./atlas-types";
+import { getAtlasBackgroundScene, type AtlasBackgroundScene } from "./atlas-background-scene";
 import styles from "./AtlasBackground.module.css";
+import mapStyles from "./AtlasMap.module.css";
 
 type AtlasBackdropProps = {
     projectSlug?: string;
@@ -13,80 +9,84 @@ type AtlasBackdropProps = {
     projects: AtlasAnchor[];
     territories: AtlasTerritory[];
     terrain: AtlasContent["terrain"];
+    framing?: {
+        title: string;
+        category: string;
+        description: string;
+        detail: string;
+        unavailable: string;
+        hasImage: boolean;
+        hasDetail: boolean;
+    };
 };
 
-export function AtlasBackdrop({ projectSlug, projectId, projects, territories, terrain }: AtlasBackdropProps) {
-    const viewportRef = useRef<HTMLDivElement>(null);
-    const worldRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const clearingRef = useRef<HTMLDivElement>(null);
+export async function AtlasBackdrop({ projectSlug, projectId, projects, territories, terrain, framing }: AtlasBackdropProps) {
+    let desktop: AtlasBackgroundScene, mobile: AtlasBackgroundScene;
+    try {
+        [desktop, mobile] = await Promise.all([
+            getAtlasBackgroundScene({ projects, territories, terrain, mobile: false }),
+            getAtlasBackgroundScene({ projects, territories, terrain, mobile: true }),
+        ]);
+    } catch {
+        // A failed optional decoration must leave the original page usable.
+        return null;
+    }
+    const project = projects.find(anchor => anchor.id === projectId);
 
-    useEffect(() => {
-        const viewport = viewportRef.current;
-        const world = worldRef.current;
-        const canvas = canvasRef.current;
-        const clearing = clearingRef.current;
-        const project = projects.find(anchor => anchor.id === projectId);
-        if (!viewport || !world || !canvas || !clearing || (projectId && !project)) return;
-
-        // Reuse the resting Atlas renderer: no WebGL context, animation or pointer listeners.
-        const controller = mountAtlasTerrain(canvas, viewport, clearing, projects, territories, atlasMobileQuery, terrain, {
-            staticFallback: true,
-            onFallback: () => {},
-        });
-        const media = window.matchMedia(atlasMobileQuery);
-        let frame = 0;
-
-        const updateCamera = () => {
-            const width = viewport.clientWidth;
-            const height = viewport.clientHeight;
-            if (!width || !height) return;
-
-            const mobile = media.matches;
-            const view = getAtlasView(width, height, mobile);
-            // Full views retain the Atlas composition; mobile fits its entire tall world.
-            const zoom = project ? (mobile ? 1.65 : 1.85) : Math.min(1, height / (view.world.height * view.scale));
-            const x = project ? view.offsetX + (mobile ? project.mx : project.x) * view.world.width * view.scale : 0;
-            const y = project ? view.offsetY + (mobile ? project.my : project.y) * view.world.height * view.scale : 0;
-            const tx = project ? width / 2 - x * zoom : (width - view.world.width * view.scale * zoom) / 2 - view.offsetX * zoom;
-            const ty = project ? height / 2 - y * zoom : height - view.world.height * view.scale * zoom - view.offsetY * zoom;
-            world.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
-
-            // Rasterize only the visible region at resting density; the faded background
-            // does not need the extra pixel budget used by the interactive zoom transition.
-            controller.extend({
-                left: Math.floor(-tx / zoom - 24),
-                top: Math.floor(-ty / zoom - 24),
-                right: Math.ceil((width - tx) / zoom + 24),
-                bottom: Math.ceil((height - ty) / zoom + 24),
-            });
-        };
-
-        const schedule = () => {
-            if (!frame) frame = requestAnimationFrame(() => {
-                frame = 0;
-                updateCamera();
-            });
-        };
-        const observer = new ResizeObserver(schedule);
-        observer.observe(viewport);
-        media.addEventListener("change", schedule);
-        updateCamera();
-
-        return () => {
-            observer.disconnect();
-            media.removeEventListener("change", schedule);
-            cancelAnimationFrame(frame);
-            controller.dispose();
-        };
-    }, [projectId, projects, territories, terrain]);
+    const landscape = (scene: AtlasBackgroundScene, isMobile: boolean) => {
+        const zoom = project ? (isMobile ? 1.65 : 1.85) : 1;
+        const width = scene.width / zoom, height = scene.height / zoom;
+        const x = project ? (isMobile ? project.mx : project.x) * scene.width - width / 2 : 0;
+        const y = project ? (isMobile ? project.my : project.y) * scene.height - height / 2 : 0;
+        const { left, top, right, bottom } = scene.bounds;
+        const mask = `atlas-relief-${scene.id}`;
+        return (
+            <svg
+                key={scene.id}
+                className={`${styles.landscape} ${isMobile ? styles.mobile : styles.desktop} ${project ? styles.projectScene : ""} ${isMobile && project ? styles.mobileProject : ""}`}
+                viewBox={`${x} ${y} ${width} ${height}`}
+                preserveAspectRatio={project ? "xMidYMid meet" : "xMidYMax meet"}
+                data-atlas-profile={isMobile ? "mobile" : "desktop"}
+                focusable="false"
+            >
+                <defs>
+                    <mask id={mask} x={left} y={top} width={right - left} height={bottom - top} maskUnits="userSpaceOnUse" style={{ maskType: "alpha" }}>
+                        {scene.paths.map(({ d, opacity }, index) => <path key={index} d={d} fill="white" fillOpacity={opacity} />)}
+                    </mask>
+                </defs>
+                <image
+                    x={left}
+                    y={top}
+                    width={right - left}
+                    height={bottom - top}
+                    href={scene.palette}
+                    preserveAspectRatio="none"
+                    mask={`url(#${mask})`}
+                />
+            </svg>
+        );
+    };
 
     return (
-        <div ref={viewportRef} className={styles.backdrop} data-atlas-background={projectSlug ? "project" : "full"} data-project-atlas-background={projectSlug} aria-hidden="true">
-            <div ref={worldRef} className={styles.world}>
-                <canvas ref={canvasRef} className={styles.canvas} />
-            </div>
-            <div ref={clearingRef} className={styles.clearing} />
+        <div className={styles.backdrop} data-atlas-background={projectSlug ? "project" : "full"} data-project-atlas-background={projectSlug} aria-hidden="true">
+            {framing && (
+                <div className={`${mapStyles.root} ${styles.cameraReferenceRoot}`} inert>
+                    <div className={mapStyles.cardFrame}>
+                        <div className={mapStyles.card}>
+                            <div className={`${mapStyles.selectedMedia} ${styles.cameraFocus}`} />
+                            <div className={mapStyles.selectedCopy}>
+                                <p className={mapStyles.selectedCategory}>{framing.category}</p>
+                                <div className={mapStyles.selectedTitle}>{framing.title}</div>
+                                <p>{framing.description}</p>
+                                <p className={mapStyles.mediaNote} hidden={framing.hasImage}>{framing.unavailable}</p>
+                                <span className={mapStyles.detailLink} hidden={!framing.hasDetail}>{framing.detail}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {landscape(desktop, false)}
+            {landscape(mobile, true)}
         </div>
     );
 }

@@ -130,7 +130,7 @@ export default async function ProjectPage({
                 <AtlasBackground
                     projectSlug={project.slug}
                     locale={lang}
-                    labels={dictionary.atlas.content}
+                    labels={dictionary.atlas}
                 />
                 <Container>
                     <div className="pt-(--space-24) md:pt-(--space-32)">

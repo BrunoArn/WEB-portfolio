@@ -47,7 +47,7 @@ export default async function ProjectsPage({
 
     return (
         <main className={backgroundStyles.page}>
-            <AtlasBackground locale={lang} labels={dictionary.atlas.content} />
+            <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <header>

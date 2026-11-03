@@ -412,7 +412,7 @@
 .selectedCopy {
   padding: 24px 28px 26px;
 }
-.selectedCopy h2 {
+.selectedCopy .selectedTitle {
   font-family: var(--font-family-heading);
   font-size: var(--atlas-font-size-card-title);
   font-weight: var(--font-weight-black);
@@ -499,7 +499,7 @@
   .selectedCopy {
     padding: 22px;
   }
-  .selectedCopy h2 {
+  .selectedCopy .selectedTitle {
     --atlas-font-size-card-title: var(--font-size-card-mobile);
   }
 }

@@ -53,7 +53,7 @@ export default async function AboutPage({
 
     return (
         <main className={`${backgroundStyles.page} pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)`}>
-            <AtlasBackground locale={lang} labels={dictionary.atlas.content} />
+            <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <div className="max-w-4xl">

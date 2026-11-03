@@ -112,7 +112,7 @@ export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasA
   return result;
 }
 
-function ribbonOutline({ contour, index }: AtlasCurve, scale: number): AtlasPoint[] {
+export function ribbonOutline({ contour, index }: AtlasCurve, scale: number): AtlasPoint[] {
   const { path, closed } = contour, a: AtlasPoint[] = [], b: AtlasPoint[] = [];
   path.forEach((p, i) => {
     const prev = path[closed ? (i - 1 + path.length) % path.length : Math.max(0, i - 1)];
