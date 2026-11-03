@@ -5,7 +5,7 @@
     --color-surface: #171c20;
     --color-surface-elevated: #20272d;
 
-    --color-accent-default: #E2E5E3;
+    --color-accent-default: #E1BE86;
     --color-accent: var(--color-accent-default);
 
     --color-text-primary: #f2f3f4;
@@ -83,6 +83,7 @@
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
+    --font-weight-black: 900;
 
     /* Typography — line heights */
     --line-height-hero: 1.1;
@@ -109,6 +110,6 @@
    Resolve family tokens here, where those variables are available. */
 body {
     --font-family-body: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-    --font-family-heading: var(--font-space-grotesk), var(--font-family-body);
+    --font-family-heading: var(--font-inter-black), var(--font-family-body);
     --font-family-interface: var(--font-family-body);
 }

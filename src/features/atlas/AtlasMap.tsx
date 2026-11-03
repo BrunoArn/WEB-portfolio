@@ -176,7 +176,7 @@ export function AtlasMap({
                             />
                             <div className={styles.selectedCopy}>
                                 <p className={styles.selectedCategory} data-atlas-category />
-                                <h2 id={dialogId + "-title"}>
+                                <h2 id={dialogId + "-title"} className={styles.selectedTitle}>
                                     <Link
                                         href={projectHref}
                                         prefetch={true}

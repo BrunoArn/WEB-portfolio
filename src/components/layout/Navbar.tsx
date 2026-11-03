@@ -26,6 +26,7 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
     const aboutPath = `/${currentLocale}/about`;
 
     const isHomeActive = pathname === homePath;
+    const isAtlasPage = isHomeActive || pathname === `${homePath}/atlas-preview`;
     const isProjectsActive =
         pathname === projectsPath || pathname.startsWith(`${projectsPath}/`);
     const isAboutActive =
@@ -40,6 +41,7 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
     return (
         <header
             data-home={isHomeActive}
+            data-atlas={isAtlasPage}
             className={`${styles.header} fixed inset-x-0 top-0 z-50 hidden md:block`}
         >
             <nav

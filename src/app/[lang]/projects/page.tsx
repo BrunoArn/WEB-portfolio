@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
+import { AtlasBackground } from "@/features/atlas/AtlasBackground";
+import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getCategories } from "@/sanity/repositories/categories";
@@ -44,13 +46,14 @@ export default async function ProjectsPage({
     const projects = await getProjects(lang);
 
     return (
-        <main>
+        <main className={backgroundStyles.page}>
+            <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <header>
                         <div className="grid gap-(--space-24) lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-(--space-40)">
                             <div>
-                                <h1 className="font-heading text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
+                                <h1 className="font-heading text-(length:--font-size-page-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
                                     {dictionary.projects.title}
                                 </h1>
 

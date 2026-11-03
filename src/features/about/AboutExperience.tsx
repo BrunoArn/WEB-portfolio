@@ -23,7 +23,7 @@ export function AboutExperience({
         >
             <h2
                 id="about-experience-title"
-                className="font-heading text-(length:--font-size-section-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
+                className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)"
             >
                 {title}
             </h2>
@@ -35,7 +35,7 @@ export function AboutExperience({
                         className="border-t border-app-border py-(--space-24)"
                     >
                         <div className="flex flex-col gap-(--space-8) md:flex-row md:items-baseline md:justify-between md:gap-(--space-24)">
-                            <h3 className="font-heading min-w-0 wrap-break-word text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+                            <h3 className="font-heading min-w-0 wrap-break-word text-(length:--font-size-card-mobile) font-black leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                                 {experience.role}
                             </h3>
 

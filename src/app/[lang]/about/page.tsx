@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
+import { AtlasBackground } from "@/features/atlas/AtlasBackground";
+import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getAbout } from "@/sanity/repositories/about";
@@ -50,7 +52,8 @@ export default async function AboutPage({
 
 
     return (
-        <main className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
+        <main className={`${backgroundStyles.page} pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)`}>
+            <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">
                     <div className="max-w-4xl">
@@ -58,7 +61,7 @@ export default async function AboutPage({
                             {dictionary.navigation.about}
                         </p>
 
-                        <h1 className="font-heading wrap-break-word mt-(--space-16) text-(length:--font-size-page-mobile) font-medium leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
+                        <h1 className="font-heading wrap-break-word mt-(--space-16) text-(length:--font-size-page-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-page-desktop)">
                             {about.name}
                         </h1>
 

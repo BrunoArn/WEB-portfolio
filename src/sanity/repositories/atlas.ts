@@ -48,6 +48,6 @@ const atlasQuery = /* groq */ `{
   }
 }`;
 
-export async function getAtlasData(): Promise<AtlasSanityData> {
-  return sanityClient.withConfig({ perspective: "published" }).fetch<AtlasSanityData>(atlasQuery, {}, { cache: "no-store" });
+export async function getAtlasData(options: { revalidate?: number } = {}): Promise<AtlasSanityData> {
+  return sanityClient.withConfig({ perspective: "published" }).fetch<AtlasSanityData>(atlasQuery, {}, options.revalidate === undefined ? { cache: "no-store" } : { next: { revalidate: options.revalidate } });
 }

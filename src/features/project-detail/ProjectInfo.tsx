@@ -25,13 +25,13 @@ export function ProjectInfo({
 }: ProjectInfoProps) {
     return (
         <aside className="min-w-0 [overflow-wrap:anywhere] rounded-(--radius-card) border border-app-border bg-app-surface p-(--panel-padding-mobile) md:p-(--panel-padding)">
-            <h2 className="font-heading text-(length:--font-size-card-mobile) font-medium leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
+            <h2 className="font-heading text-(length:--font-size-card-mobile) font-black leading-(--line-height-card) text-app-text-primary md:text-(length:--font-size-card-desktop)">
                 {labels.title}
             </h2>
 
             <dl className="mt-(--space-24) grid gap-(--space-20)">
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.role}
                     </dt>
 
@@ -41,7 +41,7 @@ export function ProjectInfo({
                 </div>
 
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.year}
                     </dt>
 
@@ -52,7 +52,7 @@ export function ProjectInfo({
 
                 {project.team.length > 0 && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.team}
                         </dt>
 
@@ -76,7 +76,7 @@ export function ProjectInfo({
 
                 {project.technologies.length > 0 && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.technologies}
                         </dt>
 
@@ -88,7 +88,7 @@ export function ProjectInfo({
 
                 {project.organization && (
                     <div>
-                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                        <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {labels.organization}
                         </dt>
 
@@ -99,7 +99,7 @@ export function ProjectInfo({
                 )}
 
                 <div>
-                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-secondary">
+                    <dt className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                         {labels.status}
                     </dt>
 

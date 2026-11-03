@@ -67,7 +67,7 @@
   font-family: var(--font-family-heading);
   margin: 0 0 22px;
   font-size: var(--atlas-font-size-title);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
   line-height: var(--atlas-line-height-title);
   letter-spacing: var(--atlas-letter-spacing-title);
 }
@@ -151,7 +151,7 @@
   font-family: var(--font-family-heading);
   font-size: var(--atlas-font-size-marker);
   color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
 }
 .left {
   flex-direction: row-reverse;
@@ -412,10 +412,10 @@
 .selectedCopy {
   padding: 24px 28px 26px;
 }
-.selectedCopy h2 {
+.selectedCopy .selectedTitle {
   font-family: var(--font-family-heading);
   font-size: var(--atlas-font-size-card-title);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-black);
   line-height: var(--atlas-line-height-card-title);
   letter-spacing: var(--atlas-letter-spacing-card-title);
   margin: 0 0 var(--space-16);
@@ -499,7 +499,7 @@
   .selectedCopy {
     padding: 22px;
   }
-  .selectedCopy h2 {
+  .selectedCopy .selectedTitle {
     --atlas-font-size-card-title: var(--font-size-card-mobile);
   }
 }
@@ -562,8 +562,7 @@
   text-decoration: none;
 }
 .titleLink[href]:hover {
-  text-decoration: underline;
-  text-underline-offset: 5px;
+  color: var(--atlas-tone);
 }
 .titleLink:focus-visible, .selectedMedia:focus-visible {
   outline: 2px solid var(--atlas-tone);

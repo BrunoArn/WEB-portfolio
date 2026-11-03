@@ -45,7 +45,7 @@ export function ProjectHero({
                                 {project.categories[0]?.name}
                             </p>
 
-                            <h1 className="font-heading mt-(--space-8) max-w-4xl text-(length:--font-size-hero-desktop) font-medium leading-(--line-height-hero) text-app-text-primary">
+                            <h1 className="font-heading mt-(--space-8) max-w-4xl text-(length:--font-size-hero-desktop) font-black leading-(--line-height-hero) text-app-text-primary">
                                 {project.title}
                             </h1>
 
@@ -69,7 +69,7 @@ export function ProjectHero({
                                             href={project.liveSiteUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                            className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border hover:text-app-accent focus-visible:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                         >
                                             {actions.liveSite} ↗
                                         </a>
@@ -80,7 +80,7 @@ export function ProjectHero({
                                             href={project.githubUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                            className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border hover:text-app-accent focus-visible:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                         >
                                             {actions.github} ↗
                                         </a>
@@ -97,7 +97,7 @@ export function ProjectHero({
                         {project.categories[0]?.name}
                     </p>
 
-                    <h1 className="font-heading mt-(--space-8) text-(length:--font-size-hero-mobile) font-medium leading-(--line-height-hero) text-app-text-primary">
+                    <h1 className="font-heading mt-(--space-8) text-(length:--font-size-hero-mobile) font-black leading-(--line-height-hero) text-app-text-primary">
                         {project.title}
                     </h1>
 
@@ -121,7 +121,7 @@ export function ProjectHero({
                                     href={project.liveSiteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border hover:text-app-accent focus-visible:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                 >
                                     {actions.liveSite} ↗
                                 </a>
@@ -132,7 +132,7 @@ export function ProjectHero({
                                     href={project.githubUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                    className="rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:bg-app-border hover:text-app-accent focus-visible:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                 >
                                     {actions.github} ↗
                                 </a>
