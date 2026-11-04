@@ -119,6 +119,12 @@ const en = {
       frameTitle: "Interactive game",
       start: "Play",
       close: "Close game",
+      desktopTitle: "Play on desktop",
+      desktopDescription: "This experience was designed for desktop. Open this project on a computer to play.",
+      copyLink: "Copy project link",
+      linkCopied: "Link copied",
+      copyFailed: "Automatic copying was unavailable. Copy the link below.",
+      projectLink: "Project link",
     },
     related: {
       title: "You May Also Like",
