@@ -42,14 +42,23 @@ function createAtlasColorMap({ weightsAt, width, height, screen, view, territori
   const paint = colors.getContext("2d")!;
   const pixels = paint.createImageData(colors.width, colors.height);
   const palette = territories.map(territory => [1, 3, 5].map(offset => parseInt(territory.color.slice(offset, offset + 2), 16)));
+  const weights = Array<number>(territories.length).fill(0);
   for (let y = 0; y < colors.height; y++) {
     for (let x = 0; x < colors.width; x++) {
       const u = (screen.left + x / (colors.width - 1) * width - offsetX) / scale / world.width;
       const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
-      const weights = weightsAt(u, v), i = (y * colors.width + x) * 4;
-      for (let channel = 0; channel < 3; channel++) {
-        pixels.data[i + channel] = palette.length ? Math.round(weights.reduce((sum, value, category) => sum + value * palette[category][channel], 0)) : [149, 163, 155][channel];
+      weightsAt(u, v, weights);
+      const i = (y * colors.width + x) * 4;
+      let red = 0, green = 0, blue = 0;
+      for (let category = 0; category < palette.length; category++) {
+        const weight = weights[category], color = palette[category];
+        red += weight * color[0];
+        green += weight * color[1];
+        blue += weight * color[2];
       }
+      pixels.data[i] = palette.length ? Math.round(red) : 149;
+      pixels.data[i + 1] = palette.length ? Math.round(green) : 163;
+      pixels.data[i + 2] = palette.length ? Math.round(blue) : 155;
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
   }

@@ -262,3 +262,9 @@ O cache de geometria tem duas fases explícitas. `describe()` resolve a identida
 - `tests/helpers/load-typescript.mjs` centraliza o carregamento dos módulos nos testes afetados, mantendo cache e mocks isolados por fixture.
 
 Verificação local: `npm run lint`, `npx tsc --noEmit`, `npm run build` e `node --test tests/*.test.mjs`. A documentação acima descreve responsabilidade e invalidação; mudanças visuais ou de desempenho devem ser medidas separadamente.
+
+## Compactação dos fundos e preparo de cores
+
+O serializador dos fundos mantém a mesma simplificação e as mesmas coordenadas arredondadas a 0,1 unidade. Ele compacta a sintaxe SVG com comandos relativos, sem trocar a forma por raster nem carregar o fundo depois no cliente. Comandos absolutos foram evitados para preservar também o acúmulo numérico de coordenadas do desenho anterior.
+
+O leitor de cores aceita uma saída temporária opcional, do tamanho da lista de categorias, preenchida e normalizada em cada chamada. O preparo da textura reutiliza essa saída e acumula RGB sem callbacks por pixel. Sem saída fornecida, cada chamada retorna um array independente; não existe estado temporário global nem novo cache. Testes protegem a igualdade numérica e a interpretação dos caminhos.
