@@ -150,6 +150,7 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   const motion = gpu ? mountAtlasMotion(canvas, viewport, () => render()) : null;
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
+  let preparedKey = "";
   let extension: AtlasBounds | undefined;
   let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
@@ -165,9 +166,17 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const bounds = { left: Math.min(view.bounds.left, (domain.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (domain.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (domain.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (domain.bottom - offsetY) / scale + 48 / scale) };
     const controls = settings[mobile ? "mobile" : "desktop"];
     const key = JSON.stringify([mobile, bounds, controls, settings.regions.map(region => ({kind: region.kind, ...region[mobile ? "mobile" : "desktop"]}))]);
-    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
     const raster = atlasRasterResolution(width,height,window.devicePixelRatio || 1,rasterZoom);
     const dpr = raster.ratio;
+    const text = intro.getBoundingClientRect();
+    const cx = (text.left - rectangle.left + text.width / 2 - offsetX) / scale / world.width;
+    const cy = (text.top - rectangle.top + text.height / 2 - offsetY) / scale / world.height;
+    const sx = (text.width / 2 + 28) / scale / world.width, sy = (text.height / 2 + 26) / scale / world.height;
+    // ResizeObserver and font readiness can report the same camera more than once.
+    // Keep the prepared buffers and motion state until an actual input changes.
+    const nextPreparedKey = JSON.stringify([key, screen, scale, offsetX, offsetY, raster, rasterZoom, cx, cy, sx, sy]);
+    if (nextPreparedKey === preparedKey) return;
+    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
     canvas.width = raster.pixelWidth; canvas.height = raster.pixelHeight;
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
     canvas.style.width = canvas.width / dpr + "px"; canvas.style.height = canvas.height / dpr + "px";
@@ -176,10 +185,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const paint = colors.getContext("2d")!; const pixels = paint.createImageData(colors.width, colors.height);
     const palette = territories.map(territory => [1, 3, 5].map(offset => parseInt(territory.color.slice(offset, offset + 2), 16)));
     const weightsAt = createAtlasColorField(positioned, mobile, territories.map(territory => territory.id));
-    const text = intro.getBoundingClientRect();
-    const cx = (text.left - rectangle.left + text.width / 2 - offsetX) / scale / world.width;
-    const cy = (text.top - rectangle.top + text.height / 2 - offsetY) / scale / world.height;
-    const sx = (text.width / 2 + 28) / scale / world.width, sy = (text.height / 2 + 26) / scale / world.height;
     for (let y = 0; y < colors.height; y++) for (let x = 0; x < colors.width; x++) {
       const u = (screen.left + x / (colors.width - 1) * width - offsetX) / scale / world.width;
       const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
@@ -220,6 +225,7 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     canvas.dataset.contours = String(curves.length); canvas.dataset.geometryBuilds = String(builds);
     canvas.dataset.worldWidth = String(world.width); canvas.dataset.worldHeight = String(world.height);
     canvas.dataset.worldScale = String(scale); canvas.dataset.worldOffsetX = String(offsetX); canvas.dataset.worldOffsetY = String(offsetY);
+    preparedKey = nextPreparedKey;
     if (!ready) { ready = true; options.onReady?.(); }
   }
   function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(draw); }
