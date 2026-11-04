@@ -147,12 +147,22 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
   gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   function lost(event: Event) { event.preventDefault(); if (!disposed) fallback(); }
   canvas.addEventListener("webglcontextlost",lost);
+  const updateSurface = (colorMap: HTMLCanvasElement, view: View, grow = false) => {
+    if (disposed || gl.isContextLost()) return false;
+    if (colorMap.width > maxTextureSize || colorMap.height > maxTextureSize || gl.drawingBufferWidth !== canvas.width || gl.drawingBufferHeight !== canvas.height) { fallback(); return false; }
+    currentView = view;
+    growthPlans = grow ? ribbons.map(({ mesh: { line } }) => createAtlasGrowth(line, view)) : [];
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,colors);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,colorMap);
+    return true;
+  };
   return {
+    updateSurface,
     prepare(next: Ribbon[], colorMap: HTMLCanvasElement, motion: Motion, view: View, grow = false) {
       if (disposed || gl.isContextLost()) return;
-      if (next.length > maxTextureSize || colorMap.width > maxTextureSize || colorMap.height > maxTextureSize || gl.drawingBufferWidth !== canvas.width || gl.drawingBufferHeight !== canvas.height) { fallback(); return; }
-      ribbons = next; currentView = view;
-      growthPlans = grow ? ribbons.map(({ mesh: { line } }) => createAtlasGrowth(line, view)) : [];
+      if (next.length > maxTextureSize) { fallback(); return; }
+      ribbons = next;
+      if (!updateSurface(colorMap, view, grow)) return;
       const field = motion.state();
       const vertexCount = ribbons.reduce((sum, ribbon) => sum + ribbon.mesh.mesh.length / atlasRibbonStride, 0);
       const indexCount = ribbons.reduce((sum, { mesh: { mesh, line } }) => sum + (mesh.length / (atlasRibbonStride * 2) - (line.closed ? 0 : 1)) * 6, 0);
@@ -187,8 +197,7 @@ export function createAtlasWebGL(canvas: HTMLCanvasElement, fallback: () => void
       count=elements.length;
       gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
       gl.bindVertexArray(vao);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,elements,gl.STATIC_DRAW);
-      gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,colors);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,colorMap);
+
       statePixels=new Float32Array(Math.max(1,ribbons.length)*stateStride);
       gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,states);
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,stateColumns,Math.max(1,ribbons.length),0,gl.RGBA,gl.FLOAT,statePixels);

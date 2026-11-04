@@ -39,21 +39,23 @@ function extractContours(values: Float32Array, nx: number, ny: number, level: nu
     triangle([a, b, c]); triangle([a, c, d]);
   }
   const key = (point: AtlasPoint) => point.map(value => value.toFixed(3)).join(",");
+  // Preserve the approved rounded connections and traversal order; stringify once.
+  const edgeKeys = edges.map(edge => [key(edge[0]), key(edge[1])]);
   const links = new Map<string, number[]>();
-  edges.forEach((edge, i) => edge.forEach(point => {
-    const id = key(point); if (!links.has(id)) links.set(id, []); links.get(id)!.push(i);
+  edgeKeys.forEach((pair, i) => pair.forEach(id => {
+    if (!links.has(id)) links.set(id, []); links.get(id)!.push(i);
   }));
-  const used = new Set<number>(), paths: AtlasPoint[][] = [];
-  function trace(index: number, start: AtlasPoint) {
-    const path: AtlasPoint[] = [start]; let current = start, id: number | undefined = index;
-    while (id !== undefined && !used.has(id)) {
-      used.add(id); const edge: [AtlasPoint, AtlasPoint] = edges[id]; const next: AtlasPoint = key(edge[0]) === key(current) ? edge[1] : edge[0];
-      path.push(next); current = next; id = links.get(key(next))?.find(i => !used.has(i));
+  const used = new Uint8Array(edges.length), paths: AtlasPoint[][] = [];
+  function trace(index: number, start: AtlasPoint, startKey: string) {
+    const path: AtlasPoint[] = [start]; let currentKey = startKey, id: number | undefined = index;
+    while (id !== undefined && !used[id]) {
+      used[id] = 1; const edge = edges[id], pair = edgeKeys[id], side = pair[0] === currentKey ? 1 : 0;
+      path.push(edge[side]); currentKey = pair[side]; id = links.get(currentKey)?.find(i => !used[i]);
     }
     if (path.length > 10) paths.push(path);
   }
-  edges.forEach((edge, i) => { if (!used.has(i)) { const end = edge.find(point => links.get(key(point))!.length === 1); if (end) trace(i, end); } });
-  edges.forEach((edge, i) => { if (!used.has(i)) trace(i, edge[0]); });
+  edges.forEach((edge, i) => { if (!used[i]) { const end = edgeKeys[i].findIndex(id => links.get(id)!.length === 1); if (end >= 0) trace(i, edge[end], edgeKeys[i][end]); } });
+  edges.forEach((edge, i) => { if (!used[i]) trace(i, edge[0], edgeKeys[i][0]); });
   return paths;
 }
 
@@ -93,13 +95,26 @@ function smoothContour(input: AtlasPoint[], mobile: boolean): AtlasContour {
   return { path, closed };
 }
 
-export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[]): AtlasCurve[] {
+/** A single sampled field, owned by one mounted scene rather than a global cache. */
+export type AtlasReliefCache = {
+  grid?: { key: string; x0: number; y0: number; nx: number; ny: number; values: Float32Array };
+};
+
+export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[], cache?: AtlasReliefCache): AtlasCurve[] {
   const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
   const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
   const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
   const field = createAtlasField(projects, mobile, settings, regions);
   const values = new Float32Array((nx + 1) * (ny + 1));
-  for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) values[y * (nx + 1) + x] = field((x0 + x) * stepX / w, (y0 + y) * stepY / h);
+  const fieldKey = cache ? JSON.stringify([w, h, mobile, projects.map(p => [p.id, p.c, p.x, p.y, p.influence]), settings, regions]) : "";
+  const prior = cache?.grid?.key === fieldKey ? cache.grid : undefined;
+  const priorX = x0 - (prior?.x0 ?? 0), priorY = y0 - (prior?.y0 ?? 0);
+  for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) {
+    const px = x + priorX, py = y + priorY;
+    values[y * (nx + 1) + x] = prior && px >= 0 && px <= prior.nx && py >= 0 && py <= prior.ny
+      ? prior.values[py * (prior.nx + 1) + px] : field((x0 + x) * stepX / w, (y0 + y) * stepY / h);
+  }
+  if (cache) cache.grid = { key: fieldKey, x0, y0, nx, ny, values };
   const result: AtlasCurve[] = [];
   for (let i = 0; i < defaultDensity; i++) for (const path of extractContours(values, nx, ny, .18 + i * (1.05 / defaultDensity), nx * stepX, ny * stepY, x0 * stepX, y0 * stepY)) {
     const contour = smoothContour(path, mobile);
@@ -150,7 +165,10 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   const motion = gpu ? mountAtlasMotion(canvas, viewport, () => render()) : null;
   const media = window.matchMedia(mobileQuery);
   let disposed = false, frame = 0, geometryKey = "", curves: AtlasCurve[] = [], builds = 0;
-  let preparedKey = "";
+  let preparedKey = "", meshKey = "";
+  const reliefCache: AtlasReliefCache = {};
+  // Keep only the resting geometry plus the current selection, not every card.
+  let restingGeometry: { key: string; curves: AtlasCurve[] } | undefined;
   let extension: AtlasBounds | undefined;
   let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
@@ -176,7 +194,12 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     // Keep the prepared buffers and motion state until an actual input changes.
     const nextPreparedKey = JSON.stringify([key, screen, scale, offsetX, offsetY, raster, rasterZoom, cx, cy, sx, sy]);
     if (nextPreparedKey === preparedKey) return;
-    if (key !== geometryKey) { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions); geometryKey = key; builds++; }
+    if (key !== geometryKey) {
+      if (restingGeometry?.key === key) curves = restingGeometry.curves;
+      else { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions, reliefCache); builds++; }
+      geometryKey = key;
+    }
+    if (!extension) restingGeometry = { key, curves };
     canvas.width = raster.pixelWidth; canvas.height = raster.pixelHeight;
     // The raster itself is never squeezed to a fractional CSS aspect ratio.
     canvas.style.width = canvas.width / dpr + "px"; canvas.style.height = canvas.height / dpr + "px";
@@ -193,15 +216,24 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
     paint.putImageData(pixels, 0, 0);
-    const outlines = curves.map(curve => ({ index: curve.index, points: ribbonOutline(curve, scale) }));
     if (gpu && motion) {
-      motion.configure(bounds, world, scale, screen.left, screen.top, offsetX, offsetY, positioned, { cx, cy, sx, sy });
-      const ribbons = outlines.map(({ index, points }, i) => ({ index, mesh: motion.prepare(points, curves[i].contour) }));
-      gpu.prepare(ribbons, colors, motion, { scale, x: offsetX - screen.left, y: offsetY - screen.top, width: canvas.width / dpr, height: canvas.height / dpr, pixelRatio: dpr }, revealProgress < 1);
+      const nextMeshKey = JSON.stringify([key, scale, offsetX, offsetY, cx, cy, sx, sy]);
+      const surface = { scale, x: offsetX - screen.left, y: offsetY - screen.top, width: canvas.width / dpr, height: canvas.height / dpr, pixelRatio: dpr };
+      if (nextMeshKey !== meshKey) {
+        motion.configure(bounds, world, scale, screen.left, screen.top, offsetX, offsetY, positioned, { cx, cy, sx, sy });
+        const ribbons = curves.map(curve => ({ index: curve.index, mesh: motion.prepare(ribbonOutline(curve, scale), curve.contour) }));
+        gpu.prepare(ribbons, colors, motion, surface, revealProgress < 1);
+        meshKey = nextMeshKey;
+      } else {
+        // Cropping changes pixels and pointer coordinates, not the resident mesh.
+        motion.setScreen(screen.left, screen.top);
+        gpu.updateSurface(colors, surface, revealProgress < 1);
+      }
       render = () => gpu.paint(motion, revealProgress);
     } else if (ctx) {
       // Compatibility recovery only: draw the resting landscape without a motion loop.
-      const paths = outlines.map(({ index, points }) => {
+      const paths = curves.map(curve => {
+        const { index } = curve, points = ribbonOutline(curve, scale);
         const path = new Path2D();
         points.forEach(([x, y], i) => { if (i) path.lineTo(x, y); else path.moveTo(x, y); });
         path.closePath();
@@ -234,6 +266,6 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   return { entranceAt(x: number, y: number) { return gpu?.arrivalAt(x, y) ?? 0; }, setReveal(progress: number) {
     revealProgress = Math.max(0, Math.min(1, progress));
     if (!disposed && !motion?.isRunning()) render();
-  }, setMotion(value: AtlasMotionSettings) { motion?.set(value); }, pulse(id: string) { motion?.pulse(id); }, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, crop(bounds?: AtlasBounds) { rasterCrop = bounds; cancelAnimationFrame(frame); draw(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterCrop = undefined; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; motion?.dispose(); gpu?.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
+  }, setMotion(value: AtlasMotionSettings) { motion?.set(value); }, pulse(id: string) { motion?.pulse(id); }, setSettings(value: AtlasTerrainSettings) { settings = resolveAtlasTerrainSettings(value); schedule(); }, crop(bounds?: AtlasBounds) { rasterCrop = bounds; cancelAnimationFrame(frame); draw(); }, extend(bounds?: AtlasBounds, zoom = 1) { extension = bounds; rasterCrop = undefined; rasterZoom = zoom; cancelAnimationFrame(frame); draw(); }, dispose() { disposed = true; reliefCache.grid = undefined; motion?.dispose(); gpu?.dispose(); observer.disconnect(); window.removeEventListener("resize", schedule); media.removeEventListener("change", schedule); cancelAnimationFrame(frame); } };
 }
 

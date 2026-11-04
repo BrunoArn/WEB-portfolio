@@ -224,6 +224,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
             previous = 0;
             schedule();
         },
+        setScreen(left: number, top: number) { screenLeft = left; screenTop = top; },
         prepare(points: AtlasPoint[], contour: AtlasContour) {
             const line = createAtlasString(contour, scale);
             lines.push(line);
