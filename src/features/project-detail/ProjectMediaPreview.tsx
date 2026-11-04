@@ -315,7 +315,7 @@ export function ProjectMediaPreview({
                         }}
                         className="mt-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
-                        {labels.expand} ↗
+                        {labels.expand}
                     </button>
                 )}
 

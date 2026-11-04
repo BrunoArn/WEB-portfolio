@@ -51,7 +51,6 @@ export function AboutLinks({
                 <SocialIcon platform={link.platform} className="size-5 shrink-0" />
                 <span>{link.label}</span>
               </span>
-              <span aria-hidden="true">↗</span>
             </a>
           </li>
         ))}
