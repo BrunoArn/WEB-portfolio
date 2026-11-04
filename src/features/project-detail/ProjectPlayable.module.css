@@ -1,0 +1,29 @@
+.frame {
+    aspect-ratio: var(--playable-aspect-ratio);
+}
+
+.desktopPlay {
+    display: flex;
+}
+
+.mobileNotice {
+    display: none;
+}
+
+/* Keep this condition aligned with desktopNoticeQuery in ProjectPlayable.tsx. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+    .frame {
+        aspect-ratio: auto;
+    }
+
+    .desktopPlay {
+        display: none;
+    }
+
+    .mobileNotice {
+        display: flex;
+        width: 100%;
+        min-height: 20rem;
+        background: color-mix(in srgb, var(--color-background) 75%, transparent);
+    }
+}

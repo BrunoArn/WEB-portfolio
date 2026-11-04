@@ -1,9 +1,12 @@
 "use client";
 
+import type { Dictionary } from "@/i18n/get-dictionary";
+import styles from "./ProjectPlayable.module.css";
+
 import type { ProjectImage } from "@/content/types/project";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type ProjectPlayableProps = {
     source: string;
@@ -12,13 +15,11 @@ type ProjectPlayableProps = {
     height: number;
     poster: ProjectImage;
 
-    labels: Readonly<{
-        title: string;
-        frameTitle: string;
-        start: string;
-        close: string;
-    }>;
+    labels: Dictionary["projectDetail"]["playable"];
 };
+
+// Small screens or a primary touch-only input: keep the game as a desktop experience.
+const desktopNoticeQuery = "(max-width: 760px), (hover: none) and (pointer: coarse)";
 
 export function ProjectPlayable({
     source,
@@ -29,6 +30,35 @@ export function ProjectPlayable({
     labels,
 }: ProjectPlayableProps) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "failed">("idle");
+    const [manualLink, setManualLink] = useState("");
+    const copyButtonRef = useRef<HTMLButtonElement>(null);
+
+    // Match the CSS policy and unload an active game when desktop controls disappear.
+    useEffect(() => {
+        const query = window.matchMedia(desktopNoticeQuery);
+        const stopOnMobile = () => { if (query.matches) setIsPlaying(false); };
+        query.addEventListener("change", stopOnMobile);
+        return () => query.removeEventListener("change", stopOnMobile);
+    }, []);
+
+    function startGame() {
+        // Check at the action itself, including clicks replayed after hydration.
+        if (!window.matchMedia(desktopNoticeQuery).matches) setIsPlaying(true);
+    }
+
+    async function copyProjectLink() {
+        const url = new URL(window.location.pathname, window.location.origin).href;
+        setCopyState("copying");
+        try {
+            await navigator.clipboard.writeText(url);
+            setManualLink("");
+            setCopyState("copied");
+        } catch {
+            setManualLink(url);
+            setCopyState("failed");
+        }
+    }
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const playButtonRef = useRef<HTMLButtonElement>(null);
     const hasStartedRef = useRef(false);
@@ -63,7 +93,8 @@ export function ProjectPlayable({
                 }
             }
         } else if (hasStartedRef.current) {
-            playButtonRef.current?.focus();
+            const target = window.matchMedia(desktopNoticeQuery).matches ? copyButtonRef : playButtonRef;
+            target.current?.focus({ preventScroll: true });
         }
     }, [isPlaying]);
 
@@ -88,9 +119,9 @@ export function ProjectPlayable({
 
             <div
                 style={{
-                    aspectRatio: `${width} / ${height}`,
-                }}
-                className="relative overflow-hidden rounded-(--radius-large) border border-app-border bg-black"
+                    "--playable-aspect-ratio": `${width} / ${height}`,
+                } as CSSProperties}
+                className={[styles.frame, "relative overflow-hidden rounded-(--radius-large) border border-app-border bg-black"].join(" ")}
             >
                 {isPlaying ? (
                     <iframe
@@ -115,15 +146,47 @@ export function ProjectPlayable({
                             className="absolute inset-0 bg-app-background/30"
                         />
 
-                        <div className="absolute inset-0 flex items-center justify-center p-(--space-20)">
+                        <div className={`${styles.desktopPlay} absolute inset-0 items-center justify-center p-(--space-20)`}>
                             <button
                                 ref={playButtonRef}
                                 type="button"
-                                onClick={() => setIsPlaying(true)}
+                                onClick={startGame}
                                 className="rounded-(--radius-control) bg-app-accent px-(--space-24) py-(--space-12) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
                                 ▶ {labels.start}
                             </button>
+                        </div>
+
+                        <div className={[styles.mobileNotice, "relative flex-col items-center justify-center gap-(--space-12) p-(--space-20) text-center"].join(" ")}>
+                            <h3 className="font-heading text-(length:--font-size-body) font-black leading-(--line-height-title) text-app-text-primary">
+                                {labels.desktopTitle}
+                            </h3>
+                            <p className="w-full max-w-md text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                                {labels.desktopDescription}
+                            </p>
+                            <button
+                                ref={copyButtonRef}
+                                type="button"
+                                onClick={() => { void copyProjectLink(); }}
+                                disabled={copyState === "copying"}
+                                aria-busy={copyState === "copying"}
+                                className="rounded-(--radius-control) bg-app-accent px-(--space-24) py-(--space-12) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-background motion-safe:transition-opacity motion-safe:duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                            >
+                                {labels.copyLink}
+                            </button>
+                            <p role="status" className="w-full max-w-md text-(length:--font-size-label) leading-(--line-height-label) text-app-text-body">
+                                {copyState === "copied" ? labels.linkCopied : copyState === "failed" ? labels.copyFailed : ""}
+                            </p>
+                            {manualLink && (
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={manualLink}
+                                    aria-label={labels.projectLink}
+                                    onFocus={(event) => event.currentTarget.select()}
+                                    className="w-full max-w-md rounded-(--radius-control) border border-app-border bg-app-surface p-(--space-8) text-(length:--font-size-label) text-app-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                />
+                            )}
                         </div>
                     </>
                 )}

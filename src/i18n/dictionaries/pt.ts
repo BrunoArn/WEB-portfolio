@@ -119,6 +119,12 @@ const pt = {
       frameTitle: "Jogo interativo",
       start: "Jogar",
       close: "Fechar jogo",
+      desktopTitle: "Jogue no computador",
+      desktopDescription: "Esta experiência foi desenvolvida para desktop. Abra este projeto em um computador para jogar.",
+      copyLink: "Copiar link do projeto",
+      linkCopied: "Link copiado",
+      copyFailed: "Não foi possível copiar automaticamente. Copie o link abaixo.",
+      projectLink: "Link do projeto",
     },
     related: {
       title: "Você também pode gostar",
