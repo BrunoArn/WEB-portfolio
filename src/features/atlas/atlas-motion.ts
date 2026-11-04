@@ -237,7 +237,10 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
                 const cell = Math.floor(gy) * (nx + 1) + Math.floor(gx), a = gx % 1, b = gy % 1, below = cell + nx + 1;
                 const keep = (protection[cell] * (1 - a) + protection[cell + 1] * a) * (1 - b) + (protection[below] * (1 - a) + protection[below + 1] * a) * b;
                 const index = i < contour.path.length ? i : points.length - 1 - i;
-                mesh.set([x, y, cell, line.normals[index * 2], line.normals[index * 2 + 1], line.arcs[index], keep], i * atlasRibbonStride);
+                const at = i * atlasRibbonStride;
+                mesh[at] = x; mesh[at + 1] = y; mesh[at + 2] = cell;
+                mesh[at + 3] = line.normals[index * 2]; mesh[at + 4] = line.normals[index * 2 + 1];
+                mesh[at + 5] = line.arcs[index]; mesh[at + 6] = keep;
             });
             return { mesh, line };
         },

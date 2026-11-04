@@ -33,10 +33,15 @@ function extractContours(values: Float32Array, nx: number, ny: number, level: nu
     if (hits.length === 2) edges.push([hits[0], hits[1]]);
   }
   for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
-    const a: [number, number, number] = [x, y, at(x, y)];
-    const b: [number, number, number] = [x + 1, y, at(x + 1, y)];
-    const c: [number, number, number] = [x + 1, y + 1, at(x + 1, y + 1)];
-    const d: [number, number, number] = [x, y + 1, at(x, y + 1)];
+    const av = at(x, y), bv = at(x + 1, y), cv = at(x + 1, y + 1), dv = at(x, y + 1);
+    const above = av > level;
+    // Neither triangle can cross this level if all four corners share a side.
+    // Keep mixed cells in the original order and use the same interpolation.
+    if (above === (bv > level) && above === (cv > level) && above === (dv > level)) continue;
+    const a: [number, number, number] = [x, y, av];
+    const b: [number, number, number] = [x + 1, y, bv];
+    const c: [number, number, number] = [x + 1, y + 1, cv];
+    const d: [number, number, number] = [x, y + 1, dv];
     triangle([a, b, c]); triangle([a, c, d]);
   }
   const key = (point: AtlasPoint) => point.map(value => value.toFixed(3)).join(",");
