@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 import { usePathname } from "next/navigation";
 
 import { isLocale, locales } from "@/i18n/config";
@@ -55,13 +55,13 @@ export function LocaleSwitcher({
                 {locale.toUpperCase()}
               </span>
             ) : (
-              <Link
+              <IntentLink
                 href={getLocalizedPath(pathname, locale)}
                 onClick={(event) => onNavigate?.(event, getLocalizedPath(pathname, locale))}
                 className="text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-text-primary"
               >
                 {locale.toUpperCase()}
-              </Link>
+              </IntentLink>
             )}
           </span>
         );

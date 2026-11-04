@@ -4,7 +4,7 @@ import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { locales } from "@/i18n/config";
 import styles from "./Navbar.module.css";
 
-import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 import { usePathname } from "next/navigation";
 
 type Locale = (typeof locales)[number];
@@ -50,33 +50,33 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
             >
                 <ul className="flex items-center gap-(--space-24)">
                     <li>
-                        <Link
+                        <IntentLink
                             href={homePath}
                             aria-current={isHomeActive ? "page" : undefined}
                             className={navLinkClass(isHomeActive)}
                         >
                             {labels.home}
-                        </Link>
+                        </IntentLink>
                     </li>
 
                     <li>
-                        <Link
+                        <IntentLink
                             href={projectsPath}
                             aria-current={pathname === projectsPath ? "page" : undefined}
                             className={navLinkClass(isProjectsActive)}
                         >
                             {labels.projects}
-                        </Link>
+                        </IntentLink>
                     </li>
 
                     <li>
-                        <Link
+                        <IntentLink
                             href={aboutPath}
                             aria-current={pathname === aboutPath ? "page" : undefined}
                             className={navLinkClass(isAboutActive)}
                         >
                             {labels.about}
-                        </Link>
+                        </IntentLink>
                     </li>
                 </ul>
 

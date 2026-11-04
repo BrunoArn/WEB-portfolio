@@ -44,3 +44,9 @@ A rota de detalhe e as consultas de projetos usam revalidação de 60 segundos. 
 A build precisa acessar o Sanity. Para conferir o cache e o tempo de navegação, use npm run build e npm run start: next dev continua compilando páginas durante o uso. O Atlas prepara a página e a capa responsiva ao abrir o card, reaproveitando esse trabalho no clique; não baixa antecipadamente as capas de todos os projetos.
 
 Verificação em produção local: 12 detalhes pré-gerados com intervalo de 60 s no manifesto; ciclo real HIT → STALE → HIT; 404 para slug inexistente. Uma cópia isolada omitiu Hungry Worm da build e confirmou geração sob demanda (MISS → HIT) em PT/EN, sem escrita no Sanity. O preparo antecipado da capa foi conferido em desktop e mobile DPR 3, reutilizando a preparação no clique. Validações de transição cobrem os seis projetos e os dois idiomas; não substituem uma avaliação física de rede/dispositivo.
+
+## Prefetch por intenção de navegação
+
+Navegação, seletor de idioma, listagem e relacionados usam IntentLink. A simples entrada na área visível não antecipa a rota: hover com mouse sem botão pressionado, foco ou início de toque/caneta habilitam o prefetch padrão do Next para aquele destino. O Next mantém o gerenciamento do cache; não existe um cache paralelo. O destino atual não é antecipado. No touch, um contato que depois vira rolagem também pode iniciar o preparo; nenhum evento bloqueia o scroll.
+
+No Atlas, useAtlasScene continua preparando a página e a capa somente ao selecionar um projeto. Os links do card não disparam uma segunda política automática. Para validar requisições antecipadas, usar build e servidor de produção: o prefetch não funciona em next dev.

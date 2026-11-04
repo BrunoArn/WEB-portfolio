@@ -1,7 +1,7 @@
 import type { Project } from "@/content/types/project";
 import { accentStyle } from "@/styles/accent";
 import type { Locale } from "@/i18n/config";
-import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 
 import Image from "next/image";
 
@@ -22,7 +22,7 @@ export function ProjectsGrid({
     return (
         <div className="grid grid-cols-1 gap-(--card-gap) md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, index) => (
-                <Link
+                <IntentLink
                     key={project.slug}
                         style={accentStyle(project.accentColor)}
                     href={`/${locale}/projects/${project.slug}`}
@@ -53,7 +53,7 @@ export function ProjectsGrid({
                             {project.role} · {project.year}
                         </p>
                     </div>
-                </Link>
+                </IntentLink>
             ))}
         </div>
     );

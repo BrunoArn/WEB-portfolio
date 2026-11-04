@@ -6,7 +6,7 @@ import {
     useState,
     type MouseEvent,
 } from "react";
-import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 import { usePathname } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
@@ -267,36 +267,36 @@ export function NavbarMobile({
                     >
                         <ul className="flex flex-col items-end gap-(--space-20)">
                             <li>
-                                <Link
+                                <IntentLink
                                     href={homePath}
                                     onClick={(event) => handleInternalNavigation(event, homePath)}
                                     aria-current={isHomeActive ? "page" : undefined}
                                     className={mobileNavLinkClass(isHomeActive)}
                                 >
                                     {labels.home}
-                                </Link>
+                                </IntentLink>
                             </li>
 
                             <li>
-                                <Link
+                                <IntentLink
                                     href={projectsPath}
                                     onClick={(event) => handleInternalNavigation(event, projectsPath)}
                                     aria-current={pathname === projectsPath ? "page" : undefined}
                                     className={mobileNavLinkClass(isProjectsActive)}
                                 >
                                     {labels.projects}
-                                </Link>
+                                </IntentLink>
                             </li>
 
                             <li>
-                                <Link
+                                <IntentLink
                                     href={aboutPath}
                                     onClick={(event) => handleInternalNavigation(event, aboutPath)}
                                     aria-current={pathname === aboutPath ? "page" : undefined}
                                     className={mobileNavLinkClass(isAboutActive)}
                                 >
                                     {labels.about}
-                                </Link>
+                                </IntentLink>
                             </li>
                         </ul>
 
