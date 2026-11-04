@@ -11,6 +11,7 @@ import { getAtlasView, type AtlasBounds } from "./atlas-layout";
 import { createAtlasField, createAtlasColorField } from "./atlas-field";
 
 const defaultDensity = 15;
+export const atlasFirstContourLevel = .18;
 const defaultThickness = 1.1;
 
 export function positionAtlasProjects<T extends AtlasAnchor>(projects: readonly T[], mobile: boolean): T[] {
@@ -95,18 +96,27 @@ function smoothContour(input: AtlasPoint[], mobile: boolean): AtlasContour {
   return { path, closed };
 }
 
+function atlasFieldGrid(w: number, h: number, bounds: AtlasBounds) {
+  const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
+  const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
+  const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
+  return { stepX, stepY, x0, y0, nx, ny };
+}
+
+function atlasFieldKey(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[]) {
+  return JSON.stringify([w, h, mobile, projects.map(p => [p.id, p.c, p.x, p.y, p.influence]), settings, regions]);
+}
+
 /** A single sampled field, owned by one mounted scene rather than a global cache. */
 export type AtlasReliefCache = {
   grid?: { key: string; x0: number; y0: number; nx: number; ny: number; values: Float32Array };
 };
 
 export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, bounds: AtlasBounds = { left: 0, top: 0, right: w, bottom: h }, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[], cache?: AtlasReliefCache): AtlasCurve[] {
-  const stepX = w / Math.max(2, Math.round(w / 5)), stepY = h / Math.max(2, Math.round(h / 5));
-  const x0 = Math.floor(bounds.left / stepX), y0 = Math.floor(bounds.top / stepY);
-  const nx = Math.ceil(bounds.right / stepX) - x0, ny = Math.ceil(bounds.bottom / stepY) - y0;
+  const { stepX, stepY, x0, y0, nx, ny } = atlasFieldGrid(w, h, bounds);
   const field = createAtlasField(projects, mobile, settings, regions);
   const values = new Float32Array((nx + 1) * (ny + 1));
-  const fieldKey = cache ? JSON.stringify([w, h, mobile, projects.map(p => [p.id, p.c, p.x, p.y, p.influence]), settings, regions]) : "";
+  const fieldKey = cache ? atlasFieldKey(w, h, projects, mobile, settings, regions) : "";
   const prior = cache?.grid?.key === fieldKey ? cache.grid : undefined;
   const priorX = x0 - (prior?.x0 ?? 0), priorY = y0 - (prior?.y0 ?? 0);
   for (let y = 0; y <= ny; y++) for (let x = 0; x <= nx; x++) {
@@ -116,7 +126,7 @@ export function buildAtlasRelief(w: number, h: number, projects: readonly AtlasA
   }
   if (cache) cache.grid = { key: fieldKey, x0, y0, nx, ny, values };
   const result: AtlasCurve[] = [];
-  for (let i = 0; i < defaultDensity; i++) for (const path of extractContours(values, nx, ny, .18 + i * (1.05 / defaultDensity), nx * stepX, ny * stepY, x0 * stepX, y0 * stepY)) {
+  for (let i = 0; i < defaultDensity; i++) for (const path of extractContours(values, nx, ny, atlasFirstContourLevel + i * (1.05 / defaultDensity), nx * stepX, ny * stepY, x0 * stepX, y0 * stepY)) {
     const contour = smoothContour(path, mobile);
     if (mobile && contour.closed) {
       const area = Math.abs(contour.path.reduce((sum, p, j, points) => { const next = points[(j + 1) % points.length]; return sum + p[0] * next[1] - next[0] * p[1]; }, 0)) / 2;
@@ -139,6 +149,42 @@ export function ribbonOutline({ contour, index }: AtlasCurve, scale: number): At
     b.push([p[0] + dy / length * half, p[1] - dx / length * half]);
   });
   return a.concat(b.reverse());
+}
+
+function containsAtlasBounds(outer: AtlasBounds, inner: AtlasBounds) {
+  return outer.left <= inner.left && outer.top <= inner.top && outer.right >= inner.right && outer.bottom >= inner.bottom;
+}
+
+/** Prove the added marching-triangle cells are below every contour level.
+ * Include the shared boundary so an existing strand cannot be cut short.
+ * False means the normal generator must decide; it does not assert visibility.
+ */
+export function atlasExtensionHasNoContours(w: number, h: number, projects: readonly AtlasAnchor[], mobile: boolean, before: AtlasBounds, after: AtlasBounds, settings?: AtlasTerrainControls, regions?: readonly AtlasCompositionRegion[], cache?: AtlasReliefCache) {
+  if (!(Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0) ||
+      !Object.values(before).every(Number.isFinite) || !Object.values(after).every(Number.isFinite) ||
+      before.right <= before.left || before.bottom <= before.top || !containsAtlasBounds(after, before)) return false;
+  const old = atlasFieldGrid(w, h, before), next = atlasFieldGrid(w, h, after);
+  if (!(Number.isFinite(next.stepX) && next.stepX > 0 && Number.isFinite(next.stepY) && next.stepY > 0) ||
+      ![old.x0, old.y0, old.nx, old.ny, next.x0, next.y0, next.nx, next.ny].every(Number.isSafeInteger)) return false;
+  const left = old.x0, right = left + old.nx, top = old.y0, bottom = top + old.ny;
+  const nl = next.x0, nr = nl + next.nx, nt = next.y0, nb = nt + next.ny;
+  const strips: [number, number, number, number][] = [];
+  if (nt < top) strips.push([nl, nt, nr, top]);
+  if (nb > bottom) strips.push([nl, bottom, nr, nb]);
+  if (nl < left) strips.push([nl, top, left, bottom]);
+  if (nr > right) strips.push([right, top, nr, bottom]);
+  if (!strips.length) return true;
+  // Bound the speculative check; a very large extension uses the normal path.
+  if (strips.reduce((sum, [l, t, r, b]) => sum + (r - l + 1) * (b - t + 1), 0) > 50_000) return false;
+  const prior = cache?.grid?.key === atlasFieldKey(w, h, projects, mobile, settings, regions) ? cache.grid : undefined;
+  const field = createAtlasField(projects, mobile, settings, regions);
+  for (const [l, t, r, b] of strips) for (let y = t; y <= b; y++) for (let x = l; x <= r; x++) {
+    const px = x - (prior?.x0 ?? 0), py = y - (prior?.y0 ?? 0);
+    const value = prior && px >= 0 && px <= prior.nx && py >= 0 && py <= prior.ny
+      ? prior.values[py * (prior.nx + 1) + px] : Math.fround(field(x * next.stepX / w, y * next.stepY / h));
+    if (!Number.isFinite(value) || value > atlasFirstContourLevel) return false;
+  }
+  return true;
 }
 
 /** Render a fixed world through a uniform camera; labels stay at readable CSS sizes. */
@@ -169,6 +215,7 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
   const reliefCache: AtlasReliefCache = {};
   // Keep only the resting geometry plus the current selection, not every card.
   let restingGeometry: { key: string; curves: AtlasCurve[] } | undefined;
+  let geometricBounds: AtlasBounds | undefined, geometryConfig = "", emptyCoverage = "";
   let extension: AtlasBounds | undefined;
   let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
@@ -181,9 +228,17 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
     const domain = extension ?? { left: 0, top: 0, right: w, bottom: h };
     const screen = rasterCrop ?? domain;
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
-    const bounds = { left: Math.min(view.bounds.left, (domain.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (domain.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (domain.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (domain.bottom - offsetY) / scale + 48 / scale) };
+    let bounds = { left: Math.min(view.bounds.left, (domain.left - offsetX) / scale - 48 / scale), top: Math.min(view.bounds.top, (domain.top - offsetY) / scale - 48 / scale), right: Math.max(view.bounds.right, (domain.right - offsetX) / scale + 48 / scale), bottom: Math.max(view.bounds.bottom, (domain.bottom - offsetY) / scale + 48 / scale) };
     const controls = settings[mobile ? "mobile" : "desktop"];
-    const key = JSON.stringify([mobile, bounds, controls, settings.regions.map(region => ({kind: region.kind, ...region[mobile ? "mobile" : "desktop"]}))]);
+    const config = atlasFieldKey(world.width, world.height, positioned, mobile, controls, settings.regions);
+    if (geometricBounds && config === geometryConfig && containsAtlasBounds(bounds, geometricBounds) && !containsAtlasBounds(geometricBounds, bounds)) {
+      const coverage = JSON.stringify([geometryKey, bounds]);
+      if (coverage === emptyCoverage || atlasExtensionHasNoContours(world.width, world.height, positioned, mobile, geometricBounds, bounds, controls, settings.regions, reliefCache)) {
+        emptyCoverage = coverage;
+        bounds = geometricBounds;
+      }
+    }
+    const key = JSON.stringify([config, bounds]);
     const raster = atlasRasterResolution(width,height,window.devicePixelRatio || 1,rasterZoom);
     const dpr = raster.ratio;
     const text = intro.getBoundingClientRect();
@@ -198,6 +253,7 @@ export function mountAtlasTerrain(canvas: HTMLCanvasElement, viewport: HTMLEleme
       if (restingGeometry?.key === key) curves = restingGeometry.curves;
       else { curves = buildAtlasRelief(world.width, world.height, positioned, mobile, bounds, controls, settings.regions, reliefCache); builds++; }
       geometryKey = key;
+      geometricBounds = bounds; geometryConfig = config;
     }
     if (!extension) restingGeometry = { key, curves };
     canvas.width = raster.pixelWidth; canvas.height = raster.pixelHeight;
