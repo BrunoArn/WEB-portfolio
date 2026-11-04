@@ -310,7 +310,7 @@ export function NavbarMobile({
                                             rel="noreferrer"
                                             className="inline-flex min-h-10 items-center text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none"
                                         >
-                                            GITHUB ↗
+                                            GITHUB
                                         </a>
                                     )}
 
@@ -321,7 +321,7 @@ export function NavbarMobile({
                                             rel="noreferrer"
                                             className="inline-flex min-h-10 items-center text-app-text-secondary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none"
                                         >
-                                            LINKEDIN ↗
+                                            LINKEDIN
                                         </a>
                                     )}
                                 </div>

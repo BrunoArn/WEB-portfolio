@@ -79,7 +79,7 @@ export default async function AboutPage({
                                 href={`mailto:${about.email}`}
                                 className="inline-flex min-h-10 items-center justify-center rounded-(--radius-control) bg-app-accent px-(--space-16) text-(length:--font-size-label) font-medium uppercase text-app-background transition-opacity duration-(--motion-fast) hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
-                                {dictionary.about.emailLabel}<span aria-hidden="true">&nbsp;↗</span>
+                                {dictionary.about.emailLabel}
                             </a>
 
                             {about.cvUrl && (
@@ -89,7 +89,7 @@ export default async function AboutPage({
                                     rel="noopener noreferrer"
                                     className="inline-flex min-h-10 items-center justify-center rounded-(--radius-control) border border-app-border bg-app-surface px-(--space-16) text-(length:--font-size-label) font-medium uppercase text-app-text-primary transition-colors duration-(--motion-fast) hover:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                                 >
-                                    {dictionary.about.cvLabel}<span aria-hidden="true">&nbsp;↗</span>
+                                    {dictionary.about.cvLabel}
                                 </a>
                             )}
                         </div>
