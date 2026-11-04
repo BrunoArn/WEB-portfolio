@@ -21,7 +21,7 @@ export function ProjectsGrid({
 
     return (
         <div className="grid grid-cols-1 gap-(--card-gap) md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
+            {projects.map((project, index) => (
                 <Link
                     key={project.slug}
                         style={accentStyle(project.accentColor)}
@@ -32,6 +32,8 @@ export function ProjectsGrid({
                         <Image
                             src={project.cover.src}
                             alt={project.cover.alt}
+                            loading={index === 0 ? "eager" : "lazy"}
+                            fetchPriority={index === 0 ? "high" : undefined}
                             fill
                             sizes="(min-width: 1280px) 387px, (min-width: 1024px) calc(33.333vw - 40px), (min-width: 768px) calc(50vw - 50px), calc(100vw - 40px)"
                             className="object-cover motion-safe:transition-transform motion-safe:duration-(--motion-ui) motion-safe:group-hover:scale-[1.03]"
