@@ -13,12 +13,14 @@ export function atlasBendLimits(contour: AtlasContour, arcs: Float64Array, norma
   }
   const spacing = Math.min(2, 4 / scale), maxBend = 32 / scale, margin = .35;
   const radius = maxBend / margin, search = radius * 2, cellSize = 64 / scale;
-  const samples: number[] = [], grid = new Map<string, number[]>();
+  const samples: number[] = [];
+  const grid = new Map<number, Map<number, number[]>>();
   let last = -Infinity;
   for (let i = 0; i < arcs.length; i++) if (arcs[i] - last >= spacing) {
     samples.push(i); last = arcs[i];
-    const [x, y] = contour.path[i], key = `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
-    const bucket = grid.get(key) ?? []; bucket.push(i); grid.set(key, bucket);
+    const [x, y] = contour.path[i], gx = Math.floor(x / cellSize), gy = Math.floor(y / cellSize);
+    const row = grid.get(gy) ?? new Map<number, number[]>();
+    const bucket = row.get(gx) ?? []; bucket.push(i); row.set(gx, bucket); grid.set(gy, row);
   }
   const rooms = samples.map(index => {
     const [x, y] = contour.path[index], nx = normals[index * 2], ny = normals[index * 2 + 1];
@@ -26,8 +28,19 @@ export function atlasBendLimits(contour: AtlasContour, arcs: Float64Array, norma
     // A tangent circle meeting another part of the same contour estimates local
     // curvature and the clearance to the opposite side of a thin loop.
     for (let gy = Math.floor((y - search) / cellSize); gy <= Math.floor((y + search) / cellSize); gy++) {
+      const row = grid.get(gy);
+      if (!row) continue;
       for (let gx = Math.floor((x - search) / cellSize); gx <= Math.floor((x + search) / cellSize); gx++) {
-        for (const other of grid.get(`${gx},${gy}`) ?? []) {
+        const bucket = row.get(gx);
+        if (!bucket) continue;
+        // Skip a cell only when its nearest distance and greatest normal
+        // projection cannot improve the current clearance estimate.
+        const left = gx * cellSize - x, right = left + cellSize;
+        const top = gy * cellSize - y, bottom = top + cellSize;
+        const nearX = Math.max(left, 0, -right), nearY = Math.max(top, 0, -bottom);
+        const projectionBound = Math.max(Math.abs(left * nx + top * ny), Math.abs(left * nx + bottom * ny), Math.abs(right * nx + top * ny), Math.abs(right * nx + bottom * ny));
+        if (nearX * nearX + nearY * nearY > 2 * room * projectionBound + 1e-6 / (scale * scale)) continue;
+        for (const other of bucket) {
           if (other === index) continue;
           const q = contour.path[other], dx = q[0] - x, dy = q[1] - y;
           const distance2 = dx * dx + dy * dy, projection = Math.abs(dx * nx + dy * ny);

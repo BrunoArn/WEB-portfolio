@@ -47,11 +47,16 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
 export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {
   const indices = new Map(categoryIds.map((id, i) => [id, i]));
   const sources = projects.map(p => ({ ...p, index: indices.get(p.c) })).filter(p => p.index !== undefined);
-  return (x: number, y: number) => {
-    const weights = Array<number>(categoryIds.length).fill(0);
+  return (x: number, y: number, weights = Array<number>(categoryIds.length).fill(0)) => {
+    weights.fill(0);
     for (const p of sources) weights[p.index!] += p.influence * gaussian(x, y, p.x, p.y, mobile ? .25 : .22, mobile ? .13 : .22);
-    const powered = weights.map(value => value ** 5);
-    const sum = powered.reduce((a, b) => a + b, 0) || 1;
-    return powered.map(value => value / sum);
+    let sum = 0;
+    for (let i = 0; i < weights.length; i++) {
+      weights[i] = weights[i] ** 5;
+      sum += weights[i];
+    }
+    sum ||= 1;
+    for (let i = 0; i < weights.length; i++) weights[i] /= sum;
+    return weights;
   };
 }

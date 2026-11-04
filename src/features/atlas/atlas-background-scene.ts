@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import sharp from "sharp";
-import { buildAtlasRelief, positionAtlasProjects, ribbonOutline } from "./atlas-engine";
+import { buildAtlasRelief, positionAtlasProjects, ribbonOutline } from "./atlas-geometry";
 import { createAtlasColorField } from "./atlas-field";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasAnchor, AtlasContent, AtlasPoint, AtlasTerritory } from "./atlas-types";
@@ -54,6 +54,33 @@ export function simplifyAtlasOutline(points: readonly AtlasPoint[], tolerance = 
     return points.filter((_, index) => keep[index]);
 }
 
+/** Serialize the same tenths-of-a-unit coordinates with shorter SVG commands. */
+export function serializeAtlasOutline(points: readonly AtlasPoint[]): string {
+    if (!points.length) return "";
+    const number = (value: number) => String(value / 10).replace(/^(-?)0\./, "$1.");
+    const append = (prefix: string, value: string) => prefix + (value.startsWith("-") ? "" : " ") + value;
+    let previousX = Math.round(points[0][0] * 10), previousY = Math.round(points[0][1] * 10);
+    let result = append("M" + number(previousX), number(previousY));
+    let command = "";
+    for (let i = 1; i < points.length; i++) {
+        const x = Math.round(points[i][0] * 10), y = Math.round(points[i][1] * 10);
+        const relative = append(number(x - previousX), number(y - previousY));
+        const candidates: [string, string][] = [["l", relative]];
+        if (y === previousY) candidates.push(["h", number(x - previousX)]);
+        if (x === previousX) candidates.push(["v", number(y - previousY)]);
+        let shortest = "", nextCommand = "";
+        for (const [kind, coordinates] of candidates) {
+            const fragment = kind === command ? (coordinates.startsWith("-") ? "" : " ") + coordinates : kind + coordinates;
+            if (!shortest || fragment.length < shortest.length) { shortest = fragment; nextCommand = kind; }
+        }
+        result += shortest;
+        command = nextCommand;
+        previousX = x;
+        previousY = y;
+    }
+    return result + "Z";
+}
+
 export function getAtlasBackgroundScene(input: SceneInput): Promise<AtlasBackgroundScene> {
     const key = JSON.stringify([input.mobile, input.projects, input.territories.map(({ id, color }) => ({ id, color })), input.terrain]);
     const existing = scenes.get(key);
@@ -86,16 +113,8 @@ async function buildScene({ projects, territories, terrain, mobile }: SceneInput
             bounds.right = Math.max(bounds.right, x);
             bounds.bottom = Math.max(bounds.bottom, y);
         }
-        let previousX = 0, previousY = 0;
-        const commands = points.map(([x, y], index) => {
-            const roundedX = Math.round(x * 10), roundedY = Math.round(y * 10);
-            const command = index ? `${(roundedX - previousX) / 10},${(roundedY - previousY) / 10}` : `${roundedX / 10},${roundedY / 10}l`;
-            previousX = roundedX;
-            previousY = roundedY;
-            return command;
-        });
         return {
-            d: "M" + commands.join(" ") + "Z",
+            d: serializeAtlasOutline(points),
             opacity: curve.index % 4 === 0 ? .77 : .42,
         };
     });

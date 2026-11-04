@@ -4,7 +4,7 @@ import type { Project } from "@/content/types/project";
 import { accentStyle } from "@/styles/accent";
 
 import Image from "next/image";
-import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 import { useRef, type PointerEvent, type MouseEvent } from "react";
 import styles from "./RelatedProjects.module.css";
 
@@ -114,7 +114,7 @@ export function RelatedProjects({
                 onDragStart={(event) => event.preventDefault()}
             >
                 {projects.map((project) => (
-                    <Link
+                    <IntentLink
                         key={project.slug}
                         style={accentStyle(project.accentColor)}
                         href={`/${locale}/projects/${project.slug}`}
@@ -163,7 +163,7 @@ export function RelatedProjects({
                                 {project.role} · {project.year}
                             </p>
                         </div>
-                    </Link>
+                    </IntentLink>
                 ))}
             </div>
         </section>

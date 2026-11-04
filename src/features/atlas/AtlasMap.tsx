@@ -2,13 +2,14 @@
 
 import { ViewTransition, useId, type CSSProperties } from "react";
 import Link from "next/link";
+import { IntentLink } from "@/components/navigation/IntentLink";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
 import { AtlasMotionPanel } from "./AtlasMotionPanel";
 import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
 import { AtlasThumbnail } from "./AtlasThumbnail";
-import { positionAtlasProjects } from "./atlas-engine";
+import { positionAtlasProjects } from "./atlas-geometry";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasContent } from "./atlas-types";
 import { useAtlasScene } from "./useAtlasScene";
@@ -144,9 +145,9 @@ export function AtlasMap({
 
                     <div className={styles.intro} ref={intro}>
                         <h1 className={styles.title}>
-                            <Link href={`/${locale}/about`} className={styles.aboutLink}>
+                            <IntentLink href={`/${locale}/about`} className={styles.aboutLink}>
                                 {text.title}
-                            </Link>
+                            </IntentLink>
                         </h1>
                         <p className={styles.description}>{text.description}</p>
                     </div>
@@ -170,7 +171,7 @@ export function AtlasMap({
                             <Link
                                 ref={media}
                                 href={projectHref}
-                                prefetch={true}
+                                prefetch={false}
                                 className={styles.selectedMedia}
                                 data-atlas-project-link
                             />
@@ -179,7 +180,7 @@ export function AtlasMap({
                                 <h2 id={dialogId + "-title"} className={styles.selectedTitle}>
                                     <Link
                                         href={projectHref}
-                                        prefetch={true}
+                                        prefetch={false}
                                         className={styles.titleLink}
                                         data-atlas-project-link
                                     >
@@ -190,7 +191,7 @@ export function AtlasMap({
                                 <p className={styles.mediaNote} data-atlas-media-note>{text.unavailable}</p>
                                 <Link
                                     href={projectHref}
-                                    prefetch={true}
+                                    prefetch={false}
                                     className={styles.detailLink}
                                     data-atlas-detail
                                     data-atlas-project-link

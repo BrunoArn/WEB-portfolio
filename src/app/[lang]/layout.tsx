@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
 import { Navbar } from "@/components/layout/Navbar";
 import { NavbarMobile } from "@/components/layout/NavbarMobile";
@@ -11,11 +11,6 @@ import "@/styles/globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -55,7 +50,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lang}>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${interBlack.variable}`}>
+      <body className={`${geistSans.variable} ${interBlack.variable}`}>
         <Navbar
           currentLocale={lang}
           labels={dictionary.navigation}

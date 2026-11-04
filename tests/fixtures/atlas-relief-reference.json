@@ -1,0 +1,133 @@
+{
+  "projects": [
+    {
+      "id": "a",
+      "c": "games",
+      "x": 0.27,
+      "y": 0.4,
+      "mx": 0.27,
+      "my": 0.4,
+      "influence": 1
+    },
+    {
+      "id": "b",
+      "c": "web",
+      "x": 0.72,
+      "y": 0.67,
+      "mx": 0.72,
+      "my": 0.67,
+      "influence": 0.9
+    }
+  ],
+  "settings": {
+    "amplitude": 50,
+    "elongation": 50,
+    "direction": 0,
+    "connection": 50,
+    "negativeSpace": 50
+  },
+  "regions": [],
+  "cases": [
+    {
+      "name": "desktop resting",
+      "w": 120,
+      "h": 90,
+      "mobile": false,
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "right": 120,
+        "bottom": 90
+      },
+      "hash": "21de4597c3b6f24721fe4f7f01cda49f6db22d99fa54f7b81bc4aa3ede3ba95a",
+      "contours": 17
+    },
+    {
+      "name": "desktop expanded negative grid",
+      "w": 120,
+      "h": 90,
+      "mobile": false,
+      "bounds": {
+        "left": -31.3,
+        "top": -42.1,
+        "right": 167.7,
+        "bottom": 147.5
+      },
+      "hash": "6e3bd2cf1bfd25345fb357aed5ced0910f2da0f6d108075c9c466ae425445f1c",
+      "contours": 17
+    },
+    {
+      "name": "mobile lateral terrain",
+      "w": 195,
+      "h": 580,
+      "mobile": true,
+      "bounds": {
+        "left": -130,
+        "top": -40,
+        "right": 325,
+        "bottom": 660
+      },
+      "hash": "86fad03cee6409e01c2b95bf3abda9928b6d19d1024e1c59f79b69fc0a8592d3",
+      "contours": 17
+    },
+    {
+      "name": "irregular sampling grid",
+      "w": 137.5,
+      "h": 91,
+      "mobile": false,
+      "bounds": {
+        "left": -12.1,
+        "top": -7.2,
+        "right": 151.3,
+        "bottom": 127.4
+      },
+      "hash": "b385c238d8bc4ca242a266118dd8a405303f7b7244583e79b0ea30cf44c751b5",
+      "contours": 17
+    },
+    {
+      "name": "Float32 threshold plateau",
+      "w": 100,
+      "h": 100,
+      "mobile": false,
+      "field": "plateau",
+      "bounds": {
+        "left": -20,
+        "top": -20,
+        "right": 120,
+        "bottom": 120
+      },
+      "hash": "d451ee284e88cfe75b319b71090f8724836df2f9bfe5f1ce823c9c6ba1207e44",
+      "contours": 13
+    },
+    {
+      "name": "uniform below every level",
+      "w": 100,
+      "h": 100,
+      "mobile": false,
+      "field": "below",
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "right": 100,
+        "bottom": 100
+      },
+      "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "contours": 0
+    },
+    {
+      "name": "uniform above every level",
+      "w": 100,
+      "h": 100,
+      "mobile": false,
+      "field": "above",
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "right": 100,
+        "bottom": 100
+      },
+      "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "contours": 0
+    }
+  ]
+}

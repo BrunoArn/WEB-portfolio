@@ -3,7 +3,7 @@ import { nearestAtlasString, type AtlasString } from "./atlas-string-response";
 // CSS pixels/second; speed comes from the actual movement, not event frequency.
 export const atlasPointerImpulseReference = { minimumSpeed: 25, speedScale: 450, maximumGain: 2.4, cooldown: .18, rearmPause: .12 };
 /** A passage excites each strand once; its packets continue after the cursor leaves. */
-export function advanceAtlasPointer(line: AtlasString, x: number, y: number, over: boolean, speed: number, strength: number, dt: number, unit: number, mouseRadius: number) {
+export function advanceAtlasPointer(line: AtlasString, x: number, y: number, over: boolean, speed: number, strength: number, dt: number, unit: number, mouseRadius: number, tap = false) {
     const state = line.pointer, config = atlasPointerImpulseReference;
     for (const impulse of state.impulses)
         if (impulse.age >= 0) {
@@ -22,7 +22,7 @@ export function advanceAtlasPointer(line: AtlasString, x: number, y: number, ove
         state.armed = true;
         return;
     }
-    if (speed < config.minimumSpeed)
+    if (!tap && speed < config.minimumSpeed)
         return;
     const hit = nearestAtlasString(line, x, y);
     if (hit.distance2 > radius * radius * 1.44) {
@@ -34,14 +34,17 @@ export function advanceAtlasPointer(line: AtlasString, x: number, y: number, ove
         travel = Math.min(travel, line.length - travel);
     if (travel > radius * 1.1 && state.cooldown === 0)
         state.armed = true;
-    if (!state.armed || state.cooldown > 0 || speed < config.minimumSpeed || hit.distance2 > radius * radius)
+    if (!state.armed || state.cooldown > 0 || (!tap && speed < config.minimumSpeed) || hit.distance2 > radius * radius)
         return;
     // Two independent slots avoid restarting a wave or accumulating unlimited energy.
     const impulse = state.impulses.find(item => item.age < 0);
     if (!impulse)
         return;
-    const energy = 1 - Math.exp(-speed / config.speedScale);
-    const value = 11 * unit * strength / 100 * config.maximumGain * energy * hit.signed / Math.hypot(hit.signed, 8 * unit) * Math.exp(-.5 * hit.distance2 / (radius * radius));
+    const energy = 1 - Math.exp(-(tap ? config.speedScale : speed) / config.speedScale);
+    const normal = hit.signed / Math.hypot(hit.signed, 8 * unit);
+    // A stationary tap on the contour still excites it; pointer behavior is unchanged.
+    const direction = tap ? (normal < 0 ? -1 : 1) * Math.max(.35, Math.abs(normal)) : normal;
+    const value = 11 * unit * strength / 100 * config.maximumGain * energy * direction * Math.exp(-.5 * hit.distance2 / (radius * radius));
     if (!Number.isFinite(value) || Math.abs(value) < .025 * unit)
         return;
     impulse.contact = hit.contact;
