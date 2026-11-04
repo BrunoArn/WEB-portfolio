@@ -1,3 +1,4 @@
+import { SocialIcon, type SocialPlatform } from "@/components/icons/SocialIcon";
 
 type AboutLinksProps = {
   githubUrl?: string;
@@ -13,11 +14,11 @@ export function AboutLinks({
   title,
 }: AboutLinksProps) {
   const links = [
-    { label: "GitHub", href: githubUrl },
-    { label: "LinkedIn", href: linkedinUrl },
-    { label: "itch.io", href: itchUrl },
+    { label: "GitHub", href: githubUrl, platform: "github" as const },
+    { label: "LinkedIn", href: linkedinUrl, platform: "linkedin" as const },
+    { label: "itch.io", href: itchUrl, platform: "itch" as const },
   ].filter(
-    (link): link is { label: string; href: string } =>
+    (link): link is { label: string; href: string; platform: SocialPlatform } =>
       typeof link.href === "string" && link.href.trim().length > 0,
   );
 
@@ -46,7 +47,10 @@ export function AboutLinks({
               rel="noopener noreferrer"
               className="flex min-h-10 items-center justify-between gap-(--space-16) rounded-(--radius-control) text-(length:--font-size-body) text-app-text-body transition-colors duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
             >
-              <span>{link.label}</span>
+              <span className="inline-flex items-center gap-(--space-8)">
+                <SocialIcon platform={link.platform} className="size-5 shrink-0" />
+                <span>{link.label}</span>
+              </span>
               <span aria-hidden="true">↗</span>
             </a>
           </li>
