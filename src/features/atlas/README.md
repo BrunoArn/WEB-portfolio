@@ -16,7 +16,7 @@ O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScen
 | Aparência e adaptação da interface do mapa | `AtlasMap.module.css`; tokens `--atlas-*` locais e exceções responsivas junto aos seletores |
 | Inicialização, recuperação estática e controles locais | `useAtlasScene.ts` |
 | Enquadramento e dimensões do mundo | `atlas-layout.ts` e `atlas-composition.ts` |
-| Formação do relevo / territórios | `atlas-field.ts`; `atlas-engine.ts` extrai e prepara as curvas |
+| Formação do relevo / territórios | `atlas-field.ts` define o campo; `atlas-geometry.ts` extrai e prepara as curvas |
 | Intensidades padrão do movimento | `atlas-motion-settings.ts` |
 | Força por velocidade do mouse | `atlas-pointer-impulse.ts` |
 | Movimento desenhado pela GPU | `atlas-webgl.ts`, em `vertexSource` (GLSL) |
@@ -94,7 +94,9 @@ Esta manutenção extraiu a montagem antes embutida em `AtlasMap` para um único
 | `useAtlasScene.ts` | Estado local, refs, montagem e limpeza dos controladores; entrada, recuperação e atualização dos ajustes. |
 | `atlas-content.ts` | Adapta conteúdo publicado, idiomas, imagens, destinos e participação no mapa. |
 | `atlas-field.ts` | Prepara o campo escalar e a influência espacial das cores. |
-| `atlas-engine.ts` | Gera/suaviza curvas de nível, prepara fitas de espessura variável, enquadramento, cores e cache de geometria. |
+| `atlas-geometry.ts` | Cálculos compartilhados: grade, amostragem, curvas, fitas e verificação conservadora de extensões vazias; sem DOM ou renderizador. |
+| `atlas-geometry-cache.ts` | Estado de geometria de uma cena: amostras, curvas atuais/de repouso e prova de cobertura vazia. |
+| `atlas-engine.ts` | Controlador do navegador: canvas, textura de cores, renderizador, preparação da superfície/malha e ciclo de vida. |
 | `atlas-motion.ts` | Velocidade do ponteiro, relógio, proteção das clareiras e preparação dos dados para a GPU. |
 | `atlas-pointer-impulse.ts` | Impulsos individuais por passagem do ponteiro, intensidade por velocidade e limite de ondas simultâneas. |
 | `atlas-motion-settings.ts` | Valores aprovados, tipos e duração do impulso; fonte única para controles e shaders. |
@@ -229,3 +231,34 @@ Validação desta consolidação: build de produção Next/Turbopack, TypeScript
 A proteção geométrica anterior foi verificada em 3.744 combinações (desktop/mobile, três escalas, mouse/impulso fortes), eliminando os 910 casos com auto-interseção reproduzidos nesse conjunto. Comparações por transform feedback também verificaram as fórmulas de deslocamento. Esses resultados têm o alcance dos cenários testados, não são uma garantia para qualquer composição futura.
 
 Mobile em navegador de desktop usa viewport/DPR simulados. O S23 foi confirmado pelo usuário antes da migração para shaders; o novo padrão ainda requer revisão física, inclusive aquecimento, consumo e uso prolongado. Outros navegadores também precisam de avaliação. O posicionamento automático de projetos e rótulos permanece fora do escopo.
+## Limites entre geometria, cache e navegador
+
+`atlas-geometry.ts` é compartilhado pelo Atlas interativo e pelo gerador de fundos estáticos. Ele não importa controladores do navegador, React ou WebGL. O cache de amostras é opcional e fornecido pelo chamador; não existe um cache global de grades nesse módulo.
+
+`atlas-background-scene.ts` importa a geometria diretamente. Seu cache de cenas estáticas no servidor continua separado do estado de uma Home aberta. `AtlasMap.tsx` também obtém o posicionamento nesse módulo; a conexão com o navegador permanece em `useAtlasScene.ts` e `atlas-engine.ts`.
+
+### Contrato dos caches por cena
+
+| Estado | Dono | Validade e limite |
+| --- | --- | --- |
+| Grade de amostras | Cache de geometria | Uma grade Float32; a chave considera dimensões do mundo, perfil, IDs/categorias/posições/influências dos projetos, controles e regiões. Só reaproveita coordenadas cobertas pela grade válida. |
+| Curvas atuais | Cache de geometria | Uma entrada, identificada pela configuração e pelos limites efetivamente gerados. |
+| Curvas de repouso | Cache de geometria | Uma referência para o retorno do card. Pode ser a mesma entrada atual; não acumula entradas por projeto. |
+| Prova de faixa vazia | Cache de geometria | Uma chave da geometria atual mais os limites solicitados. Inclui a borda compartilhada; qualquer incerteza usa a geração normal. |
+| Leitor do campo de cores | Controlador do navegador | Uma função por configuração geométrica e ordem dos IDs dos territórios. Reutilizada entre recortes, substituída quando os dados mudam e liberada na desmontagem. |
+| Superfície preparada | Controlador do navegador | Configuração/limites efetivos, recorte, escala/deslocamento, resolução e área de respiro do texto. Notificações idênticas não repetem a preparação. |
+| Malha preparada | Controlador do navegador | Geometria, escala/deslocamento e respiro do texto. Recorte e densidade do raster atualizam a superfície sem reinicializar a malha ou as ondas. |
+
+O cache de geometria tem duas fases explícitas. `describe()` resolve a identidade e a cobertura sem construir curvas. Depois de medir a superfície e descartar uma notificação repetida, `prepare()` recupera ou constrói as curvas necessárias. Essa ordem evita transformar uma notificação de resize/fontes em trabalho redundante.
+
+`clear()` libera amostras, curvas atuais/de repouso e a prova de cobertura. Na desmontagem, o controlador também invalida suas duas assinaturas e o leitor de cores, encerra movimento/renderizador, desconecta o observador e remove os listeners. Os caches WeakMap de limites de deformação continuam vinculados à identidade e escala de cada contorno; não são uma lista permanente de projetos.
+
+### Proteção da organização e do comportamento
+
+- Os testes dos cálculos importam `atlas-geometry.ts`, sem mocks de WebGL ou movimento.
+- Testes de fronteira verificam que geometria, cache e fundo do servidor não carregam os controladores do navegador.
+- Testes do cache cobrem preparação repetida, retorno ao repouso, invalidação da prova, isolamento entre cenas e limpeza das referências.
+- As referências numéricas das curvas e as verificações no navegador protegem posições, geometria, cores, câmera e navegação durante reorganizações.
+- `tests/helpers/load-typescript.mjs` centraliza o carregamento dos módulos nos testes afetados, mantendo cache e mocks isolados por fixture.
+
+Verificação local: `npm run lint`, `npx tsc --noEmit`, `npm run build` e `node --test tests/*.test.mjs`. A documentação acima descreve responsabilidade e invalidação; mudanças visuais ou de desempenho devem ser medidas separadamente.

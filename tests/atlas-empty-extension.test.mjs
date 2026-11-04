@@ -1,20 +1,18 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import vm from 'node:vm';
+import {fileURLToPath} from 'node:url';
+import {createTypeScriptLoader} from './helpers/load-typescript.mjs';
 import test from 'node:test';
-import ts from 'typescript';
 
 function fixture(field=()=>0){
- let calls=0;const loaded={exports:{}},modules={
-  './atlas-webgl':{},'./atlas-raster':{},'./atlas-motion':{},'./atlas-layout':{},'../../../shared/atlas-terrain-settings':{},
-  './atlas-field':{createAtlasField:(...args)=>(x,y)=>{calls++;return field(x,y,...args)},createAtlasColorField:()=>()=>[]},
- };
- vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/features/atlas/atlas-engine.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:loaded.exports,module:loaded,require:id=>{assert.ok(modules[id],id);return modules[id]},Float32Array,Float64Array,Uint8Array});
+ let calls=0;
+ const fieldPath=fileURLToPath(new URL('../src/features/atlas/atlas-field.ts',import.meta.url));
+ const {load}=createTypeScriptLoader({overrides:{[fieldPath]:{createAtlasField:(...args)=>(x,y)=>{calls++;return field(x,y,...args)}}}});
+ const geometry=load(fileURLToPath(new URL('../src/features/atlas/atlas-geometry.ts',import.meta.url)));
  const defaults={w:100,h:100,projects:[{id:'one',c:'games',x:.3,y:.4,mx:.3,my:.4,influence:1}],mobile:false,settings:{amplitude:50},regions:[]};
  const args=(options={})=>({...defaults,...options});
- return {defaults,level:loaded.exports.atlasFirstContourLevel,calls:()=>calls,
-  check:(before,after,options={})=>{const s=args(options);return loaded.exports.atlasExtensionHasNoContours(s.w,s.h,s.projects,s.mobile,before,after,s.settings,s.regions,s.cache)},
-  build:(bounds,options={})=>{const s=args(options);return loaded.exports.buildAtlasRelief(s.w,s.h,s.projects,s.mobile,bounds,s.settings,s.regions,s.cache)},
+ return {defaults,level:geometry.atlasFirstContourLevel,calls:()=>calls,
+  check:(before,after,options={})=>{const s=args(options);return geometry.atlasExtensionHasNoContours(s.w,s.h,s.projects,s.mobile,before,after,s.settings,s.regions,s.cache)},
+  build:(bounds,options={})=>{const s=args(options);return geometry.buildAtlasRelief(s.w,s.h,s.projects,s.mobile,bounds,s.settings,s.regions,s.cache)},
  };
 }
 const before={left:-10,top:-10,right:10,bottom:10},around={left:-20,top:-20,right:20,bottom:20};

@@ -1,25 +1,18 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
-import {dirname,resolve} from 'node:path';
+import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import vm from 'node:vm';
 import test from 'node:test';
-import ts from 'typescript';
+import {createTypeScriptLoader} from './helpers/load-typescript.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 function fixture(){
- let calls=0;const modules=new Map();
- function load(filename){
-  if(modules.has(filename))return modules.get(filename).exports;
-  if(/atlas-(webgl|motion)\.ts$/.test(filename))return {};
-  const loaded={exports:{}};modules.set(filename,loaded);
-  const source=ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  vm.runInThisContext('(function(require,module,exports){'+source+'\n})',{filename})(id=>load(resolve(dirname(filename),id+'.ts')),loaded,loaded.exports);
-  if(filename.endsWith('atlas-field.ts')){const original=loaded.exports.createAtlasField;loaded.exports.createAtlasField=(...args)=>{const field=original(...args);return(x,y)=>{calls++;return field(x,y)}};}
-  return loaded.exports;
- }
- const {buildAtlasRelief}=load(resolve(root,'src/features/atlas/atlas-engine.ts'));
+ let calls=0;
+ const {load}=createTypeScriptLoader();
+ const field=load(resolve(root,'src/features/atlas/atlas-field.ts'));
+ const original=field.createAtlasField;
+ field.createAtlasField=(...args)=>{const sample=original(...args);return(x,y)=>{calls++;return sample(x,y)}};
+ const {buildAtlasRelief}=load(resolve(root,'src/features/atlas/atlas-geometry.ts'));
  const projects=[{id:'one',c:'games',x:.32,y:.43,mx:.2,my:.3,influence:1},{id:'two',c:'web',x:.68,y:.71,mx:.8,my:.7,influence:.9}];
  const build=(bounds,cache,changes={})=>buildAtlasRelief(changes.w??100,changes.h??140,changes.projects??projects,changes.mobile??false,bounds,changes.settings??{amplitude:50},changes.regions??[],cache);
  return {build,projects,calls:()=>calls};

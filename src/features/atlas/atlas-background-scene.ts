@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import sharp from "sharp";
-import { buildAtlasRelief, positionAtlasProjects, ribbonOutline } from "./atlas-engine";
+import { buildAtlasRelief, positionAtlasProjects, ribbonOutline } from "./atlas-geometry";
 import { createAtlasColorField } from "./atlas-field";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasAnchor, AtlasContent, AtlasPoint, AtlasTerritory } from "./atlas-types";

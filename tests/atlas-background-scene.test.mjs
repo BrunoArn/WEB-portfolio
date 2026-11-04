@@ -1,21 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {createRequire} from 'node:module';
-import {dirname,resolve} from 'node:path';
+import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import vm from 'node:vm';
 import test from 'node:test';
-import ts from 'typescript';
+import {createTypeScriptLoader} from './helpers/load-typescript.mjs';
 
-const require=createRequire(import.meta.url),root=fileURLToPath(new URL('../',import.meta.url)),modules=new Map();
-function load(filename){
-  if(modules.has(filename))return modules.get(filename).exports;
-  const loaded={exports:{}};modules.set(filename,loaded);
-  const source=ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText;
-  const localRequire=id=>id==='server-only'?{}:id.startsWith('.')?load(resolve(dirname(filename),id+'.ts')):require(id);
-  vm.runInThisContext('(function(require,module,exports){'+source+'\n})',{filename})(localRequire,loaded,loaded.exports);
-  return loaded.exports;
-}
+const root=fileURLToPath(new URL('../',import.meta.url));
+const {load,loadedFiles}=createTypeScriptLoader({overrides:{'server-only':{}}});
 const {getAtlasBackgroundScene,simplifyAtlasOutline}=load(resolve(root,'src/features/atlas/atlas-background-scene.ts'));
 const {resolveAtlasTerrainSettings}=load(resolve(root,'shared/atlas-terrain-settings.ts'));
 const fixture=()=>({
@@ -47,4 +37,8 @@ test('SVG compaction preserves endpoints and bounds geometric error',()=>{
   const points=Array.from({length:1000},(_,i)=>[i/10,Math.sin(i/40)*3]),result=simplifyAtlasOutline(points);
   assert.deepEqual(result[0],points[0]);assert.deepEqual(result.at(-1),points.at(-1));assert(result.length<points.length/5);
   for(const [x,y] of points){let distance=Infinity;for(let i=1;i<result.length;i++){const [ax,ay]=result[i-1],[bx,by]=result[i],dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/length)):0;distance=Math.min(distance,Math.hypot(x-ax-t*dx,y-ay-t*dy));}assert(distance<=.25+1e-8);}
+});
+
+test('server background dependencies do not load browser controllers',()=>{
+ assert(!loadedFiles().some(filename=>/atlas-(engine|webgl|motion|interaction)\.ts$/.test(filename)));
 });

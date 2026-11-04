@@ -8,7 +8,7 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 import { AtlasMotionPanel } from "./AtlasMotionPanel";
 import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
 import { AtlasThumbnail } from "./AtlasThumbnail";
-import { positionAtlasProjects } from "./atlas-engine";
+import { positionAtlasProjects } from "./atlas-geometry";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasContent } from "./atlas-types";
 import { useAtlasScene } from "./useAtlasScene";
