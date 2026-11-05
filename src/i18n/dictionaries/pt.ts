@@ -113,6 +113,9 @@ const pt = {
       close: "Fechar",
       previous: "Mídia anterior",
       next: "Próxima mídia",
+      loading: "Carregando mídia…",
+      error: "Não foi possível carregar esta mídia.",
+      retry: "Tentar novamente",
     },
     playable: {
       title: "Jogar projeto",

@@ -113,6 +113,9 @@ const en = {
       close: "Close",
       previous: "Previous media",
       next: "Next media",
+      loading: "Loading media…",
+      error: "This media could not be loaded.",
+      retry: "Try again",
     },
     playable: {
       title: "Play Project",

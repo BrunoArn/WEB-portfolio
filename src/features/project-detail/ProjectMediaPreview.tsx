@@ -6,7 +6,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
 import { flushSync } from "react-dom";
-import { createGalleryImagePrefetcher, galleryPreviewSizes } from "./gallery-image-prefetch";
+import { GalleryMedia } from "./GalleryMedia";
+import { createGalleryImagePrefetcher } from "./gallery-image-prefetch";
 
 type ProjectMediaPreviewProps = {
     media: ProjectMedia[];
@@ -18,6 +19,9 @@ type ProjectMediaPreviewProps = {
         close: string;
         previous: string;
         next: string;
+        loading: string;
+        error: string;
+        retry: string;
     }>;
 };
 
@@ -286,38 +290,12 @@ export function ProjectMediaPreview({
 
                 <div className="relative mt-(--space-20) overflow-hidden rounded-(--radius-large) border border-app-border bg-app-surface-elevated">
 
-                    {activeMedia.type === "image" ? (
-                        <button
-                            type="button"
-                            onClick={(event) => {
-                                openerRef.current = event.currentTarget;
-                                setIsExpanded(true);
-                            }}
-                            aria-label={labels.expand}
-                            className="relative block aspect-video w-full cursor-zoom-in overflow-hidden"
-                        >
-                            <Image
-                                src={activeMedia.src}
-                                alt={activeMedia.alt}
-                                fill
-                                sizes={galleryPreviewSizes}
-                                className="object-contain"
-                            />
-                        </button>
-                    ) : (
-                        <video
-                            ref={inlineVideoRef}
-                            key={activeMedia.src}
-                            onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
-                            onCanPlay={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
-                            src={activeMedia.src}
-                            poster={activeMedia.thumbnail}
-                            controls
-                            playsInline
-                            preload="metadata"
-                            className="aspect-video w-full bg-black object-contain"
-                        />
-                    )}
+                    <GalleryMedia key={activeMedia.type + activeMedia.src} media={activeMedia} labels={labels}
+                        videoRef={inlineVideoRef}
+                        onMetadata={event => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
+                        onCanPlay={event => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
+                        onExpand={button => { openerRef.current = button; setIsExpanded(true); }}
+                    />
                 </div>
 
                 {activeMedia.type === "video" && (
@@ -425,28 +403,11 @@ export function ProjectMediaPreview({
                     )}
 
                     <div className="pointer-events-none col-span-2 col-start-1 row-start-2 flex h-full w-full max-w-7xl min-h-0 min-w-0 items-center justify-self-center justify-center md:col-span-1 md:col-start-2">
-                        {activeMedia.type === "image" ? (
-                            <Image
-                                src={activeMedia.src}
-                                alt={activeMedia.alt}
-                                width={activeMedia.width ?? 1600}
-                                height={activeMedia.height ?? 900}
-                                sizes="100vw"
-                                className="pointer-events-auto max-h-full w-auto max-w-full object-contain"
-                            />
-                        ) : (
-                            <video
-                                ref={expandedVideoRef}
-                                key={activeMedia.src}
-                                onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
-                                onCanPlay={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
-                                src={activeMedia.src}
-                                poster={activeMedia.thumbnail}
-                                controls
-                                playsInline
-                                className="pointer-events-auto max-h-full max-w-full"
-                            />
-                        )}
+                        <GalleryMedia key={activeMedia.type + activeMedia.src} media={activeMedia} labels={labels} expanded
+                            videoRef={expandedVideoRef}
+                            onMetadata={event => restoreVideoPosition(event.currentTarget, modalStartRef)}
+                            onCanPlay={event => restoreVideoPosition(event.currentTarget, modalStartRef)}
+                        />
                     </div>
                     <span
                         data-lightbox-focus-guard
