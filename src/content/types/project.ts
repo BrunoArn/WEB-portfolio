@@ -26,6 +26,7 @@ export interface ProjectVideo {
     id: string;
     type: "video";
     src: string;
+    thumbnail?: string;
 }
 
 export type ProjectMedia = ProjectImage | ProjectVideo;

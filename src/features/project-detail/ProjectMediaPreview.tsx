@@ -297,6 +297,7 @@ export function ProjectMediaPreview({
                             onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
                             onCanPlay={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
                             src={activeMedia.src}
+                            poster={activeMedia.thumbnail}
                             controls
                             preload="metadata"
                             className="aspect-video w-full bg-black object-contain"
@@ -345,12 +346,10 @@ export function ProjectMediaPreview({
                                             className="object-cover"
                                         />
                                     ) : (
-                                        <span
-                                            aria-hidden="true"
-                                            className="flex h-full items-center justify-center text-(length:--font-size-card-mobile) text-app-text-primary"
-                                        >
-                                            ▶
-                                        </span>
+                                        <>
+                                            {item.thumbnail && <Image src={item.thumbnail} alt="" fill sizes="96px" className="object-cover" />}
+                                            <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center bg-black/20 text-(length:--font-size-card-mobile) text-white [text-shadow:0_1px_4px_#000]">▶</span>
+                                        </>
                                     )}
                                 </button>
                             );
@@ -414,6 +413,7 @@ export function ProjectMediaPreview({
                                 onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
                                 onCanPlay={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
                                 src={activeMedia.src}
+                                poster={activeMedia.thumbnail}
                                 controls
                                 autoPlay
                                 className="max-h-[90vh] max-w-full"

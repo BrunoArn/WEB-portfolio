@@ -1,3 +1,4 @@
+import {VideoUploadInput} from '../../components/VideoUploadInput'
 import {defineField, defineType} from 'sanity'
 
 export const projectVideo = defineType({
@@ -10,6 +11,7 @@ export const projectVideo = defineType({
       name: 'video',
       title: 'Video',
       type: 'file',
+      components: {input: VideoUploadInput},
       options: {
         accept: 'video/*',
       },

@@ -79,7 +79,8 @@ export const projectProjection = `
       video{
         asset->{
           _id,
-          url
+          url,
+          "thumbnail": videoThumbnail->{_id, url}
         }
       }
     }
