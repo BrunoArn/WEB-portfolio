@@ -1,0 +1,12 @@
+{
+  "_id": coalesce(after()._id, before()._id),
+  "_type": coalesce(after()._type, before()._type),
+  "dataset": sanity::dataset(),
+  "operation": delta::operation(),
+  "slug": after().slug.current,
+  "previousSlug": before().slug.current,
+  "thumbnailChanged": select(
+    coalesce(after()._type, before()._type) == "sanity.fileAsset" => delta::changedAny(videoThumbnail),
+    false
+  )
+}

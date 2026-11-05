@@ -121,7 +121,7 @@ Nesta organização, build de produção, TypeScript e lint passaram. A revisão
 
 ## Conteúdo e Sanity
 
-`getAtlasData()` consulta a perspectiva publicada com o cliente existente, sem CDN e com `cache: no-store`. A leitura reúne projetos, territórios habilitados e configurações do Atlas. Publicar e recarregar aplica as alterações; não há assinatura ao vivo nem leitura de rascunhos nesta página.
+`getAtlasData()` consulta a perspectiva publicada com o cliente existente, sem CDN, usando a política compartilhada de cache do Sanity (uma hora e tags de Atlas, projetos e categorias). Home e fundos reutilizam a mesma consulta. A rota `/[lang]/atlas-preview` solicita `{ fresh: true }` para buscar sem cache e conferir ajustes publicados ao recarregar. Não há assinatura ao vivo nem leitura de rascunhos. Até a ativação do webhook, o conteúdo público depende da revalidação por tempo. Consulte `src/sanity/CACHING.md`.
 
 Um projeto participa quando `atlas.enabled` e suas configurações são válidos. Posição desktop/mobile, influência e território principal vêm do Sanity. O território principal deve pertencer às categorias do próprio projeto e ter configurações publicadas válidas. As demais categorias continuam nas informações do projeto. O adaptador registra dados inválidos/ausentes sem inventar posição, conteúdo ou associação de imagem.
 

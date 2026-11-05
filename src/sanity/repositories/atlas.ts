@@ -2,6 +2,7 @@ import type { SanityImageCrop, SanityImageHotspot } from "@sanity/image-url";
 import type { AtlasRegionSource } from "../../../shared/atlas-composition-regions";
 import type { AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import { sanityClient } from "@/sanity/client";
+import { sanityCacheOptions } from "@/sanity/cache";
 import type { LocalizedValue } from "@/content/adapters/localization";
 import type { SanityProject } from "@/sanity/types/project";
 
@@ -58,6 +59,10 @@ const atlasQuery = /* groq */ `{
   }
 }`;
 
-export async function getAtlasData(options: { revalidate?: number } = {}): Promise<AtlasSanityData> {
-  return sanityClient.withConfig({ perspective: "published" }).fetch<AtlasSanityData>(atlasQuery, {}, options.revalidate === undefined ? { cache: "no-store" } : { next: { revalidate: options.revalidate } });
+export async function getAtlasData(options: { fresh?: boolean } = {}): Promise<AtlasSanityData> {
+  return sanityClient.withConfig({ perspective: "published" }).fetch<AtlasSanityData>(
+    atlasQuery,
+    {},
+    options.fresh ? { cache: "no-store" } : sanityCacheOptions("atlas", "projects", "categories"),
+  );
 }

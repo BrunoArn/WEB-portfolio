@@ -13,7 +13,7 @@ type AtlasBackgroundProps = {
 export async function AtlasBackground({ projectSlug, locale, labels }: AtlasBackgroundProps) {
     let data;
     try {
-        data = await getAtlasData({ revalidate: 60 });
+        data = await getAtlasData();
     } catch {
         // This optional decoration must never prevent the page from opening.
         return null;

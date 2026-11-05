@@ -1,0 +1,9 @@
+!(coalesce(after()._id, before()._id) in path("drafts.**")) &&
+!(coalesce(after()._id, before()._id) in path("versions.**")) &&
+(
+  coalesce(after()._type, before()._type) in ["project", "category", "aboutPage", "atlasSettings"] ||
+  (
+    coalesce(after()._type, before()._type) == "sanity.fileAsset" &&
+    delta::changedAny(videoThumbnail)
+  )
+)
