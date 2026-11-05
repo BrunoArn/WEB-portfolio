@@ -15,6 +15,7 @@ export interface SanityImageAsset {
 export interface SanityFileAsset {
   _id: string;
   url: string;
+  thumbnail?: { _id: string; url: string } | null;
 }
 
 export interface SanityProjectImage {

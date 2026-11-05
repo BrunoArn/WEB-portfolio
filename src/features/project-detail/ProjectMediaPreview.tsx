@@ -5,6 +5,9 @@ import type { ProjectMedia } from "@/content/types/project";
 import { useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
+import { flushSync } from "react-dom";
+import { GalleryMedia } from "./GalleryMedia";
+import { createGalleryImagePrefetcher } from "./gallery-image-prefetch";
 
 type ProjectMediaPreviewProps = {
     media: ProjectMedia[];
@@ -16,6 +19,9 @@ type ProjectMediaPreviewProps = {
         close: string;
         previous: string;
         next: string;
+        loading: string;
+        error: string;
+        retry: string;
     }>;
 };
 
@@ -57,9 +63,13 @@ export function ProjectMediaPreview({
 }: ProjectMediaPreviewProps) {
 
     const [activeIndex, setActiveIndex] = useState(0);
+    const [galleryVisible, setGalleryVisible] = useState(false);
+    const galleryRef = useRef<HTMLElement>(null);
+    const imagePrefetch = useRef<ReturnType<typeof createGalleryImagePrefetcher> | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const backdropPointerDown = useRef(false);
     const openerRef = useRef<HTMLButtonElement>(null);
     const inlineVideoRef = useRef<HTMLVideoElement>(null);
     const expandedVideoRef = useRef<HTMLVideoElement>(null);
@@ -67,10 +77,47 @@ export function ProjectMediaPreview({
     const inlineReturnRef = useRef<VideoPosition | null>(null);
     const activeMedia = media[activeIndex] ?? media[0];
 
-    const stopExpandedVideo = useCallback(() => {
+    useEffect(() => {
+        const prefetch = createGalleryImagePrefetcher();
+        imagePrefetch.current = prefetch;
+        return () => { prefetch.dispose(); imagePrefetch.current = null; };
+    }, []);
+
+    useEffect(() => {
+        const gallery = galleryRef.current;
+        if (!gallery || typeof IntersectionObserver === "undefined") return;
+        const observer = new IntersectionObserver(entries => setGalleryVisible(entries.some(entry => entry.isIntersecting)));
+        observer.observe(gallery);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if ((galleryVisible || isExpanded) && media.length > 1) {
+            imagePrefetch.current?.prepare(media[(activeIndex + 1) % media.length], isExpanded);
+        }
+    }, [activeIndex, galleryVisible, isExpanded, media]);
+
+    function prepareMedia(index: number) {
+        if (index !== activeIndex) imagePrefetch.current?.prepare(media[index], isExpanded, "auto");
+    }
+
+
+    function playVideo(video: HTMLVideoElement | null) {
+        // Selection is a user gesture. If playback is denied, native controls remain usable.
+        if (video) void video.play().catch(() => { /* No unhandled rejection on denial or rapid switching. */ });
+    }
+
+    const selectMedia = useCallback((index: number) => {
+        pauseVideo(inlineVideoRef.current);
         pauseVideo(expandedVideoRef.current);
         modalStartRef.current = null;
-    }, []);
+        inlineReturnRef.current = null;
+        // Mount the selected player before play(), within the original click/key gesture.
+        flushSync(() => setActiveIndex(index));
+        if (media[index]?.type === "video") {
+            playVideo(isExpanded ? expandedVideoRef.current : inlineVideoRef.current);
+        }
+    }, [isExpanded, media]);
 
     const closeLightbox = useCallback(() => {
         inlineReturnRef.current = pauseVideo(expandedVideoRef.current);
@@ -80,23 +127,8 @@ export function ProjectMediaPreview({
         setIsExpanded(false);
     }, []);
 
-    const showPreviousMedia = () => {
-        stopExpandedVideo();
-        setActiveIndex((currentIndex) =>
-            currentIndex === 0
-                ? media.length - 1
-                : currentIndex - 1,
-        );
-    };
-
-    const showNextMedia = () => {
-        stopExpandedVideo();
-        setActiveIndex((currentIndex) =>
-            currentIndex === media.length - 1
-                ? 0
-                : currentIndex + 1,
-        );
-    };
+    const showPreviousMedia = () => selectMedia((activeIndex - 1 + media.length) % media.length);
+    const showNextMedia = () => selectMedia((activeIndex + 1) % media.length);
 
     useEffect(() => {
         if (!isExpanded) {
@@ -232,23 +264,9 @@ export function ProjectMediaPreview({
 
             event.preventDefault();
 
-            stopExpandedVideo();
-
-            if (event.key === "ArrowLeft") {
-                setActiveIndex((currentIndex) =>
-                    currentIndex === 0
-                        ? media.length - 1
-                        : currentIndex - 1,
-                );
-            }
-
-            if (event.key === "ArrowRight") {
-                setActiveIndex((currentIndex) =>
-                    currentIndex === media.length - 1
-                        ? 0
-                        : currentIndex + 1,
-                );
-            }
+            selectMedia(event.key === "ArrowLeft"
+                ? (activeIndex - 1 + media.length) % media.length
+                : (activeIndex + 1) % media.length);
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -256,14 +274,14 @@ export function ProjectMediaPreview({
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isExpanded, media.length, closeLightbox, stopExpandedVideo]);
+    }, [activeIndex, isExpanded, media.length, closeLightbox, selectMedia]);
 
     if (!activeMedia) {
         return null;
     }
 
     return (
-        <section>
+        <section ref={galleryRef}>
             <div>
 
                 <h2 className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
@@ -272,36 +290,12 @@ export function ProjectMediaPreview({
 
                 <div className="relative mt-(--space-20) overflow-hidden rounded-(--radius-large) border border-app-border bg-app-surface-elevated">
 
-                    {activeMedia.type === "image" ? (
-                        <button
-                            type="button"
-                            onClick={(event) => {
-                                openerRef.current = event.currentTarget;
-                                setIsExpanded(true);
-                            }}
-                            aria-label={labels.expand}
-                            className="relative block aspect-video w-full cursor-zoom-in overflow-hidden"
-                        >
-                            <Image
-                                src={activeMedia.src}
-                                alt={activeMedia.alt}
-                                fill
-                                sizes="(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
-                                className="object-cover"
-                            />
-                        </button>
-                    ) : (
-                        <video
-                            ref={inlineVideoRef}
-                            key={activeMedia.src}
-                            onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
-                            onCanPlay={(event) => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
-                            src={activeMedia.src}
-                            controls
-                            preload="metadata"
-                            className="aspect-video w-full bg-black object-contain"
-                        />
-                    )}
+                    <GalleryMedia key={activeMedia.type + activeMedia.src} media={activeMedia} labels={labels}
+                        videoRef={inlineVideoRef}
+                        onMetadata={event => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
+                        onCanPlay={event => restoreVideoPosition(event.currentTarget, inlineReturnRef)}
+                        onExpand={button => { openerRef.current = button; setIsExpanded(true); }}
+                    />
                 </div>
 
                 {activeMedia.type === "video" && (
@@ -311,7 +305,8 @@ export function ProjectMediaPreview({
                             openerRef.current = event.currentTarget;
                             inlineReturnRef.current = null;
                             modalStartRef.current = pauseVideo(inlineVideoRef.current);
-                            setIsExpanded(true);
+                            flushSync(() => setIsExpanded(true));
+                            playVideo(expandedVideoRef.current);
                         }}
                         className="mt-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
@@ -328,7 +323,10 @@ export function ProjectMediaPreview({
                                 <button
                                     key={item.id}
                                     type="button"
-                                    onClick={() => setActiveIndex(index)}
+                                    onClick={() => selectMedia(index)}
+                                    onPointerEnter={() => prepareMedia(index)}
+                                    onFocus={() => prepareMedia(index)}
+                                    onPointerDown={event => { if (event.isPrimary && event.button === 0) prepareMedia(index); }}
                                     aria-label={`${labels.select} ${index + 1}`}
                                     aria-pressed={isActive}
                                     className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-(--radius-control) border bg-app-surface-elevated motion-safe:transition-colors motion-safe:duration-(--motion-fast) focus-visible:border-app-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
@@ -345,12 +343,10 @@ export function ProjectMediaPreview({
                                             className="object-cover"
                                         />
                                     ) : (
-                                        <span
-                                            aria-hidden="true"
-                                            className="flex h-full items-center justify-center text-(length:--font-size-card-mobile) text-app-text-primary"
-                                        >
-                                            ▶
-                                        </span>
+                                        <>
+                                            {item.thumbnail && <Image src={item.thumbnail} alt="" fill sizes="96px" className="object-cover" />}
+                                            <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center bg-black/20 text-(length:--font-size-card-mobile) text-white [text-shadow:0_1px_4px_#000]">▶</span>
+                                        </>
                                     )}
                                 </button>
                             );
@@ -364,13 +360,18 @@ export function ProjectMediaPreview({
                     role="dialog"
                     aria-modal="true"
                     aria-label={labels.expand}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-app-background/95 p-(--space-20) md:p-(--space-40)"
+                    onPointerDown={(event) => { backdropPointerDown.current = event.target === event.currentTarget; }}
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget && backdropPointerDown.current) closeLightbox();
+                        backdropPointerDown.current = false;
+                    }}
+                    className="fixed inset-0 z-50 grid grid-cols-2 grid-rows-[auto_minmax(0,1fr)_auto] items-center gap-(--space-16) bg-app-background/95 p-(--space-20) md:grid-cols-[auto_minmax(0,1fr)_auto] md:grid-rows-[auto_minmax(0,1fr)] md:p-(--space-40)"
                 >
                     <button
                         ref={closeButtonRef}
                         type="button"
                         onClick={closeLightbox}
-                        className="absolute right-(--space-20) top-(--space-20) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                        className="col-span-2 col-start-1 row-start-1 justify-self-end md:col-span-3 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
                         {labels.close} ×
                     </button>
@@ -380,8 +381,10 @@ export function ProjectMediaPreview({
                             <button
                                 type="button"
                                 onClick={showPreviousMedia}
+                                onPointerEnter={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
+                                onFocus={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
                                 aria-label={labels.previous}
-                                className="absolute left-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                className="col-start-1 row-start-3 justify-self-end md:row-start-2 md:justify-self-center rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
                                 ←
                             </button>
@@ -389,36 +392,22 @@ export function ProjectMediaPreview({
                             <button
                                 type="button"
                                 onClick={showNextMedia}
+                                onPointerEnter={() => prepareMedia((activeIndex + 1) % media.length)}
+                                onFocus={() => prepareMedia((activeIndex + 1) % media.length)}
                                 aria-label={labels.next}
-                                className="absolute right-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                className="col-start-2 row-start-3 justify-self-start md:col-start-3 md:row-start-2 md:justify-self-center rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
                                 →
                             </button>
                         </>
                     )}
 
-                    <div className="flex max-h-full max-w-7xl items-center justify-center">
-                        {activeMedia.type === "image" ? (
-                            <Image
-                                src={activeMedia.src}
-                                alt={activeMedia.alt}
-                                width={activeMedia.width ?? 1600}
-                                height={activeMedia.height ?? 900}
-                                sizes="100vw"
-                                className="max-h-[90vh] w-auto max-w-full object-contain"
-                            />
-                        ) : (
-                            <video
-                                ref={expandedVideoRef}
-                                key={activeMedia.src}
-                                onLoadedMetadata={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
-                                onCanPlay={(event) => restoreVideoPosition(event.currentTarget, modalStartRef)}
-                                src={activeMedia.src}
-                                controls
-                                autoPlay
-                                className="max-h-[90vh] max-w-full"
-                            />
-                        )}
+                    <div className="pointer-events-none col-span-2 col-start-1 row-start-2 flex h-full w-full max-w-7xl min-h-0 min-w-0 items-center justify-self-center justify-center md:col-span-1 md:col-start-2">
+                        <GalleryMedia key={activeMedia.type + activeMedia.src} media={activeMedia} labels={labels} expanded
+                            videoRef={expandedVideoRef}
+                            onMetadata={event => restoreVideoPosition(event.currentTarget, modalStartRef)}
+                            onCanPlay={event => restoreVideoPosition(event.currentTarget, modalStartRef)}
+                        />
                     </div>
                     <span
                         data-lightbox-focus-guard

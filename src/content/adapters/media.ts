@@ -69,11 +69,11 @@ export function adaptProjectVideo(
     throw new Error("Project video is missing a valid asset.");
   }
 
-  return {
-    id: asset._id,
-    type: "video",
-    src: asset.url,
-  };
+  const result: ProjectVideo = { id: asset._id, type: "video", src: asset.url };
+  const thumbnail = asset.thumbnail;
+  if (typeof thumbnail?._id === "string" && thumbnail._id.trim() &&
+      typeof thumbnail.url === "string" && thumbnail.url.trim()) result.thumbnail = thumbnail.url;
+  return result;
 }
 
 export function adaptProjectMedia(
