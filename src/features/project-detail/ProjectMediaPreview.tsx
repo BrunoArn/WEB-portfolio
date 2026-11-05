@@ -65,6 +65,7 @@ export function ProjectMediaPreview({
     const [isExpanded, setIsExpanded] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const backdropPointerDown = useRef(false);
     const openerRef = useRef<HTMLButtonElement>(null);
     const inlineVideoRef = useRef<HTMLVideoElement>(null);
     const expandedVideoRef = useRef<HTMLVideoElement>(null);
@@ -381,13 +382,18 @@ export function ProjectMediaPreview({
                     role="dialog"
                     aria-modal="true"
                     aria-label={labels.expand}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-app-background/95 p-(--space-20) md:p-(--space-40)"
+                    onPointerDown={(event) => { backdropPointerDown.current = event.target === event.currentTarget; }}
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget && backdropPointerDown.current) closeLightbox();
+                        backdropPointerDown.current = false;
+                    }}
+                    className="fixed inset-0 z-50 grid grid-cols-2 grid-rows-[auto_minmax(0,1fr)_auto] items-center gap-(--space-16) bg-app-background/95 p-(--space-20) md:grid-cols-[auto_minmax(0,1fr)_auto] md:grid-rows-[auto_minmax(0,1fr)] md:p-(--space-40)"
                 >
                     <button
                         ref={closeButtonRef}
                         type="button"
                         onClick={closeLightbox}
-                        className="absolute right-(--space-20) top-(--space-20) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                        className="col-span-2 col-start-1 row-start-1 justify-self-end md:col-span-3 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
                         {labels.close} ×
                     </button>
@@ -400,7 +406,7 @@ export function ProjectMediaPreview({
                                 onPointerEnter={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
                                 onFocus={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
                                 aria-label={labels.previous}
-                                className="absolute left-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                className="col-start-1 row-start-3 justify-self-end md:row-start-2 md:justify-self-center rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
                                 ←
                             </button>
@@ -411,14 +417,14 @@ export function ProjectMediaPreview({
                                 onPointerEnter={() => prepareMedia((activeIndex + 1) % media.length)}
                                 onFocus={() => prepareMedia((activeIndex + 1) % media.length)}
                                 aria-label={labels.next}
-                                className="absolute right-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                                className="col-start-2 row-start-3 justify-self-start md:col-start-3 md:row-start-2 md:justify-self-center rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
                                 →
                             </button>
                         </>
                     )}
 
-                    <div className="flex max-h-full max-w-7xl items-center justify-center">
+                    <div className="pointer-events-none col-span-2 col-start-1 row-start-2 flex h-full w-full max-w-7xl min-h-0 min-w-0 items-center justify-self-center justify-center md:col-span-1 md:col-start-2">
                         {activeMedia.type === "image" ? (
                             <Image
                                 src={activeMedia.src}
@@ -426,7 +432,7 @@ export function ProjectMediaPreview({
                                 width={activeMedia.width ?? 1600}
                                 height={activeMedia.height ?? 900}
                                 sizes="100vw"
-                                className="max-h-[90vh] w-auto max-w-full object-contain"
+                                className="pointer-events-auto max-h-full w-auto max-w-full object-contain"
                             />
                         ) : (
                             <video
@@ -438,7 +444,7 @@ export function ProjectMediaPreview({
                                 poster={activeMedia.thumbnail}
                                 controls
                                 playsInline
-                                className="max-h-[90vh] max-w-full"
+                                className="pointer-events-auto max-h-full max-w-full"
                             />
                         )}
                     </div>
