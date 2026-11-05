@@ -13,7 +13,7 @@ const cardSizes = "(max-width: 472px) calc(100vw - 32px), (max-width: 760px) 440
 function DetailImage({ src, sizes = cardSizes, onError }: { src: string; sizes?: string; onError?: () => void }) {
   const [ready, setReady] = useState(false);
   return <Image src={src} alt="" fill sizes={sizes} loading="eager" fetchPriority="high"
-    className={[styles.thumbImage, styles.detailImage].join(" ")} data-ready={ready}
+    className={[styles.thumbImage, styles.detailImage].join(" ")} data-ready={ready} data-atlas-cover-layer
     onLoad={() => setReady(true)} onError={() => { setReady(false); onError?.(); }} />;
 }
 
@@ -28,7 +28,8 @@ export function AtlasThumbnail({ image, markerImage, unavailable, selected, slug
   // The interaction controller moves this same wrapper into the card and back.
   // Keep the marker mounted; cover layers exist only while its card is selected.
   return <ProjectCoverTransition slug={slug} enabled={Boolean(cover && selected && shareCover)}>
-    <span className={styles.thumb} role="img" aria-label={displayed?.alt ?? unavailable} data-atlas-missing={!cover}>
+    <span className={styles.thumb} role="img" aria-label={displayed?.alt ?? unavailable} data-atlas-missing={!cover}
+      data-atlas-marker-distinct={Boolean(marker && cover && marker.src !== cover.src)}>
       {marker && <Image key={marker.src} src={marker.src} alt="" fill sizes={thumbnailSizes}
         className={styles.thumbImage} hidden={selected && !cover}
         onError={() => { setFailedMarker(marker.src); if (marker.src === image?.src) setFailedCover(marker.src); }} />}

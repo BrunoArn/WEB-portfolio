@@ -57,6 +57,12 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         const state = selection;
         if (!state)
             return;
+        // React removes the cover layers after this imperative DOM handoff.
+        // Preserve their final opacity before canceling the animation fill, so the
+        // cover cannot flash back for a frame while that update is pending.
+        state.thumb.querySelectorAll<HTMLElement>("[data-atlas-cover-layer]").forEach(image => {
+            image.style.opacity = getComputedStyle(image).opacity;
+        });
         stop();
         world.style.transform = "";
         state.slot.append(state.thumb);
@@ -242,6 +248,14 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         world.style.transform = camera;
         root.dataset.selection = "closing";
         const motion = move(state.thumb, from, target, radius, target.width / 2);
+        // Reveal the already loaded icon before the moving circle reaches its slot.
+        // Animate both cover resolutions together; late image loads stay concealed.
+        const marker = state.thumb.querySelector<HTMLImageElement>("img:not([data-atlas-cover-layer])");
+        const coverFade = state.thumb.dataset.atlasMarkerDistinct === "true" && marker?.complete && marker.naturalWidth > 0
+            ? Array.from(state.thumb.querySelectorAll<HTMLImageElement>("[data-atlas-cover-layer]")).map(image =>
+                animate(image, [{ opacity: getComputedStyle(image).opacity }, { opacity: 0 }], 240, 40))
+            : [];
+
         world.style.transform = "none";
         const frozenCard = {
             height: panelHeight,
@@ -254,6 +268,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         };
         await Promise.all([
             motion,
+            ...coverFade,
             animate(world, [{ transform: camera }, { transform: "none" }]),
             animate(panel, [
                 { ...frozenCard, opacity: panelOpacity },
