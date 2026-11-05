@@ -301,7 +301,7 @@ export function ProjectMediaPreview({
                                 alt={activeMedia.alt}
                                 fill
                                 sizes={galleryPreviewSizes}
-                                className="object-cover"
+                                className="object-contain"
                             />
                         </button>
                     ) : (
