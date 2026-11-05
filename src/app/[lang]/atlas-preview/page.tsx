@@ -38,7 +38,7 @@ export default async function AtlasPreviewPage({
     notFound();
   }
 
-  const [dictionary, data] = await Promise.all([getDictionary(lang), getAtlasData()]);
+  const [dictionary, data] = await Promise.all([getDictionary(lang), getAtlasData({ fresh: true })]);
   const content = adaptAtlasContent(data, lang, dictionary.atlas.content);
   const query = await searchParams;
   return <AtlasMap locale={lang} labels={dictionary.atlas} content={content} showTerrainControls={query?.terrain === "1"} showMotionControls={query?.motion === "1"} />;

@@ -17,7 +17,6 @@ import { AtlasBackground } from "@/features/atlas/AtlasBackground";
 import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 
 // Prebuild existing projects; new published slugs can still render on demand.
-export const revalidate = 60;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

@@ -4,6 +4,7 @@ import type { SanityCategory } from "@/sanity/types/category";
 
 import { adaptCategory } from "@/content/adapters/category";
 import { sanityClient } from "@/sanity/client";
+import { sanityCacheOptions } from "@/sanity/cache";
 
 const categoriesQuery = `
   *[_type == "category"] | order(order asc) {
@@ -20,6 +21,8 @@ export async function getCategories(
 ): Promise<Category[]> {
     const categories = await sanityClient.fetch<SanityCategory[]>(
         categoriesQuery,
+        {},
+        sanityCacheOptions("categories"),
     );
 
     return categories.map((category) =>

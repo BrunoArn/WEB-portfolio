@@ -4,15 +4,19 @@ import type { SanityProject } from "@/sanity/types/project";
 
 import { adaptProject } from "@/content/adapters/project";
 import { sanityClient } from "@/sanity/client";
+import { sanityCacheOptions } from "@/sanity/cache";
 import { projectProjection } from "@/sanity/queries/project";
 
-// Keep published project data fresh without querying Sanity on every visit.
-const projectFetchOptions = { next: { revalidate: 60 } };
+// Category labels/colors are resolved by the project projection too.
+const projectFetchOptions = sanityCacheOptions("projects", "categories");
 
 /** Only published slugs are needed to enumerate detail pages during the build. */
 export async function getProjectSlugs(): Promise<string[]> {
     const slugs = await sanityClient.fetch<string[]>(
         '*[_type == "project" && defined(slug.current) && slug.current != ""].slug.current',
+        {},
+        // Build inventory must always reflect currently published slugs.
+        { cache: "no-store" },
     );
     return [...new Set(slugs)];
 }
