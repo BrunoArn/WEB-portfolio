@@ -1,8 +1,15 @@
+import type { SanityImageCrop, SanityImageHotspot } from "@sanity/image-url";
 import type { AtlasRegionSource } from "../../../shared/atlas-composition-regions";
 import type { AtlasTerrainControls } from "../../../shared/atlas-terrain-settings";
 import { sanityClient } from "@/sanity/client";
 import type { LocalizedValue } from "@/content/adapters/localization";
 import type { SanityProject } from "@/sanity/types/project";
+
+export interface AtlasSanityIcon {
+  asset: { _id: string; url: string } | null;
+  crop?: SanityImageCrop | null;
+  hotspot?: SanityImageHotspot | null;
+}
 
 export interface AtlasSanityPosition { x?: number; y?: number }
 export interface AtlasSanityTerritory {
@@ -19,6 +26,7 @@ export type AtlasSanityProject = Pick<SanityProject, "_id" | "title" | "descript
   cover: SanityProject["cover"] | null;
   atlas?: {
     enabled?: boolean;
+    icon?: AtlasSanityIcon | null;
     territory?: { _ref?: string };
     desktop?: AtlasSanityPosition;
     mobile?: AtlasSanityPosition;
@@ -39,7 +47,9 @@ const atlasQuery = /* groq */ `{
   },
   "projects": *[_type == "project" && atlas.enabled == true] | order(order asc, _id asc) {
     _id, title, description, year, slug,
-    atlas{enabled, territory{_ref}, desktop{x,y}, mobile{x,y}, influence},
+    atlas{enabled, territory{_ref}, desktop{x,y}, mobile{x,y}, influence,
+      icon{asset->{_id,url}, crop{left,top,right,bottom}, hotspot{x,y,width,height}}
+    },
     "categories": coalesce(categories[]->{ _id, name, slug, order }, []),
     cover { _type, alt, image { asset->{ _id, url, metadata { dimensions { width, height } } } } }
   },

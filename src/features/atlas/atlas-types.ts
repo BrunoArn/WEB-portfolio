@@ -20,6 +20,8 @@ export interface AtlasProject extends AtlasAnchor {
   categoryLabel: string;
   year?: number;
   image?: { src: string; alt: string };
+  // Marker art is independent from the cover used by the card/detail transition.
+  markerImage?: { src: string; alt: string };
   href?: string;
 }
 

@@ -108,6 +108,7 @@ export function AtlasMap({
                                             <span className={styles.thumbSlot} data-atlas-thumb-slot>
                                                 <AtlasThumbnail
                                                     image={project.image}
+                                                    markerImage={project.markerImage}
                                                     slug={project.placement}
                                                     shareCover={shareCover}
                                                     unavailable={text.unavailable}

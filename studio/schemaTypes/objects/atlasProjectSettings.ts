@@ -18,6 +18,15 @@ export const atlasProjectSettings = defineType({
         'Projetos publicados e habilitados participam do mapa. Publique e recarregue a prévia para ver as alterações.',
     }),
     defineField({
+      name: 'icon',
+      title: 'Ícone do Atlas',
+      type: 'image',
+      options: {hotspot: true, accept: 'image/png,image/webp'},
+      description:
+        'Opcional. Use uma imagem quadrada PNG ou WebP, com margem para o recorte circular. Sem ícone, o marcador usa a capa do projeto. O mesmo arquivo representa o projeto em PT e EN.',
+      hidden: ({parent}) => parent?.enabled !== true,
+    }),
+    defineField({
       name: 'territory',
       title: 'Território principal',
       type: 'reference',

@@ -93,3 +93,11 @@ A conferência técnica e da integração dos dados publicados foi concluída: o
 A configuração publicada foi comparada com o Canvas da versão de produção nos dois layouts. No desktop, o ajuste local de amplitude foi levado a 0, restaurado para a referência 50 e, após reload, voltou ao valor publicado 52. No celular, o publicado 50 também foi recuperado. As oito regiões publicadas geraram sete fontes ativas por perfil. Projetos, categorias, prioridade explícita e idiomas passaram sem inconsistências. A verificação foi somente de leitura no CMS; não foi necessário alterar ou republicar conteúdo.
 
 O build do Studio e a validação oficial dos esquemas passaram (zero erros/avisos), assim como os testes dos componentes e regras de validação. A diferença de versão do auto-update informada acima permanece uma ressalva do ambiente; não houve mudança de dependências. A edição autenticada do formulário completo não foi automatizada. A conferência de integração dos controles publicados está encerrada.
+
+## Ícone do projeto no Atlas — dados
+
+Em Project → Atlas — mapa, habilite Participar do Atlas para encontrar o campo opcional Ícone do Atlas (atlas.icon). Aceita upload de PNG/WebP, com recorte e foco; prefira uma imagem quadrada com margem para a máscara circular. O mesmo arquivo atende PT/EN, e o nome localizado do projeto fornece a identificação acessível. Não é necessário preencher esse campo para publicar projetos existentes.
+
+A consulta traz o asset, crop e hotspot. O adaptador prepara markerImage usando o gerador oficial @sanity/image-url, com saída quadrada de 256 × 256 px e formato automático. A prioridade é ícone válido → capa existente → ausência de imagem, para manter o placeholder. Ícones ausentes, removidos ou inválidos não excluem o projeto nem alteram posição, categoria ou relevo. image continua sendo a capa do card e da transição para o detalhe.
+
+Esta primeira etapa prepara o campo e o fallback nos dados; a interface ainda usa a capa atual. A conexão de markerImage à bolinha e o reforço de sua borda pertencem à próxima etapa. Não houve preenchimento/publicação de documentos nem implantação do Studio hospedado. O campo fica disponível no Studio local; a versão hospedada precisa de deploy para apresentar a nova configuração.

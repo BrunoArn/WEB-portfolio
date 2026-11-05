@@ -1,3 +1,5 @@
+import { createImageUrlBuilder } from "@sanity/image-url";
+import { sanityEnv } from "@/sanity/env";
 import { resolveAtlasTerrainSettings } from "../../../shared/atlas-terrain-settings";
 import { resolveLocalizedValue, type LocalizedValue } from "@/content/adapters/localization";
 import { adaptProjectImage } from "@/content/adapters/media";
@@ -5,6 +7,8 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import type { AtlasSanityData, AtlasSanityPosition } from "@/sanity/repositories/atlas";
 import type { AtlasContent } from "./atlas-types";
+
+const markerImageBuilder = createImageUrlBuilder(sanityEnv);
 
 function validPosition(value: AtlasSanityPosition | undefined): value is { x: number; y: number } {
   return !!value && [value.x, value.y].every(coordinate => typeof coordinate === "number" && Number.isFinite(coordinate) && coordinate >= 0 && coordinate <= 100);
@@ -50,8 +54,22 @@ export function adaptAtlasContent(data: AtlasSanityData, locale: Locale, labels:
     try { if (row.cover) image = adaptProjectImage(row.cover, locale); }
     catch { /* Preserve the explicit placeholder for incomplete image data. */ }
     if (!image) content.issues.push(`${title}: ${labels.imageUnavailable}.`);
+    // Keep the cover and its existing diagnostics unchanged. Missing, removed or
+    // malformed icon data falls back to it without excluding the project.
+    let markerImage: AtlasContent["projects"][number]["markerImage"] = image;
+    const icon = config.icon;
+    if (typeof icon?.asset?._id === "string" && icon.asset._id.trim() &&
+        typeof icon.asset.url === "string" && icon.asset.url.trim()) {
+      try {
+        markerImage = {
+          src: markerImageBuilder.image({ asset: { _ref: icon.asset._id }, crop: icon.crop ?? undefined, hotspot: icon.hotspot ?? undefined })
+            .width(256).height(256).fit("crop").auto("format").url(),
+          alt: title,
+        };
+      } catch { /* Invalid icons use the same cover/placeholder fallback. */ }
+    }
     const x = config.desktop.x / 100;
-    content.projects.push({ id: row._id, placement: slug ?? row._id, c: territory.id, color: territory.color, x, y: config.desktop.y / 100, mx: config.mobile.x / 100, my: config.mobile.y / 100, influence, left: x > .65 || (x >= .2 && x <= .35), title, description, categoryLabel, href, image, year: row.year });
+    content.projects.push({ id: row._id, placement: slug ?? row._id, c: territory.id, color: territory.color, x, y: config.desktop.y / 100, mx: config.mobile.x / 100, my: config.mobile.y / 100, influence, left: x > .65 || (x >= .2 && x <= .35), title, description, categoryLabel, href, image, markerImage, year: row.year });
   }
   const used = new Set(content.projects.map(project => project.c));
   content.territories = content.territories.filter(territory => used.has(territory.id));
