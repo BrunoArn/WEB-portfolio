@@ -5,6 +5,7 @@ import type { ProjectMedia } from "@/content/types/project";
 import { useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
+import { flushSync } from "react-dom";
 import { createGalleryImagePrefetcher, galleryPreviewSizes } from "./gallery-image-prefetch";
 
 type ProjectMediaPreviewProps = {
@@ -96,10 +97,22 @@ export function ProjectMediaPreview({
     }
 
 
-    const stopExpandedVideo = useCallback(() => {
+    function playVideo(video: HTMLVideoElement | null) {
+        // Selection is a user gesture. If playback is denied, native controls remain usable.
+        if (video) void video.play().catch(() => { /* No unhandled rejection on denial or rapid switching. */ });
+    }
+
+    const selectMedia = useCallback((index: number) => {
+        pauseVideo(inlineVideoRef.current);
         pauseVideo(expandedVideoRef.current);
         modalStartRef.current = null;
-    }, []);
+        inlineReturnRef.current = null;
+        // Mount the selected player before play(), within the original click/key gesture.
+        flushSync(() => setActiveIndex(index));
+        if (media[index]?.type === "video") {
+            playVideo(isExpanded ? expandedVideoRef.current : inlineVideoRef.current);
+        }
+    }, [isExpanded, media]);
 
     const closeLightbox = useCallback(() => {
         inlineReturnRef.current = pauseVideo(expandedVideoRef.current);
@@ -109,23 +122,8 @@ export function ProjectMediaPreview({
         setIsExpanded(false);
     }, []);
 
-    const showPreviousMedia = () => {
-        stopExpandedVideo();
-        setActiveIndex((currentIndex) =>
-            currentIndex === 0
-                ? media.length - 1
-                : currentIndex - 1,
-        );
-    };
-
-    const showNextMedia = () => {
-        stopExpandedVideo();
-        setActiveIndex((currentIndex) =>
-            currentIndex === media.length - 1
-                ? 0
-                : currentIndex + 1,
-        );
-    };
+    const showPreviousMedia = () => selectMedia((activeIndex - 1 + media.length) % media.length);
+    const showNextMedia = () => selectMedia((activeIndex + 1) % media.length);
 
     useEffect(() => {
         if (!isExpanded) {
@@ -261,23 +259,9 @@ export function ProjectMediaPreview({
 
             event.preventDefault();
 
-            stopExpandedVideo();
-
-            if (event.key === "ArrowLeft") {
-                setActiveIndex((currentIndex) =>
-                    currentIndex === 0
-                        ? media.length - 1
-                        : currentIndex - 1,
-                );
-            }
-
-            if (event.key === "ArrowRight") {
-                setActiveIndex((currentIndex) =>
-                    currentIndex === media.length - 1
-                        ? 0
-                        : currentIndex + 1,
-                );
-            }
+            selectMedia(event.key === "ArrowLeft"
+                ? (activeIndex - 1 + media.length) % media.length
+                : (activeIndex + 1) % media.length);
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -285,7 +269,7 @@ export function ProjectMediaPreview({
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isExpanded, media.length, closeLightbox, stopExpandedVideo]);
+    }, [activeIndex, isExpanded, media.length, closeLightbox, selectMedia]);
 
     if (!activeMedia) {
         return null;
@@ -328,6 +312,7 @@ export function ProjectMediaPreview({
                             src={activeMedia.src}
                             poster={activeMedia.thumbnail}
                             controls
+                            playsInline
                             preload="metadata"
                             className="aspect-video w-full bg-black object-contain"
                         />
@@ -341,7 +326,8 @@ export function ProjectMediaPreview({
                             openerRef.current = event.currentTarget;
                             inlineReturnRef.current = null;
                             modalStartRef.current = pauseVideo(inlineVideoRef.current);
-                            setIsExpanded(true);
+                            flushSync(() => setIsExpanded(true));
+                            playVideo(expandedVideoRef.current);
                         }}
                         className="mt-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-8) text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                     >
@@ -358,7 +344,7 @@ export function ProjectMediaPreview({
                                 <button
                                     key={item.id}
                                     type="button"
-                                    onClick={() => setActiveIndex(index)}
+                                    onClick={() => selectMedia(index)}
                                     onPointerEnter={() => prepareMedia(index)}
                                     onFocus={() => prepareMedia(index)}
                                     onPointerDown={event => { if (event.isPrimary && event.button === 0) prepareMedia(index); }}
@@ -451,7 +437,7 @@ export function ProjectMediaPreview({
                                 src={activeMedia.src}
                                 poster={activeMedia.thumbnail}
                                 controls
-                                autoPlay
+                                playsInline
                                 className="max-h-[90vh] max-w-full"
                             />
                         )}
