@@ -5,6 +5,7 @@ import type { ProjectMedia } from "@/content/types/project";
 import { useCallback, useEffect, useRef } from "react";
 import { useState } from "react";
 import Image from "next/image";
+import { createGalleryImagePrefetcher, galleryPreviewSizes } from "./gallery-image-prefetch";
 
 type ProjectMediaPreviewProps = {
     media: ProjectMedia[];
@@ -57,6 +58,9 @@ export function ProjectMediaPreview({
 }: ProjectMediaPreviewProps) {
 
     const [activeIndex, setActiveIndex] = useState(0);
+    const [galleryVisible, setGalleryVisible] = useState(false);
+    const galleryRef = useRef<HTMLElement>(null);
+    const imagePrefetch = useRef<ReturnType<typeof createGalleryImagePrefetcher> | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -66,6 +70,31 @@ export function ProjectMediaPreview({
     const modalStartRef = useRef<VideoPosition | null>(null);
     const inlineReturnRef = useRef<VideoPosition | null>(null);
     const activeMedia = media[activeIndex] ?? media[0];
+
+    useEffect(() => {
+        const prefetch = createGalleryImagePrefetcher();
+        imagePrefetch.current = prefetch;
+        return () => { prefetch.dispose(); imagePrefetch.current = null; };
+    }, []);
+
+    useEffect(() => {
+        const gallery = galleryRef.current;
+        if (!gallery || typeof IntersectionObserver === "undefined") return;
+        const observer = new IntersectionObserver(entries => setGalleryVisible(entries.some(entry => entry.isIntersecting)));
+        observer.observe(gallery);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if ((galleryVisible || isExpanded) && media.length > 1) {
+            imagePrefetch.current?.prepare(media[(activeIndex + 1) % media.length], isExpanded);
+        }
+    }, [activeIndex, galleryVisible, isExpanded, media]);
+
+    function prepareMedia(index: number) {
+        if (index !== activeIndex) imagePrefetch.current?.prepare(media[index], isExpanded, "auto");
+    }
+
 
     const stopExpandedVideo = useCallback(() => {
         pauseVideo(expandedVideoRef.current);
@@ -263,7 +292,7 @@ export function ProjectMediaPreview({
     }
 
     return (
-        <section>
+        <section ref={galleryRef}>
             <div>
 
                 <h2 className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
@@ -286,7 +315,7 @@ export function ProjectMediaPreview({
                                 src={activeMedia.src}
                                 alt={activeMedia.alt}
                                 fill
-                                sizes="(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+                                sizes={galleryPreviewSizes}
                                 className="object-cover"
                             />
                         </button>
@@ -330,6 +359,9 @@ export function ProjectMediaPreview({
                                     key={item.id}
                                     type="button"
                                     onClick={() => setActiveIndex(index)}
+                                    onPointerEnter={() => prepareMedia(index)}
+                                    onFocus={() => prepareMedia(index)}
+                                    onPointerDown={event => { if (event.isPrimary && event.button === 0) prepareMedia(index); }}
                                     aria-label={`${labels.select} ${index + 1}`}
                                     aria-pressed={isActive}
                                     className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-(--radius-control) border bg-app-surface-elevated motion-safe:transition-colors motion-safe:duration-(--motion-fast) focus-visible:border-app-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-app-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-app-accent ${isActive
@@ -379,6 +411,8 @@ export function ProjectMediaPreview({
                             <button
                                 type="button"
                                 onClick={showPreviousMedia}
+                                onPointerEnter={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
+                                onFocus={() => prepareMedia((activeIndex - 1 + media.length) % media.length)}
                                 aria-label={labels.previous}
                                 className="absolute left-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
@@ -388,6 +422,8 @@ export function ProjectMediaPreview({
                             <button
                                 type="button"
                                 onClick={showNextMedia}
+                                onPointerEnter={() => prepareMedia((activeIndex + 1) % media.length)}
+                                onFocus={() => prepareMedia((activeIndex + 1) % media.length)}
                                 aria-label={labels.next}
                                 className="absolute right-(--space-20) top-1/2 z-10 -translate-y-1/2 rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-app-text-primary motion-safe:transition-colors motion-safe:duration-(--motion-fast) hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                             >
