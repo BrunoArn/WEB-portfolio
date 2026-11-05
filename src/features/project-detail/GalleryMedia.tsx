@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { flushSync } from "react-dom";
-import { useState, type RefObject, type SyntheticEvent } from "react";
+import { useEffect, useState, type ReactNode, type RefObject, type SyntheticEvent } from "react";
 import type { ProjectMedia } from "@/content/types/project";
 import { galleryPreviewSizes } from "./gallery-image-prefetch";
 
@@ -15,6 +15,16 @@ type Props = {
     onCanPlay: (event: SyntheticEvent<HTMLVideoElement>) => void;
     onExpand?: (button: HTMLButtonElement) => void;
 };
+
+function MediaFeedbackDelay({ delay, children }: { delay: number; children: ReactNode }) {
+    const [visible, setVisible] = useState(false);
+    useEffect(() => {
+        if (delay === 0) return;
+        const timer = window.setTimeout(() => setVisible(true), delay);
+        return () => window.clearTimeout(timer);
+    }, [delay]);
+    return delay === 0 || visible ? children : null;
+}
 
 /** Key each instance by media source so events and retries belong to one selection. */
 export function GalleryMedia({ media, expanded = false, labels, videoRef, onMetadata, onCanPlay, onExpand }: Props) {
@@ -51,19 +61,21 @@ export function GalleryMedia({ media, expanded = false, labels, videoRef, onMeta
                 />
             )}
             {status !== "ready" && (
-                <div className={"pointer-events-none absolute inset-0 flex items-center justify-center p-(--space-16)" + (status === "error" ? " bg-app-surface-elevated" : "")}>
-                    <div className="flex max-w-full flex-col items-center gap-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-center text-(length:--font-size-label) text-app-text-primary">
-                        <p role={status === "error" ? "alert" : "status"}>{status === "error" ? labels.error : labels.loading}</p>
-                        {status === "error" && (
-                            <button type="button" onClick={() => {
-                                flushSync(() => { setStatus("loading"); setAttempt(current => current + 1); });
-                                if (media.type === "video") void videoRef.current?.play().catch(() => {});
-                            }} className="pointer-events-auto rounded-(--radius-control) px-(--space-16) py-(--space-12) text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent">
-                                {labels.retry}
-                            </button>
-                        )}
+                <MediaFeedbackDelay key={status + attempt} delay={status === "loading" ? 300 : 0}>
+                    <div className={"pointer-events-none absolute inset-0 flex items-center justify-center p-(--space-16)" + (status === "error" ? " bg-app-surface-elevated" : "")}>
+                        <div className="flex max-w-full flex-col items-center gap-(--space-12) rounded-(--radius-control) bg-app-surface-elevated px-(--space-16) py-(--space-12) text-center text-(length:--font-size-label) text-app-text-primary">
+                            <p role={status === "error" ? "alert" : "status"}>{status === "error" ? labels.error : labels.loading}</p>
+                            {status === "error" && (
+                                <button type="button" onClick={() => {
+                                    flushSync(() => { setStatus("loading"); setAttempt(current => current + 1); });
+                                    if (media.type === "video") void videoRef.current?.play().catch(() => {});
+                                }} className="pointer-events-auto rounded-(--radius-control) px-(--space-16) py-(--space-12) text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent">
+                                    {labels.retry}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </MediaFeedbackDelay>
             )}
         </div>
     );
