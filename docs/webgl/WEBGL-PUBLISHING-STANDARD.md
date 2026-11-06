@@ -26,11 +26,11 @@ As setas representam o fluxo de publicação e configuração. Os binários não
 | Unity | Exportar HTML, loader, WebAssembly, dados e recursos compatíveis entre si. O template controla o canvas dentro da página exportada. |
 | Cloudflare R2 | Armazenar os arquivos com caminhos e metadados corretos; disponibilizá-los pelo endpoint HTTP escolhido. |
 | Sanity CMS | Guardar tipo, URL de entrada e dimensões nativas no objeto opcional `playable` do projeto. |
-| Project Detail | Consultar e adaptar o conteúdo, selecionar o override de desenvolvimento quando válido e decidir se exibe seção e CTA. |
+| Project Detail | Consultar e adaptar o conteúdo do Sanity e decidir se exibe seção e CTA. |
 | ProjectPlayable | Mostrar capa e controles, preservar a proporção externa e criar/remover o iframe sob demanda. |
 | iframe | Abrir o `index.html` do build; o HTML e o loader Unity carregam os demais recursos do R2. |
 
-**Inspecionado:** `projectProjection` seleciona `type`, `source`, `width` e `height`; `adaptProject` valida o objeto; a página escolhe `developmentPlayable ?? project.playable`. Não existe dependência React específica para carregar o runtime Unity.
+**Inspecionado:** `projectProjection` seleciona `type`, `source`, `width` e `height`; `adaptProject` valida o objeto; a página usa `project.playable` como única fonte do jogo. Não existe dependência React específica para carregar o runtime Unity.
 
 ## 2. Unity WebGL Build Standard
 
@@ -230,37 +230,17 @@ As respostas incluíram ETag e Last-Modified; não apresentaram Cache-Control ex
 - **Play/Close/Play:** fechar remove o iframe; reabrir cria um contexto novo. A partida em memória não é preservada pelo componente; saves dependem do jogo.
 - **Proporção:** `aspectRatio` usa `width / height` e o iframe preenche o contêiner. O template Unity precisa adaptar o canvas internamente; a proporção externa não corrige um template incompatível.
 - **PT/EN:** título da seção, título do iframe e controles vêm dos dicionários. Isso não traduz o conteúdo interno do jogo nem garante continuidade da partida ao trocar idioma.
-- **Sem playable:** sem objeto e sem override válido, não há seção WebGL nem CTA de jogar. Objetos inválidos são erros, não equivalem à ausência.
+- **Sem playable:** sem objeto no Sanity, não há seção WebGL nem CTA de jogar. Objetos inválidos são erros, não equivalem à ausência.
 - **iframe:** recebe a URL do HTML e título com o projeto; usa `allow="fullscreen; gamepad"` e `allowFullScreen`. Isso permite recursos, mas não cria botão de fullscreen nem comprova suporte a gamepad.
 - **Foco:** ao iniciar, vai para o botão de fechar; ao fechar, retorna ao botão jogar. Há ajuste de scroll para o controle de fechar quando necessário. Testar a saída do canvas pelo teclado.
 
 Não há protocolo de prontidão com o jogo, estado próprio de erro/timeout, sandbox ou referrerPolicy explícitos no componente atual. O HTML exportado inspecionado usa `alert` em falha de inicialização. Registrar falhas pela rede/console sem presumir que a interface do portfólio as detectará.
 
-## 8. Development Overrides
+## 8. Desenvolvimento local
 
-Variáveis lidas pelo Server Component de Project Detail:
+O jogo exibido localmente vem do objeto `playable` do projeto publicado no Sanity, assim como no site de produção. Para testar o player, abrir um projeto com esse objeto configurado; Bloomancer é a referência existente. As mesmas regras de desktop e aviso para celular se aplicam.
 
-```dotenv
-PLAYABLE_DEV_SLUG=
-PLAYABLE_DEV_URL=
-PLAYABLE_DEV_WIDTH=
-PLAYABLE_DEV_HEIGHT=
-```
-
-Exemplo **ilustrativo**, sem valores copiados de `.env.local`:
-
-```dotenv
-PLAYABLE_DEV_SLUG=slug-real-do-projeto-de-teste
-PLAYABLE_DEV_URL=https://webgl.example.com/Games/MeuJogo/v1/index.html
-PLAYABLE_DEV_WIDTH=960
-PLAYABLE_DEV_HEIGHT=600
-```
-
-Substituir o domínio reservado de exemplo e confirmar o slug real no CMS/rota. O jogo pode ser testado temporariamente em outro projeto, mas isso não define sua associação editorial definitiva. Nenhum conteúdo privado de `.env.local` foi lido ou reproduzido para este manual.
-
-O override só é selecionado quando `NODE_ENV === "development"`, o slug coincide exatamente, a URL está presente e largura/altura convertidas com `Number` são inteiras positivas. Caso contrário, usa o playable do Sanity. Em produção e teste, as variáveis não ativam esse override.
-
-Os nomes não têm prefixo `NEXT_PUBLIC_`; a URL escolhida é enviada como prop ao cliente para criar o iframe. Ela é um endereço público, não um local para segredos. A branch `production` não define NODE_ENV: executar `next dev` continua sendo desenvolvimento. Validar o deploy usando o modo de produção convencional, não o servidor de desenvolvimento. Conferir o efeito após reiniciar o servidor quando alterar variáveis locais.
+A página não usa variáveis de ambiente para substituir o jogo. Configurar tipo, URL e dimensões no Sanity conforme a seção seguinte. Remover o objeto de um projeto sem jogo, em vez de publicar dados parciais. Não é necessário manter configuração de teste de playable no ambiente local ou no Railway.
 
 ## 9. Sanity CMS Integration
 
@@ -293,7 +273,7 @@ Pendências para a Etapa 11, sem implementação nesta tarefa:
 | Segurança do iframe | Avaliar sandbox, referrerPolicy, CSP/Permissions-Policy e permissões necessárias com testes reais; o componente atual não aplica todas essas restrições. |
 | Performance | Medir download, inicialização, memória, densidade de pixels e ciclos de reabertura em dispositivos alvo. |
 | Compatibilidade | Definir navegadores/dispositivos suportados e testar cada novo build/versão Unity. |
-| Produção | Repetir QA no domínio final, com headers efetivos do pai e do frame e sem override de desenvolvimento. |
+| Produção | Repetir QA no domínio final, com headers efetivos do pai e do frame usando o playable publicado no Sanity. |
 
 `r2.dev` é destinado a desenvolvimento e tem rate limiting; produção deve usar entrega apropriada, como domínio personalizado conectado ao R2. A Cloudflare não recomenda CNAME direto para `r2.dev`. Fonte: [Cloudflare — Public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/).
 
@@ -334,7 +314,6 @@ Preencher por jogo e versão. Registrar data, responsável, URL, versão Unity, 
 | Falha de carregamento sem mensagem no portfólio | Consultar Console e Network do frame e abrir a URL isoladamente; verificar rede, HTTPS, memória disponível, erro de runtime e política de embedding. O wrapper não tem timeout/erro próprio. |
 | Template incompatível | Revalidar viewport, canvas, paths e APIs do template na versão Unity usada. `PortfolioResponsive` validado com Bloomancer não certifica templates diferentes. |
 | Jogo isolado funciona, iframe falha | Conferir CSP `frame-src` do pai, `frame-ancestors`/X-Frame-Options do documento incorporado e políticas/permissões efetivas. Avaliar também armazenamento, áudio e recursos dependentes de interação. |
-| Override não aparece | Confirmar NODE_ENV de desenvolvimento, slug exato, URL presente e dimensões inteiras positivas; reiniciar o servidor se necessário. O conteúdo precisa passar pelo adapter antes do override. |
 | Projeto/listagem falha após edição do CMS | Conferir se foi publicado um objeto playable incompleto. Completar os quatro campos ou remover o objeto quando não houver jogo. |
 
 ### Fontes consultadas e limites de validação
@@ -344,7 +323,7 @@ Fontes locais inspecionadas:
 - `src/features/project-detail/ProjectPlayable.tsx` e `ProjectHero.tsx`.
 - `studio/schemaTypes/objects/playableConfig.ts` e campo `playable` em `studio/schemaTypes/documents/project.ts`.
 - `src/content/adapters/project.ts`, `src/sanity/queries/project.ts` e `src/sanity/repositories/projects.ts`.
-- `src/app/[lang]/projects/[slug]/page.tsx`, incluindo todas as referências `PLAYABLE_DEV_*`.
+- `src/app/[lang]/projects/[slug]/page.tsx`, que usa o playable publicado no Sanity.
 - Dicionários `src/i18n/dictionaries/pt.ts` e `en.ts`; contrato em `src/content/types/project.ts`.
 - `README.md`, `studio/README.md`, `.env.example`, `next.config.ts` e `AGENTS.md`. Os READMEs existentes são introdutórios e não descrevem um padrão WebGL; não havia diretório `docs` neste checkout.
 - Build em `C:\Dev\playable\8-bitty`: árvore, nomes, dimensões e HTML de entrada.
