@@ -5,7 +5,7 @@ import { accentStyle } from "@/styles/accent";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
-import { getProjectBySlug, getProjects, getProjectSlugs } from "@/sanity/repositories/projects";
+import { getProjectBySlug, getProjectCards, getProjectSlugs } from "@/sanity/repositories/projects";
 import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
@@ -68,7 +68,7 @@ export default async function ProjectPage({
         notFound();
     }
 
-    const projects = await getProjects(lang);
+    const projects = await getProjectCards(lang);
 
     const currentCategorySlugs = new Set(
         project.categories.map((category) => category.slug),

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Project } from "@/content/types/project";
+import type { ProjectCardData } from "@/content/types/project";
 import { accentStyle } from "@/styles/accent";
 
 import Image from "next/image";
@@ -17,7 +17,7 @@ type DragState = {
 };
 
 type RelatedProjectsProps = {
-    projects: Project[];
+    projects: ProjectCardData[];
     title: string;
     locale: string;
 };

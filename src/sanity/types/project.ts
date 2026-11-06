@@ -59,3 +59,4 @@ export interface SanityProject {
 
     seo: SanityProjectSeo | null;
 }
+export type SanityProjectCard = Pick<SanityProject, "title" | "slug" | "year" | "role" | "cover" | "categories" | "atlas">;

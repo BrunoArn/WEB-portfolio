@@ -11,8 +11,8 @@ function fixture(name,raw){
  const adapt=(value,language)=>({value,language});
  const {load}=createTypeScriptLoader({overrides:{
   '@/sanity/client':{sanityClient:client},'@/sanity/cache':policy,
-  '@/sanity/queries/project':{projectProjection:'testProjection'},'@/sanity/queries/about':{aboutQuery:'about query'},
-  '@/content/adapters/project':{adaptProject:adapt},'@/content/adapters/category':{adaptCategory:adapt},'@/content/adapters/about':{adaptAbout:adapt},
+  '@/sanity/queries/project':{projectProjection:'testProjection',projectCardProjection:'cardProjection'},'@/sanity/queries/about':{aboutQuery:'about query'},
+  '@/content/adapters/project':{adaptProject:adapt,adaptProjectCard:adapt},'@/content/adapters/category':{adaptCategory:adapt},'@/content/adapters/about':{adaptAbout:adapt},
  }});
  return {...load(fileURLToPath(new URL('../src/sanity/repositories/'+name+'.ts',import.meta.url))),calls,configs};
 }
@@ -38,7 +38,7 @@ test('Atlas adjustment preview bypasses persistent cache without a conflicting r
  assert.deepEqual(f.calls[0][2],{cache:'no-store'});
 });
 
-for(const name of ['getProjects','getFeaturedProjects'])test(name+' caches referenced categories and shares unlocalized results across PT/EN',async()=>{
+for(const name of ['getProjectCards','getFeaturedProjects'])test(name+' caches referenced categories and shares unlocalized results across PT/EN',async()=>{
  const f=fixture('projects',[{_id:'one'}]);
  assert.equal((await f[name]('pt'))[0].language,'pt');assert.equal((await f[name]('en'))[0].language,'en');
  assert.deepEqual(f.calls[0],f.calls[1]);assert.deepEqual(f.calls[0][2],policy.sanityCacheOptions('projects','categories'));

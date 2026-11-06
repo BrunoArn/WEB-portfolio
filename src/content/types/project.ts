@@ -73,3 +73,5 @@ export interface Project {
 
     seo?: ProjectSeo;
 }
+/** Data shared by listing and related-project cards; excludes detail-only content. */
+export type ProjectCardData = Pick<Project, "title" | "slug" | "year" | "role" | "cover" | "categories" | "accentColor">;
