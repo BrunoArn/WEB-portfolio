@@ -92,6 +92,12 @@ O perfil do mouse em `atlas-pointer-impulse.ts` aceita movimentos a partir de 8 
 
 Toque e scroll usam explicitamente o perfil anterior: mesmos limiar, área, intensidade, limites e cálculo de tap. Ambos os perfis reutilizam a mesma detecção de contato, dois slots por linha, cooldown de 180 ms, propagação e dissipação de 1,15 s. Não há onda de hover estacionário nem mudança de geometria ou shader. Movimento reduzido, visibilidade e limpeza continuam no controlador existente.
 
+## Projetos sem influência no terreno
+
+Uma influência de 0 é válida e preserva marcador, imagem, card, categoria e navegação. Apenas projetos com influência positiva entram nas fontes de relevo, na contagem que distingue fontes isoladas e na distribuição de cores. Zero explícito não recebe o padrão 1; valor ausente continua recebendo 1. Limites negativos ou acima de 2 são rejeitados no Studio e no adaptador.
+
+As massas de suporte são independentes. Quando nenhuma fonte de projeto fornece cor, o mapa e os fundos usam o mesmo tom neutro de fallback já existente. O misturador RGB fica em atlas-color.ts e é compartilhado pelos dois renderizadores, sem alocação por pixel. O cache continua incluindo a influência para invalidar transições de e para zero. Geometria, cores e posições publicadas com influência positiva mantêm suas fórmulas.
+
 ## Estrutura atual
 
 | Arquivo | Responsabilidade |
@@ -100,6 +106,7 @@ Toque e scroll usam explicitamente o perfil anterior: mesmos limiar, área, inte
 | `useAtlasScene.ts` | Estado local, refs, montagem e limpeza dos controladores; entrada, recuperação e atualização dos ajustes. |
 | `atlas-content.ts` | Adapta conteúdo publicado, idiomas, imagens, destinos e participação no mapa. |
 | `atlas-field.ts` | Prepara o campo escalar e a influência espacial das cores. |
+| `atlas-color.ts` | Mistura RGB e fallback neutro compartilhados pelo mapa e pelos fundos. |
 | `atlas-geometry.ts` | Cálculos compartilhados: grade, amostragem, curvas, fitas e verificação conservadora de extensões vazias; sem DOM ou renderizador. |
 | `atlas-geometry-cache.ts` | Estado de geometria de uma cena: amostras, curvas atuais/de repouso e prova de cobertura vazia. |
 | `atlas-engine.ts` | Controlador do navegador: canvas, textura de cores, renderizador, preparação da superfície/malha e ciclo de vida. |

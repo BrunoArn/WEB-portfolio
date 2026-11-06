@@ -12,7 +12,7 @@ O Studio local está em **http://localhost:3333/**. Se não estiver rodando, exe
 4. O seletor de território principal mostra somente categorias já associadas ao projeto e habilitadas como território. Esta escolha explícita tem prioridade; mudar a ordem das categorias não troca a prioridade.
 5. Revise as categorias primeiro e publique-as antes dos projetos quando for adotar a configuração. Depois de publicar, recarregue a prévia para ver o resultado. Rascunhos não alteram o mapa.
 
-Os campos Atlas são opcionais nos documentos antigos. Ao habilitá-los, a validação exige os dados necessários. Posições usam porcentagens: X = esquerda (0) até direita (100); Y = topo (0) até base (100). Desktop e celular têm configurações próprias. A influência aceita 0,1 a 2; 1 ou vazio significa intensidade padrão.
+Os campos Atlas são opcionais nos documentos antigos. Ao habilitá-los, a validação exige os dados necessários. Posições usam porcentagens: X = esquerda (0) até direita (100); Y = topo (0) até base (100). Desktop e celular têm configurações próprias. A influência aceita 0 a 2; 1 ou vazio significa intensidade padrão. Zero mantém o marcador, card e navegação, mas não gera relevo nem contribui para a cor do terreno. O projeto também deixa de contar na definição de fontes isoladas ou agrupadas; os demais projetos mantêm seu formato. Se todas as influências forem zero, as massas de suporte continuam sendo calculadas; as curvas que elas gerarem usam o tom neutro de fallback existente. Sem projetos influentes ou massas de suporte, não há relevo para desenhar.
 
 ## Valores de referência da composição atual
 

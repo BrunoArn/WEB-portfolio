@@ -17,7 +17,8 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
   const direction = controls.direction * Math.PI / 180;
   const connection = controls.connection / 50;
   const clearing = controls.negativeSpace / 50;
-  const ordered = [...projects].sort((a, b) => a.id.localeCompare(b.id));
+  // Zero-influence markers must not change neighboring solo/multi-source shapes.
+  const ordered = projects.filter(project => project.influence > 0).sort((a, b) => a.id.localeCompare(b.id));
   const counts = new Map<string, number>();
   for (const p of ordered) counts.set(p.c, (counts.get(p.c) ?? 0) + 1);
   const kernels = ordered.map(p => {
@@ -46,7 +47,7 @@ export function createAtlasField(projects: readonly AtlasAnchor[], mobile: boole
 
 export function createAtlasColorField(projects: readonly AtlasAnchor[], mobile: boolean, categoryIds: readonly string[]) {
   const indices = new Map(categoryIds.map((id, i) => [id, i]));
-  const sources = projects.map(p => ({ ...p, index: indices.get(p.c) })).filter(p => p.index !== undefined);
+  const sources = projects.map(p => ({ ...p, index: indices.get(p.c) })).filter(p => p.index !== undefined && p.influence > 0);
   return (x: number, y: number, weights = Array<number>(categoryIds.length).fill(0)) => {
     weights.fill(0);
     for (const p of sources) weights[p.index!] += p.influence * gaussian(x, y, p.x, p.y, mobile ? .25 : .22, mobile ? .13 : .22);
