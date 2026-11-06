@@ -38,9 +38,9 @@ test('Atlas adjustment preview bypasses persistent cache without a conflicting r
  assert.deepEqual(f.calls[0][2],{cache:'no-store'});
 });
 
-for(const name of ['getProjectCards','getFeaturedProjects'])test(name+' caches referenced categories and shares unlocalized results across PT/EN',async()=>{
+test('Project cards cache referenced categories and share unlocalized results across PT/EN',async()=>{
  const f=fixture('projects',[{_id:'one'}]);
- assert.equal((await f[name]('pt'))[0].language,'pt');assert.equal((await f[name]('en'))[0].language,'en');
+ assert.equal((await f.getProjectCards('pt'))[0].language,'pt');assert.equal((await f.getProjectCards('en'))[0].language,'en');
  assert.deepEqual(f.calls[0],f.calls[1]);assert.deepEqual(f.calls[0][2],policy.sanityCacheOptions('projects','categories'));
 });
 

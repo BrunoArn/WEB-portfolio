@@ -5,7 +5,7 @@ Runtime queries use the shared policy in cache.ts: force-cache, one-hour time-ba
 | Query | Tags |
 | --- | --- |
 | Atlas (Home and decorative backgrounds) | sanity:atlas, sanity:projects, sanity:categories |
-| Projects (listing, detail, featured and related) | sanity:projects, sanity:categories |
+| Projects (listing, detail and related) | sanity:projects, sanity:categories |
 | Categories | sanity:categories |
 | About | sanity:about |
 
@@ -24,4 +24,4 @@ The webhook invalidates projects when a persistent video thumbnail changes on a 
 
 Validate caching with next build / next start; development HMR does not model production caching reliably. Any future multi-instance deployment needs a cache/invalidation strategy shared across instances.
 
-Listing and related cards share getProjectCards and its lightweight projection/model. Full project data is fetched only where required by the detail/featured repository. Both projections share common card fields and the same projects/categories tags, so existing webhook invalidation reaches both cache entries.
+Listing and related cards share getProjectCards and its lightweight projection/model. Full project data is fetched only for project detail. Both projections share common card fields and the same projects/categories tags, so existing webhook invalidation reaches both cache entries.
