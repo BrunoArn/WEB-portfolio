@@ -33,6 +33,8 @@
     --layout-margin-desktop: 40px;
     --layout-margin-mobile: 20px;
     --layout-home-inset: 5%;
+    /* Align fixed/full-width shell content with the padded Container. */
+    --layout-content-inset: max(var(--layout-margin-desktop), calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop)));
 
     /* Shared shell reservations, consumed by the layout, Footer and Atlas. */
     --shell-header-offset: calc(var(--space-40) + var(--space-20) + 1px);

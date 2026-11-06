@@ -6,6 +6,7 @@ import styles from "./ProjectPlayable.module.css";
 import type { ProjectImage } from "@/content/types/project";
 
 import Image from "next/image";
+import { projectHeroSizes } from "@/components/projects/ProjectCoverTransition";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type ProjectPlayableProps = {
@@ -137,7 +138,7 @@ export function ProjectPlayable({
                             src={poster.src}
                             alt=""
                             fill
-                            sizes="(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+                            sizes={projectHeroSizes}
                             className="object-cover opacity-60"
                         />
 

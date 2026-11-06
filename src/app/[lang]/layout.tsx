@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteLinks } from "@/config/site";
 import { notFound } from "next/navigation";
 import { Geist, Inter } from "next/font/google";
 import { isLocale, locales } from "@/i18n/config";
@@ -21,13 +22,18 @@ const interBlack = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Bruno Arnaud",
-    template: "%s | Bruno Arnaud",
-  },
-  description: "Designer / Developer — Game Developer",
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+  const dictionary = await getDictionary(lang);
+  return {
+    title: {
+      default: dictionary.site.name,
+      template: "%s | " + dictionary.site.name,
+    },
+    description: dictionary.site.description,
+  };
+}
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -60,10 +66,7 @@ export default async function RootLayout({
           openMenuLabel={dictionary.navigation.openMenu}
           closeMenuLabel={dictionary.navigation.closeMenu}
           labels={dictionary.navigation}
-          professionalLinks={{
-            github: "https://github.com/BrunoArn",
-            linkedin: "https://www.linkedin.com/in/bruno-arnaud-2bb586164/",
-          }}
+          professionalLinks={siteLinks}
           currentLocale={lang}
         />
 
@@ -77,11 +80,8 @@ export default async function RootLayout({
           </div>
 
           <Footer
-            name="Bruno Arnaud"
-            professionalLinks={{
-              github: "https://github.com/BrunoArn",
-              linkedin: "https://www.linkedin.com/in/bruno-arnaud-2bb586164/",
-            }}
+            name={dictionary.site.name}
+            professionalLinks={siteLinks}
           />
         </div>
       </body>

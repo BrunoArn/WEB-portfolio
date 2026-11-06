@@ -1,4 +1,4 @@
-/* Map art and geometry stay local. Interface typography and tokens come from globals.css. */
+/* Map art and geometry stay local. Shared design tokens come from styles/tokens.css. */
 .root {
   /* Camera transforms and moving thumbnails must not adjust document scrolling. */
   overflow-anchor: none;

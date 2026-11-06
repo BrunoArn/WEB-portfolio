@@ -1,4 +1,10 @@
+const site = {
+  name: "Bruno Arnaud",
+  description: "Designer / Desenvolvedor — Desenvolvedor de jogos",
+} as const;
+
 const pt = {
+  site,
   navigation: {
     menu: "MENU",
     close: "FECHAR",
@@ -9,7 +15,7 @@ const pt = {
     closeMenu: "Fechar menu de navegação",
   },
   atlas: {
-    title: "Bruno Arnaud",
+    title: site.name,
     description: "Um território de jogos, interfaces e experiências interativas.",
     projects: "Projetos do Atlas",
     unavailable: "Miniatura indisponível",
