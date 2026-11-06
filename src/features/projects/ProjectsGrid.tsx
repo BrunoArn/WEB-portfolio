@@ -1,4 +1,4 @@
-import type { Project } from "@/content/types/project";
+import type { ProjectCardData } from "@/content/types/project";
 import { accentStyle } from "@/styles/accent";
 import type { Locale } from "@/i18n/config";
 import { IntentLink } from "@/components/navigation/IntentLink";
@@ -6,7 +6,7 @@ import { IntentLink } from "@/components/navigation/IntentLink";
 import Image from "next/image";
 
 type ProjectsGridProps = {
-    projects: Project[];
+    projects: ProjectCardData[];
     locale: Locale;
 };
 

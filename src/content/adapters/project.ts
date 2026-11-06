@@ -1,5 +1,6 @@
 import type {
   Project,
+  ProjectCardData,
   ProjectSeo,
   ProjectStatus,
   ProjectTeamMember,
@@ -7,6 +8,7 @@ import type {
 
 import type {
   SanityProject,
+  SanityProjectCard,
   SanityProjectSeo,
   SanityProjectTeamMember,
 } from "@/sanity/types/project";
@@ -63,10 +65,10 @@ const PROJECT_STATUSES: ProjectStatus[] = [
   "archived",
 ];
 
-export function adaptProject(
-  project: SanityProject,
+export function adaptProjectCard(
+  project: SanityProjectCard,
   language: ContentLanguage,
-): Project {
+): ProjectCardData {
   const slug = project.slug?.current;
 
   if (
@@ -106,6 +108,36 @@ export function adaptProject(
   ) {
     throw new Error(`Project "${slug}" has an invalid year.`);
   }
+
+  const categories = validCategories.map((category) =>
+    adaptCategory(category, language),
+  );
+  const territoryId = project.atlas?.territory?._ref?.replace(/^drafts\./, "");
+  // Match the Atlas territory even when it is not the first category.
+  // An explicitly selected but invalid territory must not borrow another color.
+  const accentCategory = territoryId
+    ? categories[validCategories.findIndex((category) =>
+      category._id.replace(/^drafts\./, "") === territoryId,
+    )]
+    : categories.find((category) => category.accentColor);
+
+  return {
+    ...(accentCategory?.accentColor ? { accentColor: accentCategory.accentColor } : {}),
+    title: resolveLocalizedValue(project.title, language),
+    slug,
+    year: project.year,
+    role: resolveLocalizedValue(project.role, language),
+    categories,
+    cover: adaptProjectImage(project.cover, language),
+  };
+}
+
+export function adaptProject(
+  project: SanityProject,
+  language: ContentLanguage,
+): Project {
+  const card = adaptProjectCard(project, language);
+  const slug = card.slug;
 
   if (!PROJECT_STATUSES.includes(project.status)) {
     throw new Error(`Project "${slug}" has an invalid status.`);
@@ -154,23 +186,8 @@ export function adaptProject(
     );
   }
 
-  const categories = validCategories.map((category) =>
-    adaptCategory(category, language),
-  );
-  const territoryId = project.atlas?.territory?._ref?.replace(/^drafts\./, "");
-  // Match the Atlas territory even when it is not the first category.
-  // An explicitly selected but invalid territory must not borrow another color.
-  const accentCategory = territoryId
-    ? categories[validCategories.findIndex((category) =>
-      category._id.replace(/^drafts\./, "") === territoryId,
-    )]
-    : categories.find((category) => category.accentColor);
-
   return {
-    ...(accentCategory?.accentColor ? { accentColor: accentCategory.accentColor } : {}),
-    title: resolveLocalizedValue(project.title, language),
-    slug,
-    year: project.year,
+    ...card,
 
     description: resolveLocalizedValue(
       project.description,
@@ -181,23 +198,17 @@ export function adaptProject(
       ? resolveLocalizedValue(project.context, language)
       : undefined,
 
-    role: resolveLocalizedValue(project.role, language),
-
     status: project.status,
 
     organization: project.organization
       ? resolveLocalizedValue(project.organization, language)
       : undefined,
 
-    categories,
-
     technologies: project.technologies,
 
     team: project.team.map((member) =>
       adaptTeamMember(member, language),
     ),
-
-    cover: adaptProjectImage(project.cover, language),
 
     media: project.media.map((item) =>
       adaptProjectMedia(item, language),

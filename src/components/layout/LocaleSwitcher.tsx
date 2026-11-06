@@ -4,9 +4,7 @@ import type { MouseEvent } from "react";
 import { IntentLink } from "@/components/navigation/IntentLink";
 import { usePathname } from "next/navigation";
 
-import { isLocale, locales } from "@/i18n/config";
-
-type Locale = (typeof locales)[number];
+import { isLocale, locales, type Locale } from "@/i18n/config";
 
 type LocaleSwitcherProps = {
   currentLocale: Locale;

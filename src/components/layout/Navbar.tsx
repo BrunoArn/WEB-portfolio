@@ -1,13 +1,12 @@
 "use client";
 
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
-import { locales } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
+import { getNavigationState } from "@/components/navigation/navigation-state";
 import styles from "./Navbar.module.css";
 
 import { IntentLink } from "@/components/navigation/IntentLink";
 import { usePathname } from "next/navigation";
-
-type Locale = (typeof locales)[number];
 
 type NavbarProps = {
     currentLocale: Locale;
@@ -21,16 +20,8 @@ type NavbarProps = {
 export function Navbar({ labels, currentLocale }: NavbarProps) {
     const pathname = usePathname();
 
-    const homePath = `/${currentLocale}`;
-    const projectsPath = `/${currentLocale}/projects`;
-    const aboutPath = `/${currentLocale}/about`;
-
-    const isHomeActive = pathname === homePath;
-    const isAtlasPage = isHomeActive || pathname === `${homePath}/atlas-preview`;
-    const isProjectsActive =
-        pathname === projectsPath || pathname.startsWith(`${projectsPath}/`);
-    const isAboutActive =
-        pathname === aboutPath || pathname.startsWith(`${aboutPath}/`);
+    const { homePath, projectsPath, aboutPath, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
+        getNavigationState(pathname, currentLocale);
 
     const navLinkClass = (isActive: boolean) =>
         `relative block py-[var(--space-4)] text-[length:var(--font-size-label)] font-medium transition-colors duration-[var(--motion-fast)] motion-reduce:transition-none ${isActive

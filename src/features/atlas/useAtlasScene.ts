@@ -39,6 +39,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     const entranceFinished = useRef(false);
     const releaseSceneNavigation = useRef<(() => void) | null>(null);
     const terrainController = useRef<ReturnType<typeof mountAtlasTerrain> | null>(null);
+    const prepareCardNavigation = useRef<(id: string) => void>(() => {});
     // Overrides belong to this preview session; published settings stay untouched.
     const [override, setOverride] = useState<{
         source: AtlasTerrainSettings;
@@ -70,6 +71,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current)
             return;
         let cancelled = false, navigationPending = false, navigationEpoch = 0;
+        let currentSelectionId: string | null = null, prefetchedId: string | null = null;
         // Reuse preparation for the selected cover. Recheck the responsive image
         // after a viewport/DPR change; failed attempts can be retried on click.
         let preparedCover: { key: string; ready: Promise<boolean> } | undefined;
@@ -83,16 +85,36 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             });
             return ready;
         };
+        const prepareNavigation = (id: string) => {
+            const state = root.current?.dataset.selection;
+            if (cancelled || navigationPending || id !== currentSelectionId || prefetchedId === id ||
+                (state !== "opening" && state !== "selected")) return;
+            const project = content.projects.find(project => project.id === id);
+            if (project?.href) {
+                prefetchedId = id;
+                router.prefetch(project.href);
+                if (project.image) void prepareCover(project.image.src);
+            }
+        };
+        prepareCardNavigation.current = prepareNavigation;
         const selectProject = (id: string | null) => {
             navigationEpoch++;
             navigationPending = false;
-            setNavigating(false);
-            setShareCover(true);
-            setSelectedProjectId(id);
-            const project = content.projects.find(project => project.id === id);
-            if (project?.href) {
-                router.prefetch(project.href);
-                if (project.image) void prepareCover(project.image.src);
+            currentSelectionId = id;
+            prefetchedId = null;
+            const update = () => {
+                setNavigating(false);
+                setShareCover(true);
+                setSelectedProjectId(id);
+            };
+            // Mount cover layers before terrain preparation and the opening timeline.
+            // Closing/disposal can run in effect cleanup, where flushSync is not allowed.
+            if (id !== null) flushSync(update);
+            else update();
+            // The card cover gets the network first. Hero/page preparation starts when
+            // that image settles; an explicit navigation click still prepares immediately.
+            if (id && !content.projects.find(project => project.id === id)?.image) {
+                queueMicrotask(() => prepareNavigation(id));
             }
         };
         const navigateProject = async (href: string) => {
@@ -158,6 +180,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         releaseSceneNavigation.current = interaction.releaseForNavigation;
         return () => {
             cancelled = true;
+            if (prepareCardNavigation.current === prepareNavigation) prepareCardNavigation.current = () => {};
             entrance?.dispose();
             interaction.dispose();
             if (releaseSceneNavigation.current === interaction.releaseForNavigation) releaseSceneNavigation.current = null;
@@ -196,6 +219,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     return {
         refs: { root, canvas, viewport, intro, world, dialog, panel, media, morph },
         selectedProjectId, webglFailed, mobile, shareCover, navigating,
+        onCoverSettled: (id: string) => prepareCardNavigation.current(id),
         motionSettings, setMotionSettings,
         settings, updateControls, resetControls,
     };

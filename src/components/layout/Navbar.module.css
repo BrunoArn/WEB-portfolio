@@ -35,7 +35,7 @@
 }
 
 .navigation {
-  padding-inline: max(var(--layout-margin-desktop), calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop)));
+  padding-inline: var(--layout-content-inset);
   transition: padding-inline var(--motion-navigation) cubic-bezier(.22, .72, .18, 1);
 }
 

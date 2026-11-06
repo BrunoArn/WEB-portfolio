@@ -1,7 +1,7 @@
 "use client";
 
 import type { Category } from "@/content/types/category";
-import type { Project } from "@/content/types/project";
+import type { ProjectCardData } from "@/content/types/project";
 
 import { useState } from "react";
 
@@ -10,7 +10,7 @@ import { ProjectsGrid } from "./ProjectsGrid";
 import type { Locale } from "@/i18n/config";
 
 type ProjectsListingProps = {
-    projects: Project[];
+    projects: ProjectCardData[];
     categories: Category[];
     locale: Locale;
     allLabel: string;

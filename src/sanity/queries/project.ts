@@ -1,16 +1,8 @@
-export const projectProjection = `
-  _id,
-
+export const projectCardProjection = `
   title,
   slug,
   year,
-
-  description,
-  context,
   role,
-
-  status,
-  organization,
 
 "categories": coalesce(
   categories[]->{
@@ -24,16 +16,6 @@ export const projectProjection = `
 ),
 
   atlas{territory{_ref}},
-
-  "technologies": coalesce(technologies, []),
-
-  "team": coalesce(
-  team[]{
-    name,
-    role
-  },
-  []
-),
 
   cover{
     _type,
@@ -53,6 +35,27 @@ export const projectProjection = `
 
     alt
   },
+
+`;
+
+export const projectProjection = `
+  _id,
+  ${projectCardProjection}
+  description,
+  context,
+
+  status,
+  organization,
+
+  "technologies": coalesce(technologies, []),
+
+  "team": coalesce(
+  team[]{
+    name,
+    role
+  },
+  []
+),
 
   "media": coalesce(
   media[]{

@@ -1,4 +1,10 @@
+const site = {
+  name: "Bruno Arnaud",
+  description: "Designer / Developer — Game Developer",
+} as const;
+
 const en = {
+  site,
   navigation: {
     menu: "MENU",
     close: "CLOSE",
@@ -9,7 +15,7 @@ const en = {
     closeMenu: "Close navigation menu",
   },
   atlas: {
-    title: "Bruno Arnaud",
+    title: site.name,
     description: "A landscape of games, interfaces and interactive experiences.",
     projects: "Atlas projects",
     unavailable: "Thumbnail unavailable",

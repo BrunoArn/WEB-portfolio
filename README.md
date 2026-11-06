@@ -1,52 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfólio — Bruno Arnaud
 
-## Getting Started
+Site em Next.js App Router, React, TypeScript e Tailwind CSS, com conteúdo em PT/EN e Sanity Studio em `studio/`. A branch de publicação é `production`; a hospedagem atual é Railway.
 
-First, run the development server:
+## Executar e verificar
 
-```bash
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O site abre em `http://localhost:3000`. Para validar cache, prefetch e comportamento de produção:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+npm run lint
+npx tsc --noEmit
+node --test tests/*.test.mjs
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A build acessa o Sanity e pode precisar de rede para as fontes do `next/font`. Configure as variáveis de ambiente locais conforme os arquivos de configuração; não versione segredos. O Studio tem seu próprio `package.json` e comandos em `studio/`.
 
-## Learn More
+## Onde encontrar cada responsabilidade
 
-To learn more about Next.js, take a look at the following resources:
+- [Mapa de organização do código](docs/CODE_ORGANIZATION.md): layout, tokens, dicionários, CMS e regras específicas.
+- [Atlas](src/features/atlas/README.md): composição, geometria, câmera, interação e renderização.
+- [Cache de conteúdo](src/sanity/CACHING.md): consultas, tags e dependências.
+- [Webhook](src/sanity/WEBHOOK.md): configuração, assinatura, respostas e validação.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Conteúdo, cache e navegação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+As consultas públicas compartilham a política de cache em `src/sanity/cache.ts`: uma hora como recuperação e invalidação por tags através de `POST /api/sanity/revalidate`. PT e EN reutilizam os dados brutos; a localização ocorre nos adaptadores. A configuração do webhook depende do ambiente publicado e do segredo correspondente. O endereço de produção não invalida o cache do servidor local e abas abertas não são atualizadas automaticamente.
 
-## Deploy on Vercel
+Detalhes existentes são pré-gerados a partir dos slugs publicados. Novos slugs podem renderizar sob demanda; slugs inexistentes retornam 404. A listagem e os relacionados buscam somente os campos dos cards; a página de detalhe recebe os dados completos.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Páginas de projetos e atualização do Sanity
-
-Os detalhes em PT/EN são pré-gerados na build a partir dos slugs publicados do Sanity (generateStaticParams). dynamicParams = true mantém a geração sob demanda de novos slugs, sem exigir outra build. Slugs inexistentes continuam retornando 404.
-
-A rota de detalhe e as consultas de projetos usam revalidação de 60 segundos. Após esse intervalo, um acesso pode receber a versão anterior enquanto a atualização acontece em segundo plano; os acessos seguintes recebem a versão renovada. Não é atualização instantânea nem um prazo garantido de 60 segundos. Isso também afeta os consumidores dessas consultas, incluindo a lista da Home. Não há webhook configurado por esta alteração.
-
-A build precisa acessar o Sanity. Para conferir o cache e o tempo de navegação, use npm run build e npm run start: next dev continua compilando páginas durante o uso. O Atlas prepara a página e a capa responsiva ao abrir o card, reaproveitando esse trabalho no clique; não baixa antecipadamente as capas de todos os projetos.
-
-Verificação em produção local: 12 detalhes pré-gerados com intervalo de 60 s no manifesto; ciclo real HIT → STALE → HIT; 404 para slug inexistente. Uma cópia isolada omitiu Hungry Worm da build e confirmou geração sob demanda (MISS → HIT) em PT/EN, sem escrita no Sanity. O preparo antecipado da capa foi conferido em desktop e mobile DPR 3, reutilizando a preparação no clique. Validações de transição cobrem os seis projetos e os dois idiomas; não substituem uma avaliação física de rede/dispositivo.
-
-## Prefetch por intenção de navegação
-
-Navegação, seletor de idioma, listagem e relacionados usam IntentLink. A simples entrada na área visível não antecipa a rota: hover com mouse sem botão pressionado, foco ou início de toque/caneta habilitam o prefetch padrão do Next para aquele destino. O Next mantém o gerenciamento do cache; não existe um cache paralelo. O destino atual não é antecipado. No touch, um contato que depois vira rolagem também pode iniciar o preparo; nenhum evento bloqueia o scroll.
-
-No Atlas, useAtlasScene continua preparando a página e a capa somente ao selecionar um projeto. Os links do card não disparam uma segunda política automática. Para validar requisições antecipadas, usar build e servidor de produção: o prefetch não funciona em next dev.
+`IntentLink` habilita o prefetch por hover de mouse, foco ou início de toque/caneta. Não há prefetch de todas as rotas só por entrarem na viewport. No Atlas, a intenção prepara a capa no tamanho do card; a seleção monta a capa antes da animação e, após seu carregamento ou falha, prepara o detalhe e o hero. O clique explícito para navegar mantém a preparação imediata com timeout. Nenhum evento bloqueia a rolagem para antecipar dados.

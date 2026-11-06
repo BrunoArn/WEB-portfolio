@@ -21,10 +21,10 @@ export function ProjectCoverTransition({ slug, children, enabled = true }: Proje
 export const projectHeroSizes = "(min-width: 1280px) 1280px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)";
 
 /** Prepare on card opening and reuse on click. Failed/slow images never block navigation indefinitely. */
-export async function prepareProjectCover(src: string): Promise<boolean> {
+export async function prepareProjectCover(src: string, sizes = projectHeroSizes): Promise<boolean> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-        const { props } = getImageProps({ src, alt: "", fill: true, sizes: projectHeroSizes });
+        const { props } = getImageProps({ src, alt: "", fill: true, sizes });
         const image = new window.Image();
         image.decoding = "async";
         image.fetchPriority = "high";

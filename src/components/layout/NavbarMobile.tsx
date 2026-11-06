@@ -11,10 +11,9 @@ import { usePathname } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
-import { locales } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
+import { getNavigationState } from "@/components/navigation/navigation-state";
 import styles from "./NavbarMobile.module.css";
-
-type Locale = (typeof locales)[number];
 
 type NavbarMobileProps = {
     openMenuLabel: string;
@@ -47,16 +46,8 @@ export function NavbarMobile({
 
     const pathname = usePathname();
 
-    const homePath = `/${currentLocale}`;
-    const projectsPath = `/${currentLocale}/projects`;
-    const aboutPath = `/${currentLocale}/about`;
-
-    const isHomeActive = pathname === homePath;
-    const isAtlasPage = isHomeActive || pathname === `${homePath}/atlas-preview`;
-    const isProjectsActive =
-        pathname === projectsPath || pathname.startsWith(`${projectsPath}/`);
-    const isAboutActive =
-        pathname === aboutPath || pathname.startsWith(`${aboutPath}/`);
+    const { homePath, projectsPath, aboutPath, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
+        getNavigationState(pathname, currentLocale);
 
     const mobileNavLinkClass = (isActive: boolean) =>
         `relative inline-block font-heading text-(length:--font-size-page-mobile) font-black leading-(--line-height-title) text-app-text-primary transition-colors duration-(--motion-fast) hover:text-app-accent motion-reduce:transition-none ${isActive

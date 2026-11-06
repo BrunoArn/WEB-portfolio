@@ -7,7 +7,7 @@ import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getCategories } from "@/sanity/repositories/categories";
-import { getProjects } from "@/sanity/repositories/projects";
+import { getProjectCards } from "@/sanity/repositories/projects";
 import { ProjectsListing } from "@/features/projects/ProjectsListing";
 
 type ProjectsPageProps = {
@@ -43,7 +43,7 @@ export default async function ProjectsPage({
 
     const dictionary = await getDictionary(lang);
     const categories = await getCategories(lang);
-    const projects = await getProjects(lang);
+    const projects = await getProjectCards(lang);
 
     return (
         <main className={backgroundStyles.page}>

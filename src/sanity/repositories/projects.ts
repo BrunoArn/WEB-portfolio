@@ -1,11 +1,11 @@
-import type { Project } from "@/content/types/project";
+import type { Project, ProjectCardData } from "@/content/types/project";
 import type { ContentLanguage } from "@/content/adapters/localization";
-import type { SanityProject } from "@/sanity/types/project";
+import type { SanityProject, SanityProjectCard } from "@/sanity/types/project";
 
-import { adaptProject } from "@/content/adapters/project";
+import { adaptProject, adaptProjectCard } from "@/content/adapters/project";
 import { sanityClient } from "@/sanity/client";
 import { sanityCacheOptions } from "@/sanity/cache";
-import { projectProjection } from "@/sanity/queries/project";
+import { projectProjection, projectCardProjection } from "@/sanity/queries/project";
 
 // Category labels/colors are resolved by the project projection too.
 const projectFetchOptions = sanityCacheOptions("projects", "categories");
@@ -21,23 +21,23 @@ export async function getProjectSlugs(): Promise<string[]> {
     return [...new Set(slugs)];
 }
 
-const projectsQuery = `
+const projectCardsQuery = `
   *[_type == "project"] | order(order asc) {
-    ${projectProjection}
+    ${projectCardProjection}
   }
 `;
 
-export async function getProjects(
+export async function getProjectCards(
     language: ContentLanguage,
-): Promise<Project[]> {
-    const projects = await sanityClient.fetch<SanityProject[]>(
-        projectsQuery,
+): Promise<ProjectCardData[]> {
+    const projects = await sanityClient.fetch<SanityProjectCard[]>(
+        projectCardsQuery,
         {},
         projectFetchOptions,
     );
 
     return projects.map((project) =>
-        adaptProject(project, language),
+        adaptProjectCard(project, language),
     );
 }
 
@@ -60,27 +60,4 @@ export async function getProjectBySlug(
     return project
         ? adaptProject(project, language)
         : null;
-}
-
-const featuredProjectsQuery = `
-  *[
-    _type == "project" &&
-    featured == true
-  ] | order(order asc) {
-    ${projectProjection}
-  }
-`;
-
-export async function getFeaturedProjects(
-    language: ContentLanguage,
-): Promise<Project[]> {
-    const projects = await sanityClient.fetch<SanityProject[]>(
-        featuredProjectsQuery,
-        {},
-        projectFetchOptions,
-    );
-
-    return projects.map((project) =>
-        adaptProject(project, language),
-    );
 }
