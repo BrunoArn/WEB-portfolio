@@ -60,6 +60,24 @@ export const project = defineType({
         }),
 
         defineField({
+            name: 'summary',
+            title: 'Resumo para o card',
+            type: 'localizedString',
+            description: 'Uma frase sobre o que o projeto oferece ou resolve, destinada aos cards da listagem. Até 140 caracteres por idioma.',
+            validation: (rule) => rule.custom((value) => {
+                const summary = value as { pt?: string; en?: string } | undefined
+                for (const locale of ['pt', 'en'] as const) {
+                    if (summary?.[locale] && summary[locale].length > 140) {
+                        return locale === 'pt'
+                            ? 'Português: máximo de 140 caracteres no resumo.'
+                            : 'English: maximum of 140 characters in the summary.'
+                    }
+                }
+                return true
+            }),
+        }),
+
+        defineField({
             name: 'context',
             title: 'Context',
             type: 'localizedText',

@@ -45,6 +45,7 @@ export interface ProjectSeo {
 
 export interface Project {
     title: string;
+    summary?: string;
     slug: string;
     year: number;
 
@@ -74,4 +75,4 @@ export interface Project {
     seo?: ProjectSeo;
 }
 /** Data shared by listing and related-project cards; excludes detail-only content. */
-export type ProjectCardData = Pick<Project, "title" | "slug" | "year" | "role" | "cover" | "categories" | "accentColor">;
+export type ProjectCardData = Pick<Project, "title" | "summary" | "slug" | "year" | "role" | "cover" | "categories" | "accentColor">;

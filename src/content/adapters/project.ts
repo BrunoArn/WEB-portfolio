@@ -120,10 +120,13 @@ export function adaptProjectCard(
       category._id.replace(/^drafts\./, "") === territoryId,
     )]
     : categories.find((category) => category.accentColor);
+  // Optional editorial copy must not hide a project or borrow the other language.
+  const summary = project.summary?.[language];
 
   return {
     ...(accentCategory?.accentColor ? { accentColor: accentCategory.accentColor } : {}),
     title: resolveLocalizedValue(project.title, language),
+    ...(typeof summary === "string" && summary.trim() ? { summary: summary.trim() } : {}),
     slug,
     year: project.year,
     role: resolveLocalizedValue(project.role, language),

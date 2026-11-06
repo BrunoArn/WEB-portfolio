@@ -24,11 +24,11 @@ export function ProjectsGrid({
             {projects.map((project, index) => (
                 <IntentLink
                     key={project.slug}
-                        style={accentStyle(project.accentColor)}
+                    style={accentStyle(project.accentColor)}
                     href={`/${locale}/projects/${project.slug}`}
-                    className="group block overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-accent focus-visible:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+                    className="group flex h-full flex-col overflow-hidden rounded-(--radius-card) border border-app-border bg-app-surface motion-safe:transition-colors motion-safe:duration-(--motion-ui) hover:border-app-accent focus-visible:border-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
                 >
-                    <div className="relative aspect-video overflow-hidden bg-app-surface-elevated">
+                    <div className="relative aspect-video shrink-0 overflow-hidden bg-app-surface-elevated">
                         <Image
                             src={project.cover.src}
                             alt={project.cover.alt}
@@ -40,7 +40,7 @@ export function ProjectsGrid({
                         />
                     </div>
 
-                    <div className="p-(--card-padding)">
+                    <div className="flex flex-1 flex-col p-(--card-padding)">
                         <p className="text-(length:--font-size-label) font-medium uppercase leading-(--line-height-label) text-app-accent">
                             {project.categories[0]?.name}
                         </p>
@@ -49,7 +49,13 @@ export function ProjectsGrid({
                             {project.title}
                         </h2>
 
-                        <p className="mt-(--space-8) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
+                        {project.summary && (
+                            <p className="mt-(--space-8) text-(length:--font-size-body) leading-(--line-height-body) text-app-text-body">
+                                {project.summary}
+                            </p>
+                        )}
+
+                        <p className="mt-auto pt-(--space-12) text-(length:--font-size-label) leading-(--line-height-label) text-app-text-secondary">
                             {project.role} · {project.year}
                         </p>
                     </div>
