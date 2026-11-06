@@ -29,6 +29,7 @@ Os breakpoints do shell (48rem) e do mapa/jogo (760px) têm responsabilidades di
 | Textos de interface, labels, mensagens, acessibilidade e descrição global dos metadados | `src/i18n/dictionaries/pt.ts` e `en.ts` |
 | Carregamento e tipo do dicionário | `src/i18n/get-dictionary.ts` |
 | Idiomas suportados e idioma padrão | `src/i18n/config.ts` |
+| Idioma inicial em URLs sem prefixo; URLs explícitas prevalecem | `src/i18n/preferred-locale.ts` e `src/proxy.ts` |
 | Destinos fixos dos perfis do shell | `src/config/site.ts` |
 | Projetos, categorias, About e conteúdo editorial | Sanity → repositories/queries → `src/content/adapters` → componentes |
 | Campos editoriais e instruções do CMS | `studio/schemaTypes/` |

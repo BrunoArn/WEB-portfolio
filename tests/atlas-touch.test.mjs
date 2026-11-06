@@ -101,14 +101,14 @@ test('reduced motion, visibility, selection, and teardown reject touches and sto
   f.viewport.emit('touchend',f.event([],[p]));assert(f.line.pointer.impulses.every(i=>i.age<0),kind);assert.equal(f.frames.size,0,kind);f.motion.dispose();
  }
 });
-test('mouse formula and cooldown remain unchanged; two slots bound energy and all waves decay',()=>{
+test('touch profile retains its formula and cooldown; two slots bound energy and all waves decay',()=>{
  const f=fixture(),{createAtlasString}=f.atlas('atlas-string-response'),{advanceAtlasPointer}=f.atlas('atlas-pointer-impulse');
  const line=createAtlasString({path:[[0,0],[100,0],[200,0]],closed:false});
- advanceAtlasPointer(line,50,10,true,450,85,.02,1,65);
+ advanceAtlasPointer(line,50,10,true,450,85,.02,1,65,false,"touch");
  const first=line.pointer.impulses[0],expected=11*.85*2.4*(1-Math.exp(-1))*(-10/Math.hypot(10,8))*Math.exp(-.5*100/(65*65));
  assert(Math.abs(first.value-expected)<1e-12);assert.equal(first.contact,50);
- advanceAtlasPointer(line,50,10,true,450,85,.02,1,65);assert.equal(line.pointer.impulses.filter(i=>i.age>=0).length,1);
- for(let i=0;i<100;i++)advanceAtlasPointer(line,50,10,false,0,85,.02,1,65);assert(line.pointer.impulses.every(i=>i.age<0));
+ advanceAtlasPointer(line,50,10,true,450,85,.02,1,65,false,"touch");assert.equal(line.pointer.impulses.filter(i=>i.age>=0).length,1);
+ for(let i=0;i<100;i++)advanceAtlasPointer(line,50,10,false,0,85,.02,1,65,false,"touch");assert(line.pointer.impulses.every(i=>i.age<0));
 });
 
 test('holding a still finger after a swipe does not keep the animation alive',()=>{
@@ -153,4 +153,19 @@ test('native scroll supplies energy at the exact current finger position, not a 
  const active=line.pointer.impulses.filter(i=>i.age>=0);assert(active.length>0);
  for(const impulse of active)assert(Math.abs(impulse.contact-80)<1e-8,'contact must project to world y=180 under the current finger');
  f.viewport.emit('touchend',f.event([],[p]));for(let i=0;i<100;i++)f.step();assert.equal(f.motion.isRunning(),false);f.motion.dispose();
+});
+
+test('slow mouse input reaches the motion controller and stops after the finite wave',()=>{
+ const f=motionFixture();let observed=false;
+ f.viewport.emit('pointermove',{pointerType:'mouse',clientX:310,clientY:380});
+ for(let y=379;y>=300;y--){f.step(50);f.viewport.emit('pointermove',{pointerType:'mouse',clientX:310,clientY:y});if(f.line.pointer.impulses.some(i=>i.age>=0))observed=true;}
+ assert.equal(observed,true);for(let i=0;i<150;i++)f.step();assert(f.line.pointer.impulses.every(i=>i.age<0));assert.equal(f.motion.isRunning(),false);assert.equal(f.frames.size,0);f.motion.dispose();
+});
+
+test('mouse still obeys reduced motion, hidden page, offscreen scene and selection gates',()=>{
+ for(const kind of ['reduced','hidden','offscreen','selection']){
+  const f=motionFixture();if(kind==='reduced'){f.query.matches=true;f.query.emit('change');}if(kind==='hidden'){f.document.hidden=true;f.document.emit('visibilitychange');}if(kind==='offscreen')f.intersect(false);if(kind==='selection')f.root.dataset.selection='opening';
+  for(let y=350;y>=300;y--){f.step(50);f.viewport.emit('pointermove',{pointerType:'mouse',clientX:310,clientY:y});}
+  assert(f.line.pointer.impulses.every(i=>i.age<0),kind);assert.equal(f.frames.size,0,kind);f.motion.dispose();
+ }
 });

@@ -28,6 +28,12 @@ A build acessa o Sanity e pode precisar de rede para as fontes do `next/font`. C
 - [Cache de conteúdo](src/sanity/CACHING.md): consultas, tags e dependências.
 - [Webhook](src/sanity/WEBHOOK.md): configuração, assinatura, respostas e validação.
 
+## Idioma inicial
+
+O acesso sem prefixo de idioma usa a preferência do navegador (Accept-Language), respeitando a prioridade dos idiomas suportados. Variantes de português levam a /pt; variantes de inglês levam a /en. Sem preferência compatível, o fallback é inglês. A decisão fica em src/i18n/preferred-locale.ts e src/proxy.ts.
+
+Uma URL com /pt ou /en sempre prevalece. O seletor manual troca o caminho normalmente, inclusive após recarregar, sem cookie ou redirecionamento forçado. Só o redirecionamento de entrada varia por idioma e usa private/no-store; o cache das páginas localizadas permanece independente dessa decisão.
+
 ## Conteúdo, cache e navegação
 
 As consultas públicas compartilham a política de cache em `src/sanity/cache.ts`: uma hora como recuperação e invalidação por tags através de `POST /api/sanity/revalidate`. PT e EN reutilizam os dados brutos; a localização ocorre nos adaptadores. A configuração do webhook depende do ambiente publicado e do segredo correspondente. O endereço de produção não invalida o cache do servidor local e abas abertas não são atualizadas automaticamente.

@@ -1,5 +1,6 @@
 export const projectCardProjection = `
   title,
+  summary,
   slug,
   year,
   role,

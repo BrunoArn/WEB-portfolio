@@ -19,8 +19,8 @@ test('Card and detail share category fallbacks, including canonical draft IDs',(
  const p=fixture();p.atlas.territory._ref='drafts.web';assert.equal(adaptProjectCard(p,'pt').accentColor,'#699caa');p.atlas.territory._ref='missing';assert.equal(adaptProjectCard(p,'pt').accentColor,undefined);delete p.atlas;assert.equal(adaptProjectCard(p,'pt').accentColor,'#91b478');
 });
 test('Full detail retains gallery, game, context and other detail data',()=>{
- const p={...fixture(),description:{pt:'Descrição',en:'Description'},context:{pt:'Contexto',en:'Context'},status:'released',featured:true,order:0,technologies:['Unity'],team:[{name:'Person',role:{pt:'Arte',en:'Art'}}],media:[{_type:'projectVideo',video:{asset:{_id:'video',url:'https://cdn.sanity.io/video.mp4'}}}],playable:{type:'unity-webgl',source:'https://game.test',width:960,height:600},github:'https://github.com/test',liveSite:'https://test.test',seo:{title:{pt:'SEO',en:'SEO'},description:null}};
- const detail=adaptProject(p,'pt');assert.equal(detail.media[0].src,'https://cdn.sanity.io/video.mp4');assert.deepEqual(detail.playable,p.playable);assert.equal(detail.context,'Contexto');assert.equal(detail.team[0].role,'Arte');assert.deepEqual(detail.technologies,['Unity']);assert.equal(detail.seo.title,'SEO');assert.equal(detail.featured,true);
+ const p={...fixture(),description:{pt:'Descrição',en:'Description'},context:{pt:'Contexto',en:'Context'},summary:{pt:'Resumo',en:'Summary'},status:'released',featured:true,order:0,technologies:['Unity'],team:[{name:'Person',role:{pt:'Arte',en:'Art'}}],media:[{_type:'projectVideo',video:{asset:{_id:'video',url:'https://cdn.sanity.io/video.mp4'}}}],playable:{type:'unity-webgl',source:'https://game.test',width:960,height:600},github:'https://github.com/test',liveSite:'https://test.test',seo:{title:{pt:'SEO',en:'SEO'},description:null}};
+ const detail=adaptProject(p,'pt');assert.equal(detail.media[0].src,'https://cdn.sanity.io/video.mp4');assert.deepEqual(detail.playable,p.playable);assert.equal(detail.context,'Contexto');assert.equal(detail.team[0].role,'Arte');assert.deepEqual(detail.technologies,['Unity']);assert.equal(detail.seo.title,'SEO');assert.equal(detail.featured,true);assert.equal(detail.summary,'Resumo');
 });
 test('Invalid shared card fields are still rejected',()=>{
  for(const patch of [{slug:null},{cover:null},{categories:[]},{year:1990},{role:{pt:'',en:'Role'}}])assert.throws(()=>adaptProjectCard({...fixture(),...patch},'pt'));
@@ -31,4 +31,16 @@ test('Card query excludes detail fields while the full query retains them',()=>{
 test('Card repository fetches its lightweight projection with the same webhook dependencies',async()=>{
  const calls=[];const fixtureLoader=createTypeScriptLoader({overrides:{'@/sanity/client':{sanityClient:{fetch:async(...args)=>{calls.push(args);return[];}}},'@/sanity/cache':{sanityCacheOptions},'@/sanity/queries/project':{projectProjection,projectCardProjection},'@/content/adapters/project':{adaptProject,adaptProjectCard}}});
  const {getProjectCards}=fixtureLoader.load(file('src/sanity/repositories/projects.ts'));assert.deepEqual(await getProjectCards('pt'),[]);await getProjectCards('en');assert.deepEqual(calls[0],calls[1]);assert(calls[0][0].includes(projectCardProjection));assert(!calls[0][0].includes('description'));assert.deepEqual(calls[0][2],sanityCacheOptions('projects','categories'));
+});
+
+for(const locale of ['pt','en'])test('Card summary uses its own language and normalizes editorial whitespace: '+locale,()=>{
+ const summary={pt:'  Resumo curto.  ',en:'  Short summary.  '};const card=adaptProjectCard({...fixture(),summary},locale);
+ assert.equal(card.summary,summary[locale].trim());assert.equal(card.description,undefined);assert.equal(card.accentColor,'#699caa');
+});
+
+test('Optional summary can be absent or incomplete without hiding cards or borrowing another language',()=>{
+ for(const summary of [undefined,null,{}, {pt:'',en:'English only'}, {pt:'   ',en:'English only'}, {pt:42,en:'English only'}]){
+  const card=adaptProjectCard({...fixture(),summary},'pt');assert.equal(card.slug,'project');assert.equal(Object.hasOwn(card,'summary'),false);
+ }
+ const summary={pt:'Só português'};assert.equal(adaptProjectCard({...fixture(),summary},'pt').summary,'Só português');assert.equal(adaptProjectCard({...fixture(),summary},'en').summary,undefined);
 });

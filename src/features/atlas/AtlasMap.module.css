@@ -11,7 +11,7 @@
   /* Shared type scale; only markers and map-specific adjustments remain local. */
   --atlas-font-size-title: var(--font-size-hero-desktop);
   --atlas-font-size-marker: 14px;
-  --atlas-font-size-territory: clamp(13px, 1.05vw, var(--font-size-body));
+  --atlas-font-size-territory: clamp(var(--font-size-body), 1.25vw, 18px);
   --atlas-font-size-marker-meta: var(--font-size-label);
   --atlas-font-size-card-title: var(--font-size-card-desktop);
   --atlas-font-size-body: var(--font-size-body);
@@ -162,12 +162,12 @@
   position: absolute;
   pointer-events: none;
   font-size: var(--atlas-font-size-territory);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
-  letter-spacing: 3px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   opacity: 1;
-  text-shadow: 0 2px 8px var(--atlas-background), 0 0 18px var(--atlas-background);
+  text-shadow: 0 1px 2px var(--atlas-background), 0 0 8px var(--atlas-background), 0 0 18px var(--atlas-background);
 }
 @media (min-width: 761px) and (max-width: 1000px) {
   .project {
@@ -556,8 +556,8 @@
 }
 @media (max-width: 760px) {
   .territory {
-    --atlas-font-size-territory: 13px;
-    letter-spacing: 2.5px;
+    --atlas-font-size-territory: 14px;
+    letter-spacing: 2px;
   }
 }
 .titleLink {

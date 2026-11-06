@@ -27,6 +27,7 @@ export interface SanityProject {
     _id: string;
 
     title: LocalizedValue;
+    summary?: Partial<LocalizedValue> | null;
 
     slug: {
         current: string;
@@ -59,4 +60,4 @@ export interface SanityProject {
 
     seo: SanityProjectSeo | null;
 }
-export type SanityProjectCard = Pick<SanityProject, "title" | "slug" | "year" | "role" | "cover" | "categories" | "atlas">;
+export type SanityProjectCard = Pick<SanityProject, "title" | "summary" | "slug" | "year" | "role" | "cover" | "categories" | "atlas">;

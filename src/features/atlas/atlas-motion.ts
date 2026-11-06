@@ -124,7 +124,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         }
         const unit = 1 / scale;
         for (const line of lines)
-            advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure * (touchInput ? atlasTouchReference.pressureGain : 1), dt, unit, settings.mouseRadius);
+            advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure * (touchInput ? atlasTouchReference.pressureGain : 1), dt, unit, settings.mouseRadius, false, touchInput ? "touch" : "mouse");
     }
     const acceptsInput = () => active() && settings.pressure > 0 && visible && !document.hidden &&
         canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection === "idle";
@@ -174,7 +174,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
         tap(point) {
             if (!locate(point)) return;
             for (const line of lines)
-                advanceAtlasPointer(line, targetX, targetY, true, 0, settings.pressure * atlasTouchReference.pressureGain, 0, 1 / scale, settings.mouseRadius, true);
+                advanceAtlasPointer(line, targetX, targetY, true, 0, settings.pressure * atlasTouchReference.pressureGain, 0, 1 / scale, settings.mouseRadius, true, "touch");
             schedule();
         },
     });
