@@ -8,17 +8,17 @@ import styles from "./AtlasMap.module.css";
 
 // Include the approved 20% hover enlargement, without downloading card-size images.
 const thumbnailSizes = "(max-width: 760px) 56px, (max-height: 700px) 28px, 64px";
-const cardSizes = "(max-width: 472px) calc(100vw - 32px), (max-width: 760px) 440px, 460px";
+export const atlasCardImageSizes = "(max-width: 472px) calc(100vw - 32px), (max-width: 760px) 440px, 460px";
 
-function DetailImage({ src, sizes = cardSizes, onError }: { src: string; sizes?: string; onError?: () => void }) {
+function DetailImage({ src, sizes = atlasCardImageSizes, onError, onSettled }: { src: string; sizes?: string; onError?: () => void; onSettled?: () => void }) {
   const [ready, setReady] = useState(false);
   return <Image src={src} alt="" fill sizes={sizes} loading="eager" fetchPriority="high"
     className={[styles.thumbImage, styles.detailImage].join(" ")} data-ready={ready} data-atlas-cover-layer
-    onLoad={() => setReady(true)} onError={() => { setReady(false); onError?.(); }} />;
+    onLoad={() => { setReady(true); onSettled?.(); }} onError={() => { setReady(false); onError?.(); onSettled?.(); }} />;
 }
 
-export function AtlasThumbnail({ image, markerImage, unavailable, selected, slug, shareCover = true }: {
-  image: AtlasProject["image"]; markerImage?: AtlasProject["markerImage"]; unavailable: string; selected: boolean; slug: string; shareCover?: boolean;
+export function AtlasThumbnail({ image, markerImage, unavailable, selected, slug, shareCover = true, onCoverSettled }: {
+  image: AtlasProject["image"]; markerImage?: AtlasProject["markerImage"]; unavailable: string; selected: boolean; slug: string; shareCover?: boolean; onCoverSettled?: () => void;
 }) {
   const [failedMarker, setFailedMarker] = useState<string | null>(null);
   const [failedCover, setFailedCover] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function AtlasThumbnail({ image, markerImage, unavailable, selected, slug
       {selected && cover && <>
         {marker?.src !== cover.src && <DetailImage key={"preview-" + cover.src} src={cover.src} sizes={thumbnailSizes}
           onError={() => setFailedCover(cover.src)} />}
-        <DetailImage key={cover.src} src={cover.src} />
+        <DetailImage key={cover.src} src={cover.src} onSettled={onCoverSettled} />
       </>}
       {!displayed && <svg className={styles.thumbIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
         <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="9" r="1.5" /><path d="m3 17 6-5 4 3 3-3 5 5" />

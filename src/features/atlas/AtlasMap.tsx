@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewTransition, useId, type CSSProperties } from "react";
+import { ViewTransition, useId, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import { IntentLink } from "@/components/navigation/IntentLink";
 import type { Locale } from "@/i18n/config";
@@ -8,7 +8,8 @@ import type { Dictionary } from "@/i18n/get-dictionary";
 
 import { AtlasMotionPanel } from "./AtlasMotionPanel";
 import { AtlasTerrainPanel } from "./AtlasTerrainPanel";
-import { AtlasThumbnail } from "./AtlasThumbnail";
+import { AtlasThumbnail, atlasCardImageSizes } from "./AtlasThumbnail";
+import { prepareProjectCover } from "@/components/projects/ProjectCoverTransition";
 import { positionAtlasProjects } from "./atlas-geometry";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasContent } from "./atlas-types";
@@ -39,11 +40,22 @@ export function AtlasMap({
     showMotionControls = false,
 }: AtlasMapProps) {
     const dialogId = useId();
+    const preparedCardCover = useRef<string | null>(null);
+    function prepareCardCover(src: string | undefined) {
+        if (!src) return;
+        const key = src + ":" + window.innerWidth + ":" + window.devicePixelRatio;
+        if (preparedCardCover.current === key) return;
+        preparedCardCover.current = key;
+        void prepareProjectCover(src, atlasCardImageSizes).then(ready => {
+            if (!ready && preparedCardCover.current === key) preparedCardCover.current = null;
+        });
+    }
     const {
         refs,
         selectedProjectId,
         shareCover,
         navigating,
+        onCoverSettled,
         webglFailed,
         mobile,
         settings,
@@ -100,6 +112,13 @@ export function AtlasMap({
                                                 type="button"
                                                 className={styles.trigger}
                                                 data-atlas-trigger
+                                                onPointerEnter={event => {
+                                                    if (event.pointerType === "mouse" && event.buttons === 0) prepareCardCover(project.image?.src);
+                                                }}
+                                                onFocus={() => prepareCardCover(project.image?.src)}
+                                                onPointerDown={event => {
+                                                    if (event.isPrimary && event.button === 0) prepareCardCover(project.image?.src);
+                                                }}
                                                 aria-label={project.title}
                                                 aria-haspopup="dialog"
                                                 aria-expanded="false"
@@ -111,6 +130,7 @@ export function AtlasMap({
                                                     markerImage={project.markerImage}
                                                     slug={project.placement}
                                                     shareCover={shareCover}
+                                                    onCoverSettled={() => onCoverSettled(project.id)}
                                                     unavailable={text.unavailable}
                                                     selected={selectedProjectId === project.id}
                                                 />
