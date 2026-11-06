@@ -43,7 +43,7 @@ export function adaptAtlasContent(data: AtlasSanityData, locale: Locale, labels:
     const territory = territories.get(categoryId);
     const categories = (row.categories ?? []).filter(category => category != null);
     const influence = config.influence ?? 1;
-    if (!territory || !categories.some(category => canonicalId(category._id) === categoryId) || !validPosition(config.desktop) || !validPosition(config.mobile) || !Number.isFinite(influence) || influence < .1 || influence > 2) {
+    if (!territory || !categories.some(category => canonicalId(category._id) === categoryId) || !validPosition(config.desktop) || !validPosition(config.mobile) || !Number.isFinite(influence) || influence < 0 || influence > 2) {
       content.unplaced.push({ id: row._id, title, href });
       content.issues.push(`${title}: ${labels.placementInvalid}.`);
       continue;

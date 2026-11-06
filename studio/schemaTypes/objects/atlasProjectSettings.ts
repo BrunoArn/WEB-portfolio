@@ -64,7 +64,7 @@ export const atlasProjectSettings = defineType({
       title: 'Influência no relevo',
       type: 'number',
       initialValue: 1,
-      description: 'De 0,1 a 2. Use 1 como ponto de partida. Vazio também significa 1.',
+      description: 'De 0 a 2. Zero mantém o marcador sem gerar relevo nem espalhar cor pelo terreno. Use 1 como ponto de partida; vazio também significa 1.',
       hidden: ({parent}) => parent?.enabled !== true,
     }),
   ],

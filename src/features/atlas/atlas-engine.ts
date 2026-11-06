@@ -4,6 +4,7 @@ import { mountAtlasMotion } from "./atlas-motion";
 import { createAtlasGeometryCache } from "./atlas-geometry-cache";
 import { positionAtlasProjects, ribbonOutline } from "./atlas-geometry";
 import { createAtlasColorField } from "./atlas-field";
+import { writeAtlasColor } from "./atlas-color";
 import { getAtlasView, type AtlasBounds } from "./atlas-layout";
 import { resolveAtlasTerrainSettings, type AtlasTerrainSettings } from "../../../shared/atlas-terrain-settings";
 import type { AtlasMotionSettings } from "./atlas-motion-settings";
@@ -49,16 +50,7 @@ function createAtlasColorMap({ weightsAt, width, height, screen, view, territori
       const v = (screen.top + y / (colors.height - 1) * height - offsetY) / scale / world.height;
       weightsAt(u, v, weights);
       const i = (y * colors.width + x) * 4;
-      let red = 0, green = 0, blue = 0;
-      for (let category = 0; category < palette.length; category++) {
-        const weight = weights[category], color = palette[category];
-        red += weight * color[0];
-        green += weight * color[1];
-        blue += weight * color[2];
-      }
-      pixels.data[i] = palette.length ? Math.round(red) : 149;
-      pixels.data[i + 1] = palette.length ? Math.round(green) : 163;
-      pixels.data[i + 2] = palette.length ? Math.round(blue) : 155;
+      writeAtlasColor(weights, palette, pixels.data, i);
       pixels.data[i + 3] = Math.round(255 * (1 - .98 * Math.exp(-.5 * (((u - cx) / sx) ** 4 + ((v - cy) / sy) ** 4))));
     }
   }

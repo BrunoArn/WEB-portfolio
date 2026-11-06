@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { buildAtlasRelief, positionAtlasProjects, ribbonOutline } from "./atlas-geometry";
 import { createAtlasColorField } from "./atlas-field";
+import { writeAtlasColor } from "./atlas-color";
 import { atlasWorlds } from "./atlas-layout";
 import type { AtlasAnchor, AtlasContent, AtlasPoint, AtlasTerritory } from "./atlas-types";
 
@@ -135,9 +136,7 @@ async function buildScene({ projects, territories, terrain, mobile }: SceneInput
         const v = (bounds.top + y / (height - 1) * (bounds.bottom - bounds.top)) / world.height;
         const weights = weightsAt(u, v);
         const offset = (y * width + x) * 4;
-        for (let channel = 0; channel < 3; channel++) pixels[offset + channel] = colors.length
-            ? Math.round(weights.reduce((sum, value, category) => sum + value * colors[category][channel], 0))
-            : [149, 163, 155][channel];
+        writeAtlasColor(weights, colors, pixels, offset);
         pixels[offset + 3] = 255;
     }
     const palette = await sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();

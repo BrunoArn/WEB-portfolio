@@ -73,9 +73,9 @@ export async function validateAtlasProject(
   }
   if (
     value.influence !== undefined &&
-    (!Number.isFinite(value.influence) || value.influence < 0.1 || value.influence > 2)
+    (!Number.isFinite(value.influence) || value.influence < 0 || value.influence > 2)
   ) {
-    return 'A influência no relevo deve estar entre 0,1 e 2. Deixe vazio para usar 1.'
+    return 'A influência no relevo deve estar entre 0 e 2. Deixe vazio para usar 1.'
   }
   const id = canonicalId(territory)
   try {
