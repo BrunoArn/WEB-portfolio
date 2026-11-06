@@ -86,6 +86,12 @@ Faça uma mudança por responsabilidade. Rode TypeScript, lint e build; abra Hom
 
 Esta manutenção extraiu a montagem antes embutida em `AtlasMap` para um único hook, abriu código compactado e formatou o CSS mantendo seletores, ordem e valores. Não adicionou dependências, novas funcionalidades ou outro renderizador. As fórmulas do relevo e os shaders não foram alterados. Validação desta manutenção: build de produção, TypeScript e lint passaram; foram repetidos 36 ciclos de cards em PT/EN e seis tamanhos, os 15 cenários de entrada, controles e recuperação estática. As capturas da Home em 1440 px e 384 px ficaram idênticas pixel a pixel às anteriores. Uma comparação da estrutura do código confirmou a preservação da lógica extraída para o hook; a formatação do CSS preservou regras, ordem e valores. Mobile foi simulado, sem nova avaliação física. O histórico de validações e os detalhes técnicos seguem abaixo.
 
+## Contato lento do mouse
+
+O perfil do mouse em `atlas-pointer-impulse.ts` aceita movimentos a partir de 8 px/s (antes 25). A energia recebe um reforço suave nas velocidades baixas, que desaparece progressivamente nas altas; o limite máximo não aumenta. O impulso só dispara dentro de 18% do raio configurado, aproximando o contato da curva em vez de consumir a onda na borda da área de influência. A aproximação fora dessa faixa não desarma a linha.
+
+Toque e scroll usam explicitamente o perfil anterior: mesmos limiar, área, intensidade, limites e cálculo de tap. Ambos os perfis reutilizam a mesma detecção de contato, dois slots por linha, cooldown de 180 ms, propagação e dissipação de 1,15 s. Não há onda de hover estacionário nem mudança de geometria ou shader. Movimento reduzido, visibilidade e limpeza continuam no controlador existente.
+
 ## Estrutura atual
 
 | Arquivo | Responsabilidade |

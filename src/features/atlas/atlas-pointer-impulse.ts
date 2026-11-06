@@ -2,9 +2,15 @@ import { atlasSelectionDuration } from "./atlas-motion-settings";
 import { nearestAtlasString, type AtlasString } from "./atlas-string-response";
 // CSS pixels/second; speed comes from the actual movement, not event frequency.
 export const atlasPointerImpulseReference = { minimumSpeed: 25, speedScale: 450, maximumGain: 2.4, cooldown: .18, rearmPause: .12 };
+/** Mouse contact is close to the strand; low-speed lift fades out at fast speeds. */
+export const atlasMouseImpulseReference = {
+    ...atlasPointerImpulseReference,
+    minimumSpeed: 8, contactRadiusRatio: .18, contactSlowSpeed: 80, lowSpeedEnergy: .25, lowSpeedRange: 200,
+};
 /** A passage excites each strand once; its packets continue after the cursor leaves. */
-export function advanceAtlasPointer(line: AtlasString, x: number, y: number, over: boolean, speed: number, strength: number, dt: number, unit: number, mouseRadius: number, tap = false) {
-    const state = line.pointer, config = atlasPointerImpulseReference;
+export function advanceAtlasPointer(line: AtlasString, x: number, y: number, over: boolean, speed: number, strength: number, dt: number, unit: number, mouseRadius: number, tap = false, input: "mouse" | "touch" = "mouse") {
+    const mouse = input === "mouse" && !tap;
+    const state = line.pointer, config = mouse ? atlasMouseImpulseReference : atlasPointerImpulseReference;
     for (const impulse of state.impulses)
         if (impulse.age >= 0) {
             impulse.age += dt;
@@ -18,6 +24,10 @@ export function advanceAtlasPointer(line: AtlasString, x: number, y: number, ove
     if (state.quietTime >= config.rearmPause)
         state.armed = true;
     const radius = mouseRadius * unit;
+    // Widen contact smoothly at fast speeds so a sweep cannot skip narrow strands.
+    const contactMix = Math.max(0, Math.min(1, (speed - atlasMouseImpulseReference.contactSlowSpeed) / (config.speedScale - atlasMouseImpulseReference.contactSlowSpeed)));
+    const contactRatio = atlasMouseImpulseReference.contactRadiusRatio + (1 - atlasMouseImpulseReference.contactRadiusRatio) * contactMix * contactMix * (3 - 2 * contactMix);
+    const contactRadius = mouse ? radius * contactRatio : radius;
     if (!over || strength <= 0 || x < line.left - radius * 1.2 || x > line.right + radius * 1.2 || y < line.top - radius * 1.2 || y > line.bottom + radius * 1.2) {
         state.armed = true;
         return;
@@ -34,15 +44,18 @@ export function advanceAtlasPointer(line: AtlasString, x: number, y: number, ove
         travel = Math.min(travel, line.length - travel);
     if (travel > radius * 1.1 && state.cooldown === 0)
         state.armed = true;
-    if (!state.armed || state.cooldown > 0 || (!tap && speed < config.minimumSpeed) || hit.distance2 > radius * radius)
+    if (!state.armed || state.cooldown > 0 || (!tap && speed < config.minimumSpeed) || hit.distance2 > contactRadius * contactRadius)
         return;
     // Two independent slots avoid restarting a wave or accumulating unlimited energy.
     const impulse = state.impulses.find(item => item.age < 0);
     if (!impulse)
         return;
-    const energy = 1 - Math.exp(-(tap ? config.speedScale : speed) / config.speedScale);
+    const baseEnergy = 1 - Math.exp(-(tap ? config.speedScale : speed) / config.speedScale);
+    const energy = mouse
+        ? baseEnergy + atlasMouseImpulseReference.lowSpeedEnergy * Math.exp(-speed / atlasMouseImpulseReference.lowSpeedRange) * (1 - baseEnergy)
+        : baseEnergy;
     const normal = hit.signed / Math.hypot(hit.signed, 8 * unit);
-    // A stationary tap on the contour still excites it; pointer behavior is unchanged.
+    // A stationary tap on the contour still excites it; touch energy stays unchanged.
     const direction = tap ? (normal < 0 ? -1 : 1) * Math.max(.35, Math.abs(normal)) : normal;
     const value = 11 * unit * strength / 100 * config.maximumGain * energy * direction * Math.exp(-.5 * hit.distance2 / (radius * radius));
     if (!Number.isFinite(value) || Math.abs(value) < .025 * unit)
