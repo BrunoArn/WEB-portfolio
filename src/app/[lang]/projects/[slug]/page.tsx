@@ -95,34 +95,6 @@ export default async function ProjectPage({
         ...fallbackProjects,
     ].slice(0, 6);
 
-    const devPlayableWidth = Number(
-        process.env.PLAYABLE_DEV_WIDTH,
-    );
-
-    const devPlayableHeight = Number(
-        process.env.PLAYABLE_DEV_HEIGHT,
-    );
-
-    const developmentPlayable =
-        process.env.NODE_ENV === "development" &&
-            process.env.PLAYABLE_DEV_SLUG === project.slug &&
-            process.env.PLAYABLE_DEV_URL &&
-            Number.isInteger(devPlayableWidth) &&
-            devPlayableWidth > 0 &&
-            Number.isInteger(devPlayableHeight) &&
-            devPlayableHeight > 0
-            ? {
-                source: process.env.PLAYABLE_DEV_URL,
-                width: devPlayableWidth,
-                height: devPlayableHeight,
-            }
-            : undefined;
-
-    const resolvedPlayable =
-        developmentPlayable ??
-        project.playable;
-
-
     return (
         <ViewTransition default="none" enter="project-page-enter">
             <main data-project-detail className={backgroundStyles.page} style={accentStyle(project.accentColor)}>
@@ -136,7 +108,7 @@ export default async function ProjectPage({
                         <ProjectHero
                             project={project}
                             actions={dictionary.projectDetail.actions}
-                            hasPlayable={Boolean(resolvedPlayable)}
+                            hasPlayable={Boolean(project.playable)}
                         />
                     </div>
 
@@ -164,13 +136,13 @@ export default async function ProjectPage({
                     )}
 
 
-                    {resolvedPlayable && (
+                    {project.playable && (
                         <div className="pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)">
                             <ProjectPlayable
-                                source={resolvedPlayable.source}
+                                source={project.playable.source}
                                 projectTitle={project.title}
-                                width={resolvedPlayable.width}
-                                height={resolvedPlayable.height}
+                                width={project.playable.width}
+                                height={project.playable.height}
                                 labels={dictionary.projectDetail.playable}
                                 poster={project.cover}
                             />
