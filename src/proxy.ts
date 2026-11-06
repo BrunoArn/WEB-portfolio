@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { defaultLocale, locales } from "@/i18n/config";
+import { locales } from "@/i18n/config";
+import { getPreferredLocale } from "@/i18n/preferred-locale";
 
 function pathnameHasLocale(pathname: string) {
     return locales.some(
@@ -18,9 +19,14 @@ export function proxy(request: NextRequest) {
     }
 
     const url = request.nextUrl.clone();
-    url.pathname = `/${defaultLocale}${pathname}`;
+    const locale = getPreferredLocale(request.headers.get("accept-language"));
+    url.pathname = `/${locale}${pathname}`;
 
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    // Only this entry redirect varies by browser. Localized pages keep their cache.
+    response.headers.set("Vary", "Accept-Language");
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
 }
 
 export const config = {
