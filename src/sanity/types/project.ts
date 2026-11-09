@@ -19,8 +19,8 @@ export interface SanityProjectPlayable {
 }
 
 export interface SanityProjectSeo {
-    title: LocalizedValue | null;
-    description: LocalizedValue | null;
+    title?: Partial<LocalizedValue> | null;
+    description?: Partial<LocalizedValue> | null;
 }
 
 export interface SanityProject {
@@ -58,6 +58,6 @@ export interface SanityProject {
     featured: boolean;
     order: number;
 
-    seo: SanityProjectSeo | null;
+    seo?: SanityProjectSeo | null;
 }
 export type SanityProjectCard = Pick<SanityProject, "title" | "summary" | "slug" | "year" | "role" | "cover" | "categories" | "atlas">;

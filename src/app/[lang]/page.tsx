@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AtlasMap } from "@/features/atlas/AtlasMap";
@@ -9,6 +10,16 @@ import { getAtlasData } from "@/sanity/repositories/atlas";
 type HomePageProps = {
   params: Promise<{ lang: string }>;
 };
+
+export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+  const dictionary = await getDictionary(lang);
+  return {
+    title: { absolute: dictionary.metadata.home.title },
+    description: dictionary.metadata.home.description,
+  };
+}
 
 export default async function HomePage({ params }: HomePageProps) {
   const { lang } = await params;

@@ -16,6 +16,7 @@ import type {
 import { adaptCategory } from "./category";
 import {
   resolveLocalizedValue,
+  resolveOptionalLocalizedValue,
   type ContentLanguage,
 } from "./localization";
 import {
@@ -46,13 +47,8 @@ function adaptSeo(
   language: ContentLanguage,
 ): ProjectSeo {
   return {
-    title: seo.title
-      ? resolveLocalizedValue(seo.title, language)
-      : undefined,
-
-    description: seo.description
-      ? resolveLocalizedValue(seo.description, language)
-      : undefined,
+    title: resolveOptionalLocalizedValue(seo.title, language),
+    description: resolveOptionalLocalizedValue(seo.description, language),
   };
 }
 

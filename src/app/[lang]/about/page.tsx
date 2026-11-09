@@ -31,6 +31,7 @@ export async function generateMetadata({
 
     return {
         title: dictionary.navigation.about,
+        description: dictionary.metadata.about.description,
     };
 }
 

@@ -47,7 +47,8 @@ export async function generateMetadata({
     }
 
     return {
-        title: project.seo?.title ?? project.title,
+        // Custom SEO titles are complete editorial titles; only fallbacks use the layout brand.
+        title: project.seo?.title ? { absolute: project.seo.title } : project.title,
         description: project.seo?.description ?? project.description,
     };
 }
