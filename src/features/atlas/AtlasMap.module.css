@@ -104,6 +104,8 @@
   align-items: center;
   gap: 13px;
   transform: translate(-27px, -50%);
+  /* Prevent edge anchors from shrinking labels before translation. */
+  width: 260px;
   max-width: 260px;
   isolation: isolate;
   margin: 0;
