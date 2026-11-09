@@ -1,103 +1,67 @@
-# Atlas no Sanity — configuração e conferência
+# Atlas no Sanity
 
-Os campos Atlas agora controlam a prévia: projetos habilitados e publicados determinam posições, influência e território principal; as categorias determinam cores e rótulos. A Home permanece preservada. Nenhum documento foi alterado, preenchido ou publicado automaticamente, e esta revisão não implantou o Studio hospedado.
+Os dados publicados controlam a Home, a prévia e os fundos das páginas internas. Projetos definem posição, influência e território principal; categorias definem cor e nome do território; `atlas-settings` reúne os controles gerais e as massas de suporte. O site não distribui pontos nem evita colisões automaticamente.
 
-## Abrir e revisar
+O [guia técnico do Atlas](../src/features/atlas/README.md) descreve renderização e interação. As posições, influências e regiões atuais são consultadas no próprio Sanity; não mantemos uma segunda tabela de coordenadas no Git. Os padrões do código são fallbacks, não uma cópia da composição publicada.
 
-O Studio local está em **http://localhost:3333/**. Se não estiver rodando, execute `npm run dev` dentro de `studio`. Use localhost; o endereço 127.0.0.1 pode exigir uma origem CORS diferente.
+## Abrir e editar
 
-1. Em **Category**, abra uma categoria e encontre **Atlas — território**.
-2. Habilite **Usar como território no Atlas** para editar a cor, nome curto PT/EN e posições do nome no desktop/celular. O seletor visual e o campo hexadecimal editam a mesma cor. Uma categoria desabilitada continua disponível para classificar os projetos.
-3. Em **Project**, abra um projeto e encontre **Atlas — mapa**. Habilite **Participar do Atlas** para editar território principal, posições e influência.
-4. O seletor de território principal mostra somente categorias já associadas ao projeto e habilitadas como território. Esta escolha explícita tem prioridade; mudar a ordem das categorias não troca a prioridade.
-5. Revise as categorias primeiro e publique-as antes dos projetos quando for adotar a configuração. Depois de publicar, recarregue a prévia para ver o resultado. Rascunhos não alteram o mapa.
+Siga o [README do Studio](README.md) para iniciar `http://localhost:3333`. O acesso requer login e permissão no projeto. `localhost`, `127.0.0.1` e IP da rede são origens diferentes para CORS.
 
-Os campos Atlas são opcionais nos documentos antigos. Ao habilitá-los, a validação exige os dados necessários. Posições usam porcentagens: X = esquerda (0) até direita (100); Y = topo (0) até base (100). Desktop e celular têm configurações próprias. A influência aceita 0 a 2; 1 ou vazio significa intensidade padrão. Zero mantém o marcador, card e navegação, mas não gera relevo nem contribui para a cor do terreno. O projeto também deixa de contar na definição de fontes isoladas ou agrupadas; os demais projetos mantêm seu formato. Se todas as influências forem zero, as massas de suporte continuam sendo calculadas; as curvas que elas gerarem usam o tom neutro de fallback existente. Sem projetos influentes ou massas de suporte, não há relevo para desenhar.
+1. Em **Category → Atlas — território**, habilite **Usar como território no Atlas**. Preencha cor, nome PT/EN e posições do nome em desktop/celular. A categoria também pode classificar projetos sem ser um território.
+2. Use nomes consistentes com as categorias: Jogos / Games, Desenvolvimento Web / Web Development e Experiências Interativas / Interactive Experiences na composição registrada. `name` e `atlas.label` são campos independentes; alterar um não sincroniza o outro.
+3. Em **Project → Atlas — mapa**, habilite **Participar do Atlas**, escolha território principal, posições e influência. O seletor oferece categorias já associadas ao projeto e habilitadas como território. Mudar a ordem das categorias não substitui essa escolha.
+4. Publique categorias antes de projetos dependentes. Remover/desabilitar uma categoria não revalida nem republica todos os projetos automaticamente.
+5. Publique e recarregue `/pt/atlas-preview` e `/en/atlas-preview` para conferir os dados atuais. Essa rota busca dados publicados sem cache; rascunhos não aparecem. Confira depois a Home e o detalhe no ambiente que recebe o webhook.
 
-## Valores de referência da composição atual
+Os objetos Atlas são opcionais em documentos antigos. Ao habilitá-los, a validação exige os campos necessários. Uma configuração inválida pode retirar o projeto do mapa e aparecer nos diagnósticos; não há fallback automático para a primeira categoria nesse processo. O fallback de accent dos cards fora do mapa é uma regra separada.
 
-Estes valores são um guia, **não uma migração executada**. As posições dos rótulos abaixo correspondem à composição desktop ampla; os rótulos agora usam diretamente as posições do Sanity.
+## Posições e influência
 
-| Categoria existente | Território | Cor | Nome curto PT / EN | Rótulo desktop X/Y | Rótulo celular X/Y |
-| --- | --- | --- | --- | --- | --- |
-| game | Sim | #A4B58C | Games / Games | 45 / 19 | 64 / 25 |
-| web-development | Sim | #88AEB8 | Web / Web | 81 / 29 | 64 / 57 |
-| interactive-experiences | Sim | #C39374 | Interactive / Interactive | 51 / 88 | 43 / 94 |
-| vr | Não | — | — | — | — |
+X/Y vão de 0 a 100: esquerda→direita e topo→base. Desktop e mobile são independentes. A posição do projeto é a âncora do ícone; mover essa posição também muda relevo e cores. A posição do nome da categoria move apenas o texto, sem mudar seu território.
 
-Os nomes curtos são editáveis nos dois idiomas; a tabela conserva a identidade atual. O nome completo da categoria usado no restante do site permanece independente.
+No mobile, pontos com X maior que 50 colocam o texto à esquerda; os demais, à direita. O texto ocupa espaço além do círculo. Revise nomes longos e metadados nos dois idiomas, especialmente até 380 px. Só separar os ícones não garante que os rótulos não se sobreponham.
 
-| Projeto publicado | Território principal | Projeto desktop X/Y | Projeto celular X/Y | Influência |
-| --- | --- | --- | --- | --- |
-| Bloomancer | game | 43 / 27 | 30 / 29 | 1 |
-| Hungry Worm | game | 25 / 47 | 67 / 39 | 1 |
-| 2D RPG Project | game | 57 / 48 | 28 / 46 | 1 |
-| Portfólio Gabriela | web-development | 79 / 24 | 53 / 61 | 1 |
-| Forensic Injury Visualizer | interactive-experiences | 73 / 65 | 67 / 80 | 1 |
-| VR Quintandinha | interactive-experiences | 62 / 82 | 28 / 88 | 1 |
+Influência aceita **0 a 2**, com padrão 1 quando vazia. Zero mantém marcador, imagem, card, categoria e navegação, sem gerar relevo ou espalhar cor. Também não entra na contagem de fontes isoladas/agrupadas. Valores positivos continuam afetando terreno e cor; a influência é compartilhada pelos perfis desktop/mobile.
 
-Apple Academy · BGS 2019 não consta entre os projetos publicados e não deve ganhar um documento inventado para preencher o mapa. Sua antiga elevação foi removida. O gerador combina projetos ativos com as massas e vales de composição explicitamente configurados; não há influência reservada para esse projeto.
+Massas de suporte são independentes dos projetos. Se todos os projetos tiverem influência zero, as curvas que as massas gerarem usam o fallback neutro. A presença de uma massa não garante curvas: o campo pode ficar abaixo do primeiro nível de contorno. Sem fontes de relevo, não há curvas para desenhar.
 
-## Estrutura e validação
+## Ícone e capa
 
-- `category.atlas`: `isTerritory`, `color` (#RRGGBB), `label.pt/en` (até 30 caracteres), `desktop/mobile`.
-- `project.atlas`: `enabled`, referência `territory`, `desktop/mobile` e `influence`.
-- `atlasPosition`: objeto compartilhado com `x/y` entre 0 e 100.
-- `schemaTypes/atlas/atlasValidation.ts`: regras testáveis e confirmação de que a referência está habilitada como território. A leitura considera o rascunho da categoria antes da versão publicada para validar a edição; publique as categorias primeiro.
-- `schemaTypes/atlas/AtlasColorInput.tsx`: seletor nativo de cor e entrada padrão do Sanity, sem dependências novas.
+**Ícone do Atlas** (`atlas.icon`) é opcional, aceita PNG/WebP e permite crop/hotspot. Prefira imagem quadrada com margem para a máscara circular. O mesmo arquivo atende PT/EN; a identificação acessível usa o título localizado.
 
-Não há desempate automático pela primeira categoria. Se a categoria principal for removida do projeto, excluída ou desabilitada, o Studio aponta a inconsistência ao validar o projeto. Alterar outra categoria não revalida/publica todos os projetos automaticamente; a prévia também trata configurações incompletas e referências inválidas, separando os projetos sem posicionamento válido.
+A bolinha já exibe o ícone: prioridade ícone válido → capa → placeholder. O adaptador usa `@sanity/image-url`, saída quadrada de 256×256 e formato automático; `sizes` escolhe a resolução efetivamente transferida. O card aberto e a transição para o detalhe continuam usando a capa, não o ícone. A borda da bolinha é 2 px.
 
-Verificações executadas: TypeScript do Studio, ESLint, build do Studio, validação oficial de esquemas (zero erros e avisos) e 29 verificações de validação, incluindo documentos antigos, ativação opcional, cores, limites de posição, prioridade explícita entre categorias, IDs de rascunho, categoria desabilitada e falha de conexão. O build informa o aviso preexistente de atualização automática sem appId; a configuração de publicação não foi modificada.
+O ícone permanece montado durante a seleção para suavizar o retorno. Capas transparentes podem revelar essa camada abaixo; isso não modifica os arquivos. Trocar o ícone não muda posição, território ou relevo. Campos novos só aparecem no Studio executado a partir do código atualizado.
 
-A abertura renderizada em localhost chegou à tela de login sem erros JavaScript. Não foi possível inspecionar os formulários autenticados nesta sessão; a edição visual do seletor e a busca real de referências aguardam a revisão com login. Nenhum clique de edição foi feito em documentos reais. Os scripts e a captura ficam no workspace desta conversa em `.work/atlas-studio/`.
+## Topografia
 
-Integração do terreno: consulte [a documentação da prévia](../src/features/atlas/README.md). As novas publicações precisam de revisão visual: o posicionamento dos projetos continua manual.
+**Atlas — Topografia** edita o singleton `atlas-settings`. Há cinco controles separados por perfil: Amplitude, Alongamento, Direção, Conexão e Respiro. A referência do código é 50 nos controles de 0–100 e 0 na Direção (-90 a 90°). Ela não é uma cópia dos valores publicados.
 
-## Atlas — Topografia
+**Restaurar referência deste perfil** altera somente os cinco números do perfil no rascunho; não altera projetos, categorias, outro perfil ou regiões. Publicar aplica o resultado. Sem documento publicado, o site usa os padrões de `shared/atlas-terrain-settings.ts`.
 
-No menu principal do Studio, abra **Atlas — Topografia**. Esse documento único reúne os controles gerais; não é necessário editar cada projeto para ajustar o estilo do mapa.
+Para experimentar sem salvar, abra `/pt/atlas-preview?terrain=1` ou a rota EN. Sliders alteram só o estado local, perdido no reload. Para persistir uma escolha, transfira os valores ao Studio e publique. `?motion=1` também é local; não é um campo persistente do CMS.
 
-Desktop e celular têm cinco controles separados: **Amplitude**, **Alongamento**, **Direção**, **Conexão** e **Respiro**. Use 50 nos controles de 0–100 e 0 na direção (-90 a 90 graus) como referência inicial. Os próprios campos explicam o efeito. **Restaurar referência deste perfil** repõe somente os cinco números do perfil escolhido, sem alterar projetos, categorias ou o outro perfil.
+## Massas e vales independentes
 
-Os controles de referência são um ponto de partida para revisão visual. Para aplicar, publique o documento e recarregue a prévia. Sem documento publicado, os mesmos padrões são usados. O Studio hospedado precisa receber esta versão do código para exibir os campos; esta entrega não executa deploy.
+Em **Regiões de composição**, cada item tem nome interno, tipo Elevação/Vale e perfis desktop/mobile. Cada perfil define habilitação, centro, intensidade, formato, dimensões e inclinação. Intensidade é positiva; o tipo determina se soma ou subtrai. Centros aceitam -50 a 150%, dimensões de 0,1 a 100%, intensidade de 0 a 2 e rotação de -180 a 180°.
 
-Para experimentar sem salvar, abra [a prévia de ajustes locais](http://localhost:3000/pt/atlas-preview?terrain=1). Esses sliders não gravam no Sanity e se perdem ao recarregar. Depois de escolher os valores, transfira-os ao perfil correspondente no Studio e publique. A URL normal da prévia não mostra os controles.
+Uma lista ausente usa as oito regiões de referência em `shared/atlas-composition-regions.ts`; lista vazia remove as regiões. Desabilitar um perfil remove aquela fonte somente naquele perfil. As regiões não criam marcadores ou categorias e não fornecem cor própria.
 
-As massas e os vales de direção de arte são fontes independentes, que podem continuar sem projetos. Apple Academy continua ausente. A configuração não faz distribuição automática nem corrige todos os possíveis conflitos entre rótulos.
+**Carregar regiões da referência no rascunho** prepara os valores do código para editar e exige publicação. Regiões já publicadas conservam seus valores até uma edição explícita. Restaurar a referência pode alterar a direção de arte: não a use para recuperar uma composição editorial sem consultar o registro correspondente.
 
-## Massas auxiliares independentes
+## Atualização e publicação
 
-A direção atual permite massas e vales de composição que continuam existindo independentemente dos projetos. Em **Atlas — Topografia → Regiões de composição**, clique **Carregar regiões da referência no rascunho** se a lista ainda não estiver preenchida. Isso prepara as oito regiões de referência para edição; não publica automaticamente.
+Publicar conteúdo no Sanity altera o dataset independentemente de commit, push, PR ou deploy. Mudanças em schema/componentes do Studio dependem do código atualizado do Studio; alterações do frontend dependem do deploy do site. São operações distintas.
 
-Cada região tem nome interno e tipo **Elevação** (soma volume) ou **Vale** (subtrai volume). Abra Desktop/Celular para ativar, posicionar e ajustar a intensidade. Escolha um formato simples ou **Personalizado** para editar largura/altura; a inclinação fica em Formato avançado. X/Y podem sair do intervalo 0–100, permitindo centros além das bordas. Use valores negativos de posição quando necessário, mas mantenha intensidade positiva; o tipo define se ela soma ou subtrai.
+A Home e os fundos usam cache de uma hora como recuperação e invalidação assinada por webhook. A prévia publicada é fresca por requisição. O webhook enviado ao Railway não invalida seu servidor local. Recarregue abas após publicar; não há atualização ao vivo. Consulte [cache e webhook](../src/sanity/WEBHOOK.md).
 
-Publique e recarregue a prévia para aplicar. Uma lista ausente usa a referência; uma lista vazia remove as regiões. Desativar um perfil remove a região apenas naquele tamanho. Os controles gerais continuam disponíveis, e restaurar um perfil geral não sobrescreve a lista de regiões.
+## Conferência e fontes
 
-No desktop, a referência recupera os arcos/vales do modelo antigo com os seis projetos existentes. No celular, as massas de referência foram alargadas e achatadas, com pequenas inclinações, para conduzir o olhar lateralmente. Regiões já publicadas mantêm seus valores; restaurar a lista de referência no rascunho carrega essa nova direção mobile e requer publicação para aplicar. Apple Academy não foi recriado. As cores continuam seguindo as categorias dos projetos atuais, portanto algumas diferenças cromáticas locais são esperadas em relação a imagens que ainda incluíam aquele projeto. Sem projetos, massas independentes usam uma cor neutra.
+- Confira ícones/capas, categorias, PT/EN e foco/abertura/fechamento dos cards.
+- Confira 320/360/390/760 px, desktop e a transição 760→761 px; revise rótulos e limites da tela.
+- Observe relevo e mistura de cores após incluir/remover um projeto ou mudar influência/posição.
+- Confira os fundos da listagem, About e detalhe, pois reutilizam os mesmos dados.
+- Teste scroll e ondas em celular físico após mudanças de interação; emulação não comprova a sensação no aparelho.
 
-## Conferência dos controles — 29/10/2026
-
-A validação técnica dos controles passou: os cinco parâmetros gerais alteram o campo nos dois layouts; regiões respondem a posição, dimensões, formato, inclinação, intensidade e ativação; elevações somam e vales subtraem. Foram conferidos perfis separados, remoção/ativação/influência dos projetos, prioridade explícita do território, cores, PT/EN, limites e referências ausentes. Os dados publicados atuais retornaram seis projetos, três territórios e nenhuma inconsistência nos dois idiomas.
-
-O documento `atlas-settings` está publicado, com oito regiões. A configuração lida na revisão tem amplitude 52 no desktop e 50 no celular, com os demais controles em 50 e direção 0. Os dois perfis têm sete regiões ativas. A prévia de produção confirmou esses valores. Nenhum dado do Sanity foi alterado nesta conferência.
-
-Os componentes personalizados foram exercitados isoladamente com suas funções reais e patches reais do Sanity: sliders, limites, valores vazios, reset somente do perfil escolhido, carregamento/restauração das regiões, cor, campos somente leitura e filtro de território. Isso testa os callbacks e a renderização estática dos componentes, não substitui a edição no formulário completo. A prévia renderizada passou dez ajustes/restaurações em desktop/celular, preservação dos marcadores, isolamento dos perfis e descarte das alterações locais no reload.
-
-Validação oficial dos esquemas: zero erros/avisos. TypeScript, ESLint e build do Studio passaram. O build mantém o aviso de auto-update sem appId e informa versões locais 6.20.0 versus runtime 6.21.0; as dependências e a configuração de atualização não foram modificadas. As descrições de Conexão e do perfil Celular foram atualizadas para refletir massas independentes e a composição lateral atual.
-
-A conferência técnica e da integração dos dados publicados foi concluída: os valores publicados chegaram ao Canvas de produção, uma alteração local não gravou no CMS e o reload recuperou o publicado. O agente não executou nova edição autenticada, salvamento de rascunho ou publicação; os callbacks dos formulários foram testados isoladamente. Scripts e resultados estão no workspace da conversa em `.work/atlas-control-audit/` e `.work/atlas-final/`; não houve deploy nem alteração da Home.
-
-## Revisão final da integração — 29/10/2026
-
-A configuração publicada foi comparada com o Canvas da versão de produção nos dois layouts. No desktop, o ajuste local de amplitude foi levado a 0, restaurado para a referência 50 e, após reload, voltou ao valor publicado 52. No celular, o publicado 50 também foi recuperado. As oito regiões publicadas geraram sete fontes ativas por perfil. Projetos, categorias, prioridade explícita e idiomas passaram sem inconsistências. A verificação foi somente de leitura no CMS; não foi necessário alterar ou republicar conteúdo.
-
-O build do Studio e a validação oficial dos esquemas passaram (zero erros/avisos), assim como os testes dos componentes e regras de validação. A diferença de versão do auto-update informada acima permanece uma ressalva do ambiente; não houve mudança de dependências. A edição autenticada do formulário completo não foi automatizada. A conferência de integração dos controles publicados está encerrada.
-
-## Ícone do projeto no Atlas — dados
-
-Em Project → Atlas — mapa, habilite Participar do Atlas para encontrar o campo opcional Ícone do Atlas (atlas.icon). Aceita upload de PNG/WebP, com recorte e foco; prefira uma imagem quadrada com margem para a máscara circular. O mesmo arquivo atende PT/EN, e o nome localizado do projeto fornece a identificação acessível. Não é necessário preencher esse campo para publicar projetos existentes.
-
-A consulta traz o asset, crop e hotspot. O adaptador prepara markerImage usando o gerador oficial @sanity/image-url, com saída quadrada de 256 × 256 px e formato automático. A prioridade é ícone válido → capa existente → ausência de imagem, para manter o placeholder. Ícones ausentes, removidos ou inválidos não excluem o projeto nem alteram posição, categoria ou relevo. image continua sendo a capa do card e da transição para o detalhe.
-
-Esta primeira etapa prepara o campo e o fallback nos dados; a interface ainda usa a capa atual. A conexão de markerImage à bolinha e o reforço de sua borda pertencem à próxima etapa. Não houve preenchimento/publicação de documentos nem implantação do Studio hospedado. O campo fica disponível no Studio local; a versão hospedada precisa de deploy para apresentar a nova configuração.
+Regras do Studio: `schemaTypes/atlas/atlasValidation.ts`, `schemaTypes/objects/atlasCategorySettings.ts`, `atlasProjectSettings.ts`, `atlasPosition.ts`. Adaptação pública: `src/features/atlas/atlas-content.ts`. As verificações automatizadas são executadas na raiz conforme o README; validação/build próprios do Studio estão no seu README.

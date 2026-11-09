@@ -40,13 +40,15 @@ GitHub, LinkedIn, PT/EN e símbolos de controle são nomes/códigos invariantes,
 
 Erros internos, identificadores de campos e diagnósticos técnicos não são textos editoriais. Mensagens do Studio pertencem à interface editorial, que atualmente é em português; não devem entrar no dicionário do site público.
 
-## Revisão desta etapa
+## Funcionalidades e contratos atuais
 
-- Corrigido o README raiz, que ainda mencionava cache de 60 segundos, ausência de webhook e instruções do template inicial.
-- Centralizada a fórmula de alinhamento compartilhada por Navbar e Footer.
-- Poster do jogo passou a reutilizar o tamanho responsivo do hero.
-- Nome/descrição globais organizados nos dicionários, incluindo descrição PT nos metadados.
-- Destinos duplicados de GitHub/LinkedIn no layout extraídos para configuração do site.
-- Seletor de idioma reutiliza o tipo `Locale` existente.
+- Navbar: `src/components/layout/Navbar.module.css` define fundo opaco nas páginas internas e fade inferior de 32 px; páginas identificadas como Atlas preservam a sobreposição transparente. Desktop alinha à esquerda, mobile conserva seus controles. Footer e Navbar compartilham recuos, com transição e respeito a movimento reduzido.
+- Cor de projeto: `src/content/adapters/project.ts` resolve a categoria e o fallback; `src/styles/accent.ts` aplica variáveis locais. O accent global continua independente das cores dos territórios.
+- Listagem e relacionados: `src/sanity/repositories/projects.ts` usa `getProjectCards`/`adaptProjectCard` para dados leves. `summary` só aparece na listagem. O detalhe ordena relacionados por categorias em comum, completa com outros e limita a seis, excluindo o atual.
+- Galeria: `src/features/project-detail/ProjectMediaPreview.tsx` coordena seleção, ampliação, teclado, clique externo e retorno do vídeo; `GalleryMedia.tsx` cuida de carregamento/erro e `gallery-image-prefetch.ts` do preparo limitado de imagens. Thumbnails de vídeo são geradas no Studio e persistidas no asset, não capturadas pelo visitante.
+- Jogo: `ProjectPlayable.tsx` monta iframe sob demanda no desktop. Até 760 px ou com ponteiro primário coarse sem hover, mostra aviso e cópia de link; `ProjectPlayable.module.css` e a consulta de mídia no componente devem permanecer coerentes. Textos pertencem ao dicionário.
+- Atlas: posições, influências e labels são conteúdo do Sanity. O mapa, a prévia e os fundos compartilham geometria; o [guia técnico](../src/features/atlas/README.md) explica o código e o [guia de edição](../studio/ATLAS.md) explica os controles. Valores publicados permanecem no CMS.
 
-A varredura dos nós de texto JSX e atributos literais de acessibilidade não encontrou outras frases de interface pública fora do dicionário/CMS. Símbolos e marcas foram classificados separadamente. É uma revisão estática com verificações de execução, não uma garantia de que qualquer futura string será detectada automaticamente.
+## Manter esta documentação
+
+Comportamento atual deve ser descrito como contrato, com o caminho do responsável. Valores editoriais publicados ficam no CMS e não devem ser duplicados como configuração no Git nem tratados como defaults de código. Resultados antigos de testes não comprovam o estado de uma nova composição. Ao mudar um contrato, atualize o guia correspondente e confira os links do README. Licenças em `src/components/icons/NOTICE.md` devem ser preservadas.

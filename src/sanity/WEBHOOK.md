@@ -1,10 +1,31 @@
-# Webhook de atualização do conteúdo
+# Cache e webhook do Sanity
 
 ## Estado atual
 
-A rota POST /api/sanity/revalidate está implementada. Para receber eventos reais, ela precisa estar publicada no ambiente que recebe o webhook e configurada com o mesmo segredo do Sanity. Sem SANITY_REVALIDATE_SECRET, responde 503 e não invalida nada. A política de uma hora continua como recuperação. Não há atualização automática de abas já abertas.
+A rota `POST /api/sanity/revalidate` está implementada. O webhook do projeto já foi configurado e validado com a implantação Railway; isso não certifica a configuração de outro ambiente ou uma entrega futura. Para receber eventos, a rota deve estar publicada no endereço cadastrado e usar o mesmo segredo do Sanity. Sem SANITY_REVALIDATE_SECRET, responde 503 e não invalida nada. A política de uma hora continua como recuperação. Não há atualização automática de abas já abertas.
 
-## Ativação posterior
+## Cache
+
+As consultas usam a política de `cache.ts`: `force-cache`, recuperação por tempo de uma hora e tags por dependência. Os resultados brutos contêm PT/EN; os adaptadores localizam depois da consulta, permitindo compartilhar a mesma entrada de dados.
+
+| Consulta | Tags |
+| --- | --- |
+| Atlas: Home e fundos | sanity:atlas, sanity:projects, sanity:categories |
+| Projetos: listagem, detalhe e relacionados | sanity:projects, sanity:categories |
+| Categorias | sanity:categories |
+| About | sanity:about |
+
+Home e fundos usam a mesma consulta/opções de Atlas. Invalidar projetos/categorias alcança os consumidores dependentes; topografia pode invalidar apenas Atlas. Regenerar o fundo de About não exige invalidar sua consulta textual independente. O cliente usa `useCdn=false`: o cache do Next reutiliza dados e uma falta de cache consulta a API do Sanity.
+
+Exceções: `/[lang]/atlas-preview` busca dados publicados com `no-store`, sem ler rascunhos. `generateStaticParams` consulta slugs publicados sem cache persistente; novos slugs podem renderizar em runtime com `dynamicParams=true`.
+
+Listagem e relacionados compartilham `getProjectCards` e sua projeção leve; apenas o detalhe consulta galeria, playable e demais campos completos. Ambas as projeções usam as tags de projetos/categorias. O resumo opcional localizado aparece apenas na listagem, sem emprestar outro idioma quando vazio/ausente.
+
+Se um evento for perdido ou o webhook estiver desativado, o prazo de uma hora permite recuperação com stale-while-revalidate em visita posterior; não é atualização instantânea garantida ao completar o prazo. Assets de imagem/vídeo não ficam dentro desse cache de consultas: tráfego e cache HTTP/CDN dos arquivos são separados. Abas abertas ou rotas já antecipadas podem exigir reload.
+
+Valide cache com `npm run build` e `npm run start`; HMR não reproduz a política de produção. Várias réplicas exigem estratégia compartilhada de cache/invalidação.
+
+## Configurar ou transferir para outro ambiente
 
 1. Publicar o site com a rota em um endereço HTTPS acessível pelo Sanity. O Studio pode continuar local.
 2. Gerar um segredo exclusivo e configurar SANITY_REVALIDATE_SECRET no ambiente do servidor. Não usar prefixo NEXT_PUBLIC_, token de API nem parâmetro na URL. Não salvar o valor no repositório.
@@ -19,8 +40,8 @@ A rota POST /api/sanity/revalidate está implementada. Para receber eventos reai
 | Eventos | Create, Update e Delete |
 | Drafts | Desativado |
 | Versions / releases não publicadas | Desativado |
-| Filter | Conteúdo integral de webhook-filter.groq, nesta pasta |
-| Projection | Conteúdo integral de webhook-projection.groq, nesta pasta |
+| Filter | Conteúdo integral de [webhook-filter.groq](webhook-filter.groq) |
+| Projection | Conteúdo integral de [webhook-projection.groq](webhook-projection.groq) |
 | Secret | Mesmo valor de SANITY_REVALIDATE_SECRET do servidor |
 
 Não configurar header Authorization: o campo Secret faz o Sanity assinar o corpo com sanity-webhook-signature. O endpoint verifica essa assinatura usando @sanity/webhook antes de interpretar o JSON. O payload assinado também precisa informar o dataset esperado.
@@ -41,9 +62,9 @@ As tags da consulta de Atlas incluem projetos e categorias. Invalidar esses grup
 
 O Next recebe revalidateTag(tag, { expire: 0 }): a próxima consulta desses dados espera uma leitura atualizada da API. revalidatePath marca os caminhos para atualização na próxima visita. O webhook não recompila todas as páginas antecipadamente. Entregas repetidas são seguras e podem causar uma nova revalidação; não exigem banco para deduplicação neste volume.
 
-## Verificação quando ativar
+## Validar e diagnosticar
 
-- Conferir uma entrega no histórico de tentativas do Sanity: HTTP 200 e revalidated=true.
+- Conferir no Sanity a URL habilitada, dataset, eventos e uma entrega no histórico de tentativas: HTTP 200 e `revalidated=true`. Adicionar o segredo a `.env.local` ou Railway não preenche o Secret do Sanity; os valores precisam coincidir.
 - Publicar uma pequena mudança de About e abrir PT/EN em nova navegação/reload.
 - Conferir projeto novo, mudança de slug e despublicação quando houver oportunidade editorial.
 - Conferir mudança de categoria/Atlas e thumbnail automática de vídeo.
@@ -63,6 +84,12 @@ O Next recebe revalidateTag(tag, { expire: 0 }): a próxima consulta desses dado
 
 Corpo e assinatura não são registrados nos logs. O tamanho é limitado inclusive em streaming. O payload não pode escolher caminhos ou tags arbitrários. O segredo deve ser exclusivo deste webhook/ambiente; a validação usa a assinatura oficial, sem janela adicional de expiração que possa bloquear reentregas legítimas.
 
+### Localhost e troca de domínio
+
+O webhook cadastrado para Railway não alcança `localhost`. Para revisar conteúdo sem cache local, use `/pt/atlas-preview` ou `/en/atlas-preview` no caso do Atlas. Para testar a invalidação real, use um ambiente HTTPS acessível ao Sanity, ou uma requisição local assinada de teste. Não coloque o segredo em URL, terminal compartilhado ou logs. Reiniciar o dev server pode não remover um cache persistido; confira o conteúdo publicado e teste a política com build/start.
+
+Ao trocar o domínio ou ambiente, publique a rota, configure o segredo no servidor, atualize a URL do webhook e repita o teste. O Studio pode continuar local: o evento nasce no Content Lake quando o documento é publicado.
+
 Em hospedagem com várias réplicas Next, planejar cache/invalidação compartilhados antes de ativar: uma chamada a uma única instância não deve deixar outra com cache independente.
 
-Referências: https://www.sanity.io/docs/content-lake/webhooks e https://nextjs.org/docs/app/api-reference/functions/revalidateTag.
+Referências: [Sanity — GROQ-powered webhooks](https://www.sanity.io/docs/content-lake/webhooks) e [Next.js — revalidateTag](https://nextjs.org/docs/app/api-reference/functions/revalidateTag). A implementação instalada pode ser conferida em `src/app/api/sanity/revalidate/route.ts` e `src/sanity/webhook.ts`.
