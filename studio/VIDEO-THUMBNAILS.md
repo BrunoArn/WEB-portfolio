@@ -10,7 +10,7 @@ A galeria pública só recebe a URL da imagem salva no CDN. Não captura frames 
 
 ## Ativação
 
-Publicar o Studio atualizado para que o componente seja usado nos próximos uploads e publicar o frontend para exibir as imagens. Não requer webhook, FFmpeg, credenciais adicionais ou backend de processamento.
+Executar o Studio atualizado, localmente ou na hospedagem escolhida, para usar o componente nos próximos uploads. O frontend também precisa conter o suporte aos posters persistidos, já implementado neste repositório. Build/deploy do Studio e do site são independentes; consulte [README do Studio](README.md). A geração não requer webhook, FFmpeg, credenciais adicionais ou backend de processamento.
 
 Durante um upload, manter o Studio aberto até aparecer “Thumbnail automática salva”. A etapa termina liberando o decoder e a URL temporária. O arquivo original do vídeo não é modificado.
 
@@ -21,8 +21,8 @@ Durante um upload, manter o Studio aberto até aparecer “Thumbnail automática
 - Se o navegador não conseguir ler o vídeo, o Studio mostra o erro e permite tentar novamente. O vídeo permanece utilizável e a galeria mantém o símbolo de play enquanto não houver imagem.
 - Formatos precisam ser decodificáveis pelo navegador do editor. Preferir MP4/H.264 ou WebM compatível; o Studio precisa estar em HTTPS ou localhost. Limite atual: 100 MiB por arquivo para essa captura.
 - A automação cobre uploads pelo campo de vídeo do Studio. Arquivos novos enviados por API, scripts ou outros fluxos externos não são processados por este componente. Selecionar da biblioteca um asset que já tem thumbnail apenas reutiliza a imagem existente.
-- Os vídeos atuais já receberam thumbnails persistentes e continuam usando-as.
-- Alterações no CMS seguem o prazo de atualização já existente das páginas de projeto (60 segundos, sujeito à revalidação), ou o próximo build.
+- Assets que já possuem thumbnail persistente continuam usando-a. Um vídeo antigo sem thumbnail não é processado automaticamente só por abrir o projeto ou selecionar o asset da biblioteca; o fluxo precisa receber o arquivo local pelo uploader para capturar o frame.
+- A exibição pública segue o [cache de conteúdo](../src/sanity/CACHING.md): invalidação assinada pelo webhook e uma hora como recuperação. O filtro também trata alteração de `videoThumbnail` no asset, sem reagir à trava temporária de processamento. Recarregue a página após publicar; abas abertas não recebem atualização ao vivo.
 
 ## Implementação
 
@@ -31,4 +31,4 @@ Durante um upload, manter o Studio aberto até aparecer “Thumbnail automática
 - lib/video-thumbnails/upload.ts: correlação com o asset e deduplicação da sessão.
 - lib/video-thumbnails/process.ts: persistência e idempotência no Sanity.
 
-O endpoint, segredos, dependências e scripts do processamento por webhook foram retirados. Não é necessário configurar um webhook do Sanity para este recurso.
+O antigo processamento de frames por webhook foi retirado. Não confunda geração com atualização do site: o frame é capturado no upload do Studio; o [webhook de cache](../src/sanity/WEBHOOK.md) apenas invalida consultas quando o conteúdo ou a referência da thumbnail muda. Nenhum vídeo é decodificado pelo endpoint de invalidação.

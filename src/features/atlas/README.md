@@ -1,283 +1,122 @@
-# Atlas — Home do portfólio
+# Atlas — manutenção e arquitetura
 
-O Atlas é a Home em `/pt` e `/en`. A mesma composição e interação ficam disponíveis em `/pt/atlas-preview` e `/en/atlas-preview`, com `noindex` e controles opcionais. WebGL 2 é o renderizador padrão em todas essas páginas. O protótipo independente `atlas-poc` permanece como referência.
+O Atlas é a Home em `/pt` e `/en`. `/pt/atlas-preview` e `/en/atlas-preview` usam o mesmo componente e os mesmos controladores, com `noindex`, dados publicados frescos e painéis opcionais. A Home usa o cache compartilhado do Sanity. A prévia não lê rascunhos.
 
-## Comece por aqui para manter o Atlas
+Para edição no CMS, consulte [Atlas no Studio](../../../studio/ATLAS.md). A [composição registrada em 09/11/2026](../../../studio/ATLAS-COMPOSITION.md) é uma fotografia dos dados publicados, não configuração executável.
 
-O ponto de entrada é **AtlasMap.tsx**. Ele descreve a interface. **useAtlasScene.ts** conecta essa interface aos controladores do navegador e libera seus recursos ao desmontar. Não existe um segundo site ou um segundo motor na prévia: Home e prévia usam os mesmos arquivos.
+## Onde alterar
 
-| Quero alterar… | Onde começar |
+| Responsabilidade | Arquivo |
 | --- | --- |
-| Fontes do site | Famílias semânticas em `src/styles/tokens.css`, mapeamento em `globals.css`; carregamento no layout de idioma |
-| Cores/tamanhos compartilhados da interface | `src/styles/tokens.css` |
-| Textos PT/EN, acessibilidade e mensagens | Bloco `atlas` dos dicionários em `src/i18n/dictionaries/` |
-| Projetos, imagens, categorias, posições e massas auxiliares | Sanity; `atlas-content.ts` adapta esses dados |
-| Estrutura dos marcadores, título e card | `AtlasMap.tsx` |
-| Aparência e adaptação da interface do mapa | `AtlasMap.module.css`; tokens `--atlas-*` locais e exceções responsivas junto aos seletores |
-| Inicialização, recuperação estática e controles locais | `useAtlasScene.ts` |
-| Enquadramento e dimensões do mundo | `atlas-layout.ts` e `atlas-composition.ts` |
-| Formação do relevo / territórios | `atlas-field.ts` define o campo; `atlas-geometry.ts` extrai e prepara as curvas |
-| Intensidades padrão do movimento | `atlas-motion-settings.ts` |
-| Força por velocidade do mouse | `atlas-pointer-impulse.ts` |
-| Movimento desenhado pela GPU | `atlas-webgl.ts`, em `vertexSource` (GLSL) |
-| Entrada da página | `atlas-entrance.ts` coordena; `atlas-growth.ts` calcula o avanço |
-| Passagem do card para o detalhe | `components/projects/ProjectCoverTransition.tsx`, navegação em `useAtlasScene.ts`, estilos de snapshots em `styles/globals.css` |
-| Zoom, transformação da miniatura e fechamento | `atlas-interaction.ts` |
+| Estrutura, marcadores, introdução e card | `AtlasMap.tsx` |
+| Aparência, largura dos rótulos e breakpoints do mapa | `AtlasMap.module.css` |
+| Estado, montagem/limpeza, seleção, preparo de capa e navegação | `useAtlasScene.ts` |
+| Leitura publicada | `src/sanity/repositories/atlas.ts` |
+| Adaptação, imagens, idiomas, validação e projetos sem posição válida | `atlas-content.ts` |
+| Dimensões, coordenadas, escala e câmera | `atlas-layout.ts`, `atlas-composition.ts` |
+| Campo de relevo e influência espacial de cores | `atlas-field.ts` |
+| Mistura RGB e fallback neutro | `atlas-color.ts` |
+| Grade, contornos, fitas e prova conservadora de extensão vazia | `atlas-geometry.ts` |
+| Cache de amostras, curvas atuais e repouso de uma cena | `atlas-geometry-cache.ts` |
+| Canvas, textura, superfície, malha e ciclo do renderizador | `atlas-engine.ts` |
+| Ponteiro, relógio e preparação do estado para GPU | `atlas-motion.ts` |
+| Gestos de toque e amostragem passiva da rolagem | `atlas-touch.ts` |
+| Contato e impulsos limitados por linha | `atlas-pointer-impulse.ts`, `atlas-string-response.ts` |
+| Referências do movimento, toque e duração das ondas | `atlas-motion-settings.ts` |
+| Crescimento inicial e aparição dos elementos | `atlas-growth.ts`, `atlas-entrance.ts` |
+| Malhas indexadas, shaders e recursos GPU | `atlas-webgl.ts` |
+| Limites de deformação dos contornos fechados | `atlas-contour-safety.ts` |
+| Zoom, modal, foco, transformação e retorno da miniatura | `atlas-interaction.ts` |
+| Ícone, fallback para capa e camadas da imagem selecionada | `AtlasThumbnail.tsx` |
+| Resolução, DPR, recortes e orçamento de raster | `atlas-raster.ts` |
+| Fundos das páginas internas | `AtlasBackground.tsx`, `AtlasBackdrop.tsx`, `atlas-background-scene.ts` |
 
-### Tokens e escopo dos estilos
+Os caminhos sem prefixo nesta tabela são relativos a esta pasta; o caminho `src/` parte da raiz do repositório.
 
-- styles/tokens.css concentra a escala compartilhada, famílias semânticas e reservas de cabeçalho/rodapé do shell. As famílias são resolvidas no body, onde o layout instala as variáveis do next/font.
-- styles/globals.css aplica os padrões e expõe as famílias ao Tailwind. O layout carrega as fontes e consome o deslocamento compartilhado do cabeçalho.
-- AtlasMap.module.css mantém os tokens tipográficos exclusivos do Atlas no escopo local, com exceções responsivas nos próprios seletores. Cores cartográficas, geometria, câmera e medidas da composição continuam locais.
-- DS2.1-B aplica Inter Black 900 aos títulos e marcadores, com Geist nos textos, metadados e controles. Tamanhos desktop/mobile: hero 64/44, página 54/40, seção 36/28, card 24/22 e marcador 14/12 px. Em paisagem com altura até 700 px, o Atlas usa o hero mobile de 44 px e marcadores de 12 px para preservar a área do mapa.
+## Dados e composição
 
-Verificação DS2.1-B: lint, TypeScript, build e 271 testes existentes aprovados; 34 cenários de páginas PT/EN e nove tamanhos de viewport do Atlas, 108 aberturas/fechamentos com movimento reduzido e 24 navegações animadas dos seis cards para os detalhes em desktop/mobile. Fontes carregadas, tamanhos, pesos, foco, limites dos cards e ausência de scroll horizontal foram conferidos. Em até 380 px, a entrelinha e o espaço superior dos metadados foram compactados para evitar colisões, sem mover as âncoras ou reduzir a fonte. Capturas desktop/mobile foram inspecionadas; mobile foi simulado no navegador.
+O servidor carrega dicionário e dados publicados; `adaptAtlasContent` monta projetos e territórios. `AtlasMap` entrega referências HTML a `useAtlasScene`, que monta terreno, entrada e interação. O controlador do terreno prepara geometria e cores. O movimento atualiza o estado das linhas e a GPU desenha; mover o ponteiro não recalcula o campo inteiro.
 
-### Accent por categoria
+- Um projeto participa com `atlas.enabled`, posições desktop/mobile válidas e território principal válido, pertencente às suas categorias. Configurações incompletas entram nos diagnósticos de projetos sem posicionamento válido.
+- O território define nome, cor e posição independente do rótulo. Ele é exibido quando utilizado por algum projeto válido. Não há paleta fixa por ID nem influência reservada a projetos removidos.
+- Posições de projeto alteram marcador, relevo e propagação de cor. Posições de rótulo alteram apenas o texto da categoria. Não há correção automática de colisões.
+- Influência aceita **0 a 2**; ausente usa 1. Zero preserva marcador, imagem, card e navegação, mas exclui a fonte do relevo, da contagem de fontes isoladas/agrupadas e das cores. O cache inclui a influência na identidade.
+- Massas de suporte e vales são independentes dos projetos. Sem fontes positivas de cor, as curvas que essas massas gerarem usam o fallback neutro compartilhado. Elas podem ficar abaixo do primeiro nível de contorno; sua existência não garante curvas visíveis.
 
-O accent global é âmbar suave (#E1BE86). Cards, filtros e detalhes reutilizam atlas.color das categorias habilitadas como territórios, sem duplicar a paleta. O projeto prioriza o território explicitamente selecionado em atlas.territory, desde que pertença às suas categorias e tenha cor hexadecimal válida. Sem território selecionado, usa a primeira categoria com cor válida; uma seleção inválida ou ausência de cor mantém o accent global. Cada card relacionado redefine seu próprio accent, inclusive o fallback, para não herdar a cor do projeto atual. Navbar, Footer e ações gerais usam o accent global.
+Cada projeto com influência positiva fornece uma elevação gaussiana. Regiões auxiliares somam elevações ou subtraem vales; warp, suavização e extração de contornos completam o relevo. As cores também são calculadas a partir das posições e influências dos projetos, em um campo separado. Mudar uma posição exige conferir ambos os resultados.
 
-### Navbar desktop e área do Atlas
+`shared/atlas-terrain-settings.ts` resolve Amplitude, Alongamento, Direção, Conexão e Respiro, por perfil. A referência é 50 nos controles de 0–100 e 0° na Direção (-90 a 90°). Valores publicados substituem a referência.
 
-A Navbar desktop fica alinhada à esquerda. Na Home, compartilha com o título o token --layout-home-inset: 5% da largura, ou 12 px em paisagem de até 450 px de altura. Nas páginas internas, volta ao alinhamento esquerdo do Container de 1280 px. A mudança de espaçamento usa o token --motion-navigation (360 ms) nos dois sentidos, sem animação com movimento reduzido.
+`shared/atlas-composition-regions.ts` resolve as regiões auxiliares. Centros aceitam -50 a 150%; dimensões são dispersões gaussianas, não limites rígidos. `regions` ausente usa a referência do código; lista vazia remove as fontes auxiliares. Restaurar referências no Studio altera o rascunho e exige publicação. Referência do código e composição publicada podem ser diferentes.
 
-A partir de 48rem, o Atlas ocupa também a região atrás do cabeçalho fixo: sua raiz compensa os espaços do shell e ocupa a altura inteira da janela, permitindo que o relevo passe também sob o Footer. O título permanece abaixo da navegação, inclusive em paisagem baixa. Até 450 px de altura, o rótulo do Bloomancer fica à direita da miniatura para evitar colisões; a âncora da miniatura e os 44 px do título são preservados. Mundos, âncoras, geometria e controladores não mudam; o dimensionamento existente continua medindo o viewport real. O mobile mantém sua distribuição anterior.
+## Coordenadas e layout
 
-Verificação: lint, TypeScript e build aprovados; 34 cenários de páginas e 108 ciclos de cards PT/EN, sem colisões ou scroll horizontal detectados; animação de alinhamento medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Mobile foi simulado no navegador.
+Os mundos são **1440×790** no desktop e **390×1160** no mobile; o breakpoint do mapa é **760 px**. Desktop ajusta a escala à área disponível. Mobile limita o plano a 390 px e preserva a rolagem vertical; em telas menores, acompanha a largura. O shell usa 48rem, por outra responsabilidade.
 
-Validação do alinhamento à esquerda: 48 cenários desktop PT/EN conferiram igualdade com o recuo do título na Home, alinhamento interno, foco e ausência de scroll horizontal. A animação foi medida nos dois sentidos, incluindo movimento reduzido. Mais 24 ciclos de cards em quatro cenários de paisagem baixa verificaram o rótulo compacto e a ausência de colisões. A Navbar mobile conservou seu alinhamento.
+Coordenadas normalizadas no conteúdo vêm das porcentagens do CMS. Terreno e marcadores compartilham câmera e transformação. No mobile, `x > 50%` coloca o texto à esquerda do ícone; nos demais casos, à direita. A posição é a âncora do ícone, não o início do texto. Os nomes de território usam seu próprio ponto de posicionamento.
 
-### Navbar mobile
+O bloco de marcador tem largura-base explícita de 260 px, limitada pelas regras compactas: 210 px em desktop intermediário, 190 px no mobile, 176 px até 380 px e 130 px em desktop de pouca altura. Isso impede que âncoras próximas da borda comprimam o texto antes da transformação. A fonte não encolhe automaticamente para corrigir colisões.
 
-O cabeçalho mobile mantém PT/EN e MENU à direita, sem nome, borda ou fundo próprio. O painel aberto ocupa a viewport com fundo opaco e links em Inter Black 900 alinhados à direita, indicador ativo em âmbar suave e GitHub/LinkedIn na base. O botão alterna para FECHAR × / CLOSE ×. A reserva do cabeçalho permanece em 61 px.
+O mapa usa `overflow-anchor: none` para que transformações da seleção não mudem a rolagem do documento. A viewport mobile usa `touch-action: pan-y pinch-zoom`; não se bloqueia o scroll com `preventDefault()` ou `touch-action: none`.
 
-O ciclo existente de foco inclui agora os links de idioma no cabeçalho e os links do painel. A troca de idioma usa o mesmo fechamento da navegação interna, liberando o bloqueio de scroll e o conteúdo inerte. Escape, retorno de foco e fechamento ao atingir 48rem foram preservados. O painel permite rolagem própria em janelas baixas e respeita movimento reduzido e a área segura inferior.
+Tokens globais e fontes ficam em `src/styles/tokens.css`, `globals.css` e no layout de idioma: Inter 900 nos títulos/marcadores, Geist em corpo e controles. Acento global âmbar suave; cores de categoria vêm do CMS. Regras de composição e câmera permanecem locais. O comportamento de Navbar/Footer está documentado no [mapa do código](../../../docs/CODE_ORGANIZATION.md).
 
-Validação DS2.2-B: lint, TypeScript e build aprovados; 40 cenários de Home, Projetos, Sobre e detalhe em PT/EN, com larguras de 320, 390, 760 e 767 px e uma janela de 390×320. Foram conferidos estados aberto/fechado, tipografia, foco nos dois sentidos, Escape, retorno do scroll, navegação, idioma e breakpoint 767→768 px. Mobile foi simulado no navegador.
+## Movimento e toque
 
-### Footer minimalista
+WebGL 2 é o renderizador animado. A CPU detecta o contato mais próximo com as curvas; o vertex shader propaga as ondas por distância ao longo do traçado. O fragment shader combina textura de cores e cobertura das bordas. A respiração usa estado interpolado; não há deformação por vértice em JavaScript a cada quadro.
 
-O Footer usa somente Bruno Arnaud, GitHub e LinkedIn em Geist 500/12 px, sem borda ou fundo independente. No desktop, nome e links ficam em lados opostos: com o mesmo recuo lateral do título e da Navbar na Home (--layout-home-inset), e alinhados ao Container de 1280 px nas páginas internas. A transição usa os mesmos 360 ms da Navbar, nos dois sentidos, e é desativada com movimento reduzido. No mobile, ficam em duas linhas. Hover e foco visível usam o accent global em âmbar suave.
+O mouse aceita velocidades a partir de 8 px/s. O reforço suave de baixa velocidade desaparece nas altas. A faixa de contato começa em 18% do alcance e cresce suavemente até o alcance completo em velocidades altas, evitando perder passagens rápidas. Toque usa seu próprio perfil, com limiar de 25 px/s. Ambos compartilham propagação, dois impulsos por linha, cooldown de 180 ms e dissipação em 1,15 s; ponteiro parado não gera ondas novas.
 
-O token --shell-footer-reserve define a altura mínima do Footer e a compensação de fluxo do Atlas: 56 px no desktop e 96 px abaixo de 48rem. O breakpoint acompanha exatamente o layout. Na Home desktop, o mapa ocupa a viewport inteira e compensa a altura do Footer com margem inferior negativa; o rodapé transparente fica acima do relevo, sem posição fixa ou scroll adicional. Nas páginas internas e no mobile, permanece no fluxo após o conteúdo. Uma sombra discreta protege a leitura dos textos sobre as curvas.
+`atlas-touch.ts` usa Touch Events passivos e scroll passivo, mantendo a amostragem durante a rolagem nativa mesmo quando o navegador cancela Pointer Events. Um tap exige um dedo, até 350 ms, deslocamento de até 10 px, ausência de scroll relevante e início fora de marcador/controle. Arrastar ou rolar deixa de ser tap; tocar no marcador mantém sua ação normal.
 
-Validação do Footer: 48 cenários PT/EN de layout, foco e hover; 16 cenários de integração com o Atlas sem colisões entre controles do Footer e marcadores; animação medida nos dois sentidos em PT/EN e modo de movimento reduzido conferido. Build, TypeScript e lint aprovados. Mobile foi simulado no navegador.
+O movimento é amostrado no máximo a cada 16 ms, com velocidade limitada a 650 px/s e ganho de pressão de 0,65. A posição do contato é recalculada a partir das coordenadas reais do dedo e da transformação atual do canvas/scroll; só a energia recebe suavização. Ao terminar/cancelar o gesto, não há fonte presa ao dedo; ondas já emitidas dissipam normalmente. Scroll sem gesto de toque ativo não cria um ponteiro artificial.
 
-### Caminho dos dados e responsabilidades
+As referências atuais em `atlas-motion-settings.ts` são: ativo, respiração 90, resposta 85, alcance 65 px, retorno 86 e impulso de seleção 75. O controlador mira 60 redesenhos/s conforme o navegador. Para em aba oculta, mapa fora de vista ou movimento reduzido, e libera seus recursos na desmontagem. Desabilitar o movimento restaura o repouso.
 
-1. As páginas de idioma carregam dicionário e dados publicados no servidor.
-2. `adaptAtlasContent` produz os projetos e territórios que podem participar da composição.
-3. `AtlasMap` monta a interface e entrega suas referências HTML a `useAtlasScene`.
-4. O hook monta terreno, entrada e câmera, acompanha ajustes e desmonta os três juntos. Também coordena a preparação da capa e a navegação para o detalhe.
-5. O terreno prepara geometria/textura; o movimento atualiza o estado das curvas; WebGL desenha. Mover o mouse não refaz o campo inteiro.
+`atlas-contour-safety.ts` limita a deformação de alças frágeis por contorno/escala, com WeakMap. Não há busca de colisões por quadro. A proteção não garante ausência de interseções entre curvas diferentes ou em qualquer composição arbitrária.
 
-### Limites que devem permanecer claros
+## Entrada, seleção e navegação
 
-- Dicionários guardam textos da interface; Sanity guarda o conteúdo editorial. CSS global guarda padrões do site; CSS do Atlas guarda a composição e suas medidas específicas.
-- React mantém a estrutura da interface e o estado de seleção/carregamento. Para preservar a transição aprovada, `atlas-interaction.ts` preenche os campos do card e move **a mesma miniatura HTML** entre mapa, transformação e card. Não renderize uma segunda cópia ou passe a preencher esses mesmos campos por React sem revisar esse contrato.
-- Os atributos `data-atlas-*` não são decoração: conectam o HTML aos controladores. Renomeá-los exige conferir seus usos. O nome histórico `data-atlas-preview` também identifica a Home.
-- A geometria e os materiais são específicos do Atlas; não precisam virar estilos globais. Os shaders continuam em strings GLSL dentro de TypeScript para usar a configuração de build existente.
-- Os controles da prévia não publicam conteúdo. Os ajustes desaparecem ao recarregar.
-- O hook cuida de ouvintes, ciclos, animações e recursos. Uma nova interação precisa ter uma forma de parar e limpar seu estado.
+A entrada dura 2.200 ms: as curvas crescem pelo comprimento do traçado; projetos e territórios aparecem conforme a chegada do crescimento. O plano é preparado para a entrada, não a cada quadro. A entrada ocorre uma vez por montagem. Seleção, Tab, scroll, resize, movimento reduzido ou página oculta encerram a entrada e deixam o mapa utilizável.
 
-### Revisão de uma alteração
+A câmera e a abertura do card compartilham 400 ms. O controlador move **a mesma miniatura HTML** entre mapa, card e camada de retorno, preservando sua árvore React. React mantém a estrutura e o estado; o controlador preenche os campos do card e faz a transformação. Os atributos `data-atlas-*` fazem parte desse contrato. O nome histórico `data-atlas-preview` também identifica a Home.
 
-Faça uma mudança por responsabilidade. Rode TypeScript, lint e build; abra Home e prévia nos dois idiomas quando alterar textos ou estrutura. Ao mexer em layout/interação, confira desktop, celular, 760/761 px, entrada, abertura/fechamento e retorno ao mapa, teclado e movimento reduzido. Mudanças em WebGL também exigem conferir a recuperação estática. Em mudanças visuais ou de desempenho, complemente a simulação com aparelho físico.
+O marcador usa `atlas.icon`, com fallback para capa e depois placeholder. `markerImage` é independente de `image`, a capa do card/detalhe. A imagem pequena permanece montada; as camadas de capa existem durante a seleção e a maior aparece após carregar. Fechar desvanece as capas antes de retornar ao ícone. Capas transparentes podem revelar o ícone abaixo: as camadas são sobrepostas; nenhum arquivo é modificado. A borda do marcador é 2 px e hover de ponteiro fino amplia a miniatura em 20%, sem mover o título.
 
-Esta manutenção extraiu a montagem antes embutida em `AtlasMap` para um único hook, abriu código compactado e formatou o CSS mantendo seletores, ordem e valores. Não adicionou dependências, novas funcionalidades ou outro renderizador. As fórmulas do relevo e os shaders não foram alterados. Validação desta manutenção: build de produção, TypeScript e lint passaram; foram repetidos 36 ciclos de cards em PT/EN e seis tamanhos, os 15 cenários de entrada, controles e recuperação estática. As capturas da Home em 1440 px e 384 px ficaram idênticas pixel a pixel às anteriores. Uma comparação da estrutura do código confirmou a preservação da lógica extraída para o hook; a formatação do CSS preservou regras, ordem e valores. Mobile foi simulado, sem nova avaliação física. O histórico de validações e os detalhes técnicos seguem abaixo.
+Hover/foco/início de toque preparam a capa no tamanho do card. A seleção monta suas camadas antes da preparação síncrona do terreno. Após a capa carregar ou falhar, `useAtlasScene` prepara a rota do detalhe e a imagem do hero. O clique explícito prepara imediatamente e reutiliza uma promessa em andamento; o limite é 1,8 s. Fechar durante essa espera cancela a navegação ainda não enviada. Repetições não iniciam preparos concorrentes.
 
-## Contato lento do mouse
+A foto já aceita clique durante a abertura; título e ação continuam com seus destinos localizados. Escape, clique externo, foco e restauração do scroll são coordenados pelo modal. A desmontagem para navegar libera o modal/body sem restaurar o scroll da Home sobre o destino. Cliques modificados e nova aba mantêm o comportamento do navegador.
 
-O perfil do mouse em `atlas-pointer-impulse.ts` aceita movimentos a partir de 8 px/s (antes 25). A energia recebe um reforço suave nas velocidades baixas, que desaparece progressivamente nas altas; o limite máximo não aumenta. O impulso só dispara dentro de 18% do raio configurado, aproximando o contato da curva em vez de consumir a onda na borda da área de influência. A aproximação fora dessa faixa não desarma a linha.
+`src/components/projects/ProjectCoverTransition.tsx` identifica a capa por slug para View Transitions; estilos dos snapshots ficam em `globals.css`. Falha/timeout de imagem, movimento reduzido ou ausência da API mantêm a navegação com fallback visual.
 
-Toque e scroll usam explicitamente o perfil anterior: mesmos limiar, área, intensidade, limites e cálculo de tap. Ambos os perfis reutilizam a mesma detecção de contato, dois slots por linha, cooldown de 180 ms, propagação e dissipação de 1,15 s. Não há onda de hover estacionário nem mudança de geometria ou shader. Movimento reduzido, visibilidade e limpeza continuam no controlador existente.
+## Geometria, cache e fundos
 
-## Projetos sem influência no terreno
+`atlas-geometry.ts` não importa DOM, React ou WebGL. `describe()` do cache resolve identidade/cobertura sem construir curvas; `prepare()` reaproveita ou constrói depois de descartar notificações redundantes.
 
-Uma influência de 0 é válida e preserva marcador, imagem, card, categoria e navegação. Apenas projetos com influência positiva entram nas fontes de relevo, na contagem que distingue fontes isoladas e na distribuição de cores. Zero explícito não recebe o padrão 1; valor ausente continua recebendo 1. Limites negativos ou acima de 2 são rejeitados no Studio e no adaptador.
-
-As massas de suporte são independentes. Quando nenhuma fonte de projeto fornece cor, o mapa e os fundos usam o mesmo tom neutro de fallback já existente. O misturador RGB fica em atlas-color.ts e é compartilhado pelos dois renderizadores, sem alocação por pixel. O cache continua incluindo a influência para invalidar transições de e para zero. Geometria, cores e posições publicadas com influência positiva mantêm suas fórmulas.
-
-## Estrutura atual
-
-| Arquivo | Responsabilidade |
+| Estado | Dono e validade |
 | --- | --- |
-| `AtlasMap.tsx` | Interface compartilhada pela Home e pela prévia: marcadores, introdução, card e painéis. |
-| `useAtlasScene.ts` | Estado local, refs, montagem e limpeza dos controladores; entrada, recuperação e atualização dos ajustes. |
-| `atlas-content.ts` | Adapta conteúdo publicado, idiomas, imagens, destinos e participação no mapa. |
-| `atlas-field.ts` | Prepara o campo escalar e a influência espacial das cores. |
-| `atlas-color.ts` | Mistura RGB e fallback neutro compartilhados pelo mapa e pelos fundos. |
-| `atlas-geometry.ts` | Cálculos compartilhados: grade, amostragem, curvas, fitas e verificação conservadora de extensões vazias; sem DOM ou renderizador. |
-| `atlas-geometry-cache.ts` | Estado de geometria de uma cena: amostras, curvas atuais/de repouso e prova de cobertura vazia. |
-| `atlas-engine.ts` | Controlador do navegador: canvas, textura de cores, renderizador, preparação da superfície/malha e ciclo de vida. |
-| `atlas-motion.ts` | Velocidade do ponteiro, relógio, proteção das clareiras e preparação dos dados para a GPU. |
-| `atlas-pointer-impulse.ts` | Impulsos individuais por passagem do ponteiro, intensidade por velocidade e limite de ondas simultâneas. |
-| `atlas-motion-settings.ts` | Valores aprovados, tipos e duração do impulso; fonte única para controles e shaders. |
-| `atlas-growth.ts` | Fontes de crescimento, progresso ao longo dos arcos, amostragem das pontas e chegada aos projetos. |
-| `atlas-entrance.ts` | Entrada finita, aparição de projetos/rótulos e interrupções por interação. |
-| `atlas-webgl.ts` | Malhas indexadas, shaders de deslocamento/cor/cobertura, estado das linhas e recursos da GPU. |
-| `atlas-contour-safety.ts` | Limites locais de deformação dos contornos fechados, calculados e armazenados por contorno/escala. |
-| `atlas-string-response.ts` | Normais, distâncias ao longo do traçado, contato mais próximo e estado de cada linha. |
-| `atlas-interaction.ts` | Câmera, transformação da miniatura em card, foco, fechamento e restauração. |
-| `AtlasThumbnail.tsx` | Miniatura pequena e imagem maior carregada apenas na seleção. |
-| `atlas-layout.ts` / `atlas-raster.ts` | Mundo, escala uniforme, extensão e orçamento de resolução. |
+| Grade de amostras | Uma grade Float32 por cache de cena; identidade considera mundo, perfil, projetos/posições/influências, controles e regiões. Reuso apenas na cobertura válida. |
+| Curvas atuais e de repouso | Uma entrada atual e uma referência para retorno; não há lista crescente por projeto. |
+| Prova de extensão vazia | Geometria atual mais limites solicitados, incluindo a borda compartilhada; incerteza usa geração normal. |
+| Leitor de cores | Um por configuração/ordem dos territórios no controlador; substituído ao mudar dados. |
+| Superfície e malha | Assinaturas separadas de geometria, câmera, recorte, resolução e clareiras; mudar apenas o raster não reinicia ondas/malha desnecessariamente. |
 
-A implementação animada anterior em Canvas 2D foi removida: não há segundo cálculo de respiração, deformação por vértice em JavaScript ou seletor de renderizador. Canvas 2D continua sendo usado para preparar a textura de cores e para a recuperação estática de compatibilidade.
+`clear()` libera as referências do cache de cena. Desmontar invalida assinaturas, remove ouvintes/observadores e encerra renderizador e movimento. O RGB usa saída temporária reutilizável por chamador, sem cache global de pixels.
 
-## Integração com o site
+`atlas-background-scene.ts` compartilha a geometria e mantém até quatro promessas de cenas por processo, identificadas pelos dados. O SVG simplifica contornos e compacta comandos; a cor usa uma pequena imagem de paleta, não outro motor cartográfico. Não é um cache de conteúdo com prazo independente do Sanity.
 
-Home e prévia carregam o dicionário no servidor com `getDictionary`, junto dos dados publicados. Apenas o bloco `atlas` do idioma ativo é passado ao componente, como nos demais recursos do site. Textos da interface, acessibilidade, diagnóstico, metadados da prévia e mensagens de dados ausentes ficam em `src/i18n/dictionaries/pt.ts` e `en.ts`. Conteúdo editorial dos projetos e territórios continua vindo do Sanity; os dicionários não substituem esses dados. Os componentes usam tipos derivados do dicionário, sem importar suas traduções em tempo de execução no cliente.
+Projetos e About usam o Atlas completo atenuado; o detalhe usa o enquadramento correspondente à seleção do projeto no Atlas. Os fundos são preparados no servidor para evitar aguardar WebGL no cliente. Falha de leitura ou projeto ausente do mapa permite omitir a decoração. Mudanças publicadas de geometria também afetam os fundos após a invalidação do conteúdo.
 
-A família tipográfica é herdada do `body` em `src/styles/globals.css` (fonte carregada pelo layout). Atlas não declara família própria, nem mesmo nos títulos/cards. Cores de texto, acento dos controles, pesos, tamanhos compartilhados e espaçamentos usam `src/styles/tokens.css`. A paleta artística do terreno, coordenadas, escala dos marcadores, medidas responsivas e tempos da câmera permanecem locais para preservar a composição e a interação aprovadas. CSS Modules continuam isolando essas regras; não é necessário migrar geometria para classes utilitárias ou expor as animações no CSS global. Traduções da Home anterior sem consumidores foram removidas.
+O terreno pode ser estendido antes do zoom pelos limites inversos da câmera. O raster reserva zoom máximo de 1,85 desktop / 1,65 mobile, DPR-base até 2, orçamento de 24 milhões de pixels e 8192 por lado. Câmera, conteúdo e geometria permanecem separados da resolução do desenho.
 
-Nesta organização, build de produção, TypeScript e lint passaram. A revisão no navegador conferiu PT/EN em 1440×900, 384×844, 760×900, 761×900, 1000×900 e 844×390: herança da fonte nos títulos, marcadores, cards e botão de fechar; marcadores dentro da largura visível; 36 aberturas/fechamentos de três projetos; oito verificações adicionais de Home/prévia; metadados, controles e recuperação estática nos dois idiomas; páginas Projetos/Sobre. Capturas desktop/mobile e card mobile foram inspecionadas. A adaptação de conteúdo foi comparada com o commit anterior em 14 cenários (publicado e dados ausentes/inválidos, PT/EN), sem diferença de resultado. Os 15 cenários de entrada também passaram após a integração. Mobile foi simulado; não houve teste físico nesta rodada.
+Sem WebGL 2, com falha/perda de contexto ou superfície incompatível, a cena remonta Canvas estático com o mesmo relevo/cor em repouso, sem loop permanente. Cards, links e teclado continuam ativos; ajustes locais de terreno são preservados e a seleção em andamento é encerrada. Recarregar tenta WebGL novamente.
 
-## Conteúdo e Sanity
+## Diagnóstico e validação
 
-`getAtlasData()` consulta a perspectiva publicada com o cliente existente, sem CDN, usando a política compartilhada de cache do Sanity (uma hora e tags de Atlas, projetos e categorias). Home e fundos reutilizam a mesma consulta. A rota `/[lang]/atlas-preview` solicita `{ fresh: true }` para buscar sem cache e conferir ajustes publicados ao recarregar. Não há assinatura ao vivo nem leitura de rascunhos. Até a ativação do webhook, o conteúdo público depende da revalidação por tempo. Consulte `src/sanity/CACHING.md`.
+Na prévia, `?motion=1`, `?terrain=1` ou ambos mostram controles locais. Recarregar descarta alterações; não gravam no CMS. A Home não expõe os painéis. O antigo parâmetro `renderer` não escolhe renderizador. Dados `data-*` do canvas ajudam a conferir estado, geometria e resolução; custo de JavaScript não mede o trabalho assíncrono da GPU.
 
-Um projeto participa quando `atlas.enabled` e suas configurações são válidos. Posição desktop/mobile, influência e território principal vêm do Sanity. O território principal deve pertencer às categorias do próprio projeto e ter configurações publicadas válidas. As demais categorias continuam nas informações do projeto. O adaptador registra dados inválidos/ausentes sem inventar posição, conteúdo ou associação de imagem.
+Comandos na raiz: `npm run lint`, `npx tsc --noEmit`, `node --test tests/*.test.mjs`, `npm run build`. Os testes cobrem adaptação, geometria, influência zero, caches, fronteiras entre servidor/navegador, toque, movimento e navegação. Não trate uma contagem antiga de testes ou de projetos como contrato permanente.
 
-Nomes, cores e posições dos rótulos vêm das categorias habilitadas como territórios. Um território aparece quando algum projeto válido o utiliza. A influência cromática é calculada espacialmente a partir desses projetos, com transições contidas; não depende de um ponto isolado de cada curva. Não há tabela fixa de IDs, três cores obrigatórias ou influência reservada para projetos removidos.
+Ao alterar composição/interação, conferir PT/EN, larguras de 320, 360, 390, 760/761 px e desktop, títulos longos, nomes dos territórios, limites da página, entrada, abertura/fechamento, teclado, scroll, movimento reduzido e fallback sem WebGL. Não há prevenção automática de sobreposição: novos projetos, textos e posições exigem revisão visual. Comprovar ganhos de desempenho por medição separada.
 
-Projetos novos com configurações completas entram no mapa sem alteração de código. Remover/desabilitar um projeto retira seu marcador e influência. O posicionamento continua manual: novas configurações precisam de revisão visual para evitar sobreposições.
-
-## Campo e composição
-
-Cada projeto contribui com uma elevação suave. Regiões auxiliares independentes adicionam elevações ou subtraem vales. Warp orgânico, curvas de nível, suavização, filtragem de alças muito pequenas no mobile e espessura variável permanecem. A introdução recebe atenuação local suave. O campo e os contornos não são regenerados a cada quadro.
-
-As rotações dos núcleos do campo são preparadas uma vez por geração e reaproveitadas na amostragem. Essa otimização foi comparada numericamente com o campo anterior, sem mudança de valores.
-
-No Studio, **Atlas — Topografia** edita o singleton `atlas-settings`, com perfis separados para desktop e mobile:
-
-| Controle | Intervalo | Referência |
-| --- | --- | --- |
-| Amplitude | 0–100 | 50 |
-| Alongamento | 0–100 | 50 |
-| Direção | -90–90° | 0 |
-| Conexão | 0–100 | 50 |
-| Respiro | 0–100 | 50 |
-
-Os padrões, limites e resolução defensiva são compartilhados em `shared/atlas-terrain-settings.ts`. Valores publicados substituem a referência. Os comandos de restauração do Studio editam o rascunho; é necessário publicar para aplicar.
-
-Em **Regiões de composição**, cada fonte tem nome, tipo elevação/vale e perfis com habilitação, centro, intensidade, forma, largura/altura e rotação. Centros aceitam -50 a 150% para massas que entram/saem do quadro. As dimensões são dispersões gaussianas suaves. Campo `regions` ausente usa a referência de `shared/atlas-composition-regions.ts`; lista explícita vazia remove as fontes auxiliares. Regiões independem de projetos; sem projetos, o terreno usa tom mineral neutro. Nenhum documento é criado ou publicado automaticamente.
-
-## Movimento e desenho
-
-A CPU encontra o contato mais próximo em cada linha e emite impulsos pela passagem do ponteiro. O vertex shader aplica respiração interpolada na grade e propaga as ondas ao longo de cada traçado. O fragment shader aplica a textura de cores e suaviza suas bordas por cobertura. A GPU recebe malhas indexadas e uma pequena textura de estado; não se trata de deformar uma imagem pronta.
-
-A resposta do mouse usa a mesma propagação por distância de arco da seleção, com força dosada pela velocidade em pixels CSS por segundo. Uma passagem lenta gera uma onda suave; uma rápida gera uma expansão maior, com ganho limitado. Cada linha conserva até dois impulsos independentes, que continuam após a passagem e expiram em 1,15 s. Não se reinicia uma onda ativa para acompanhar o cursor, nem se emitem ondas com o ponteiro parado. O alcance controla a região inicial de contato; a onda segue pela própria curva. Resposta controla sua força e retorno regula o amortecimento. O impulso da seleção mantém seu ganho separado. Limiares de velocidade, ganho e rearmamento ficam em `atlas-pointer-impulse.ts`; os controles existentes continuam locais.
-
-As malhas intermediárias usam sete valores Float32 por vértice; pesos redundantes e buffers da antiga deformação em CPU foram retirados. Buffers de geometria são pré-dimensionados, sem grandes listas intermediárias, e o envio de estado por quadro não cria arrays temporários por linha. A preparação de malhas/texturas ainda é repetida quando muda o enquadramento do raster; esse custo é distinto da animação contínua.
-
-Os parâmetros aprovados em `atlas-motion-settings.ts` são: cenário ativo, respiração **90**, resposta **85**, alcance **65 px**, retorno **86** e impulso **75**. A duração do impulso é compartilhada com o shader. A atualização mira 60 redesenhos/s conforme a cadência do navegador, integrando a resposta pelo tempo transcorrido. O loop para em aba oculta, fora da área visível ou com movimento reduzido. Desabilitar o movimento restaura a paisagem em repouso.
-
-Alças estreitas recebem uma margem local de deformação baseada em curvatura e proximidade de outras partes do mesmo contorno. A restrição se espalha suavemente pelo arco, inclusive na emenda fechada, e satura a soma das ondas do ponteiro e do impulso da seleção. Os limites são pré-calculados e armazenados em WeakMap; não existe busca de colisões por quadro. Isso protege contornos fechados frágeis, sem resolver colisões entre curvas diferentes ou uma geometria de origem arbitrária que já tenha interseções.
-
-## Entrada da página
-
-Após preparar o primeiro desenho, as próprias curvas crescem e se desenrolam em uma entrada de **2.200 ms**. A ordem de início parte da esquerda, com leve influência vertical, mas o avanço percorre o comprimento de cada traçado. Não existe máscara espacial de opacidade sobre o terreno. Nome e descrição permanecem visíveis; os projetos/rótulos aparecem quando o crescimento da curva mais próxima chega à sua região.
-
-`atlas-growth.ts` escolhe um ponto de origem por curva e mantém o progresso em distâncias de arco. Contornos fechados crescem em duas direções e se reencontram; abertos também podem crescer para ambos os lados da origem. Apenas as duas pontas de cada curva são amostradas por quadro. Esses poucos parâmetros seguem na textura de estado para a GPU. O vertex shader mantém a parte ainda não formada recolhida nas pontas, abre gradualmente a espessura e aplica uma pequena flexão que se acomoda atrás do avanço. A flexão respeita os limites locais dos contornos fechados e a proteção da introdução/projetos. A suavização de cobertura e o afinamento curto das pontas evitam pontes visíveis entre os dois braços ainda separados de uma alça.
-
-Ao completar, o shader volta ao caminho original exato, sem o estágio de crescimento. Relevo, cores, espessuras, posições e movimento contínuo finais permanecem os aprovados. A malha não é regenerada por quadro; durante a entrada, a CPU atualiza apenas o estado por curva. Depois dela, não calcula pontas ou flexões de crescimento. Planos de entrada não são preparados durante o zoom/recorte quando o mapa já está completo.
-
-`atlas-entrance.ts` usa um ciclo finito. Com movimento contínuo ativo, atualiza apenas o progresso e os elementos HTML; o loop existente desenha o terreno. Com o cenário parado, a entrada solicita os desenhos necessários. Ao completar, cancela seu ciclo, remove os ouvintes temporários e limpa os estilos de entrada. A aparição de cada projeto usa o ponto mais próximo do relevo e a respectiva chegada do crescimento, em vez de uma coordenada de cortina compartilhada.
-
-A entrada ocorre uma vez por montagem e não reinicia com controles, seleção/fechamento, fontes ou mudança de conteúdo/idioma no mesmo componente. Selecionar um projeto, usar Tab, rolar ou redimensionar encerra a entrada e preserva a interação normal. Movimento reduzido, recuperação estática, página oculta ou posição de rolagem já restaurada mostram o mapa completo. Alterar a preferência durante a entrada também a encerra. O ciclo duplo de efeitos do modo estrito de desenvolvimento é respeitado. Sem JavaScript, o estilo `noscript` mantém os nomes visíveis como antes, sem tornar os cards interativos.
-
-Validação em produção: 15 cenários cobriram crescimento progressivo na Home/prévia PT/EN, desktop/mobile e 760/761 px; geometria reaproveitada; seleção durante a entrada; Tab, rolagem, resize, preferência, perda de contexto e navegação; início reduzido/estático e entrada com movimento contínuo desligado. Oito verificações adicionais de páginas/cards PT/EN passaram. Amostragem de 264 pontas e 264 chegadas conferiu o percurso original; 96 comparações por transform feedback verificaram as posições e o recolhimento inicial (erro máximo inferior a 0,00002 px). Outras 60 comparações confirmaram o movimento aprovado após completar. Em 1.482 combinações amostradas de alças fechadas, fases e escalas, as partes formadas da linha central não apresentaram auto-interseção; não é garantia para qualquer nova composição ou para espessuras arbitrárias. Capturas intermediárias desktop/mobile foram inspecionadas visualmente. A avaliação física permanece pendente.
-Validação da resposta por velocidade: passagens lentas e rápidas no navegador confirmaram forças diferentes, propagação após a saída e repouso sem redesenhos contínuos com respiração desligada. Sessenta comparações das posições calculadas pelo shader conferiram ondas do ponteiro e seleção independentes. Foram repetidos os 15 cenários de entrada e verificados movimento reduzido, desativação, resposta zero e abertura/fechamento por toque simulado. A sensação do novo efeito ainda depende da revisão do usuário; não houve teste em celular físico nesta rodada.
-
-## Compatibilidade
-
-Sem WebGL 2, com falha de inicialização, superfície incompatível ou perda do contexto, o componente remonta um Canvas estático. Ele desenha o mesmo campo, cores e espessuras em repouso, sem montar o controlador de movimento ou um loop permanente. Câmera, miniaturas, cards, links e teclado continuam funcionais. Uma seleção em andamento é encerrada na recuperação e os ajustes locais de terreno são preservados. A página informa “Visualização simplificada ativada”. Recarregar permite tentar WebGL novamente.
-
-A recuperação estática é um caminho pequeno de compatibilidade, não a implementação animada antiga. Recursos e ouvintes WebGL são liberados ao desmontar.
-
-## Enquadramento e interação
-
-Mundos: **1440×790** no desktop e **390×1160** no mobile, com breakpoint em **760 px**. Escala uniforme preserva as proporções. Desktop ocupa a área disponível sem rolagem vertical; mobile conserva rolagem proporcional. Terreno, cores e marcadores compartilham as mesmas coordenadas.
-
-A raiz do Atlas usa overflow-anchor: none. A câmera e as miniaturas mudam de posição durante a seleção; o navegador não deve usar esses elementos como âncoras automáticas da rolagem do documento. A regra fica restrita ao mapa e preserva a rolagem manual no mobile. Sem ela, foi reproduzido um salto de scrollY de 160 para 497 px durante a abertura, seguido de outra mudança ao fechar. Após a correção, 45 ciclos nos seis projetos (390 px com mouse e toque simulado, 384, 760 e 761 px) mantiveram a rolagem e a posição da área do mapa estáveis em todos os quadros amostrados. Foram verificadas a rolagem após fechar e as regressões de recuperação estática, perda de contexto, fechamento antecipado, movimento reduzido e breakpoint. A gravação fornecida foi inspecionada, mas não houve nova validação em aparelho físico.
-
-Antes do zoom, os limites inversos da câmera estendem o terreno por todo o trajeto. A densidade do raster reserva o zoom máximo de 1,85 desktop / 1,65 mobile, com DPR base limitado a 2 e orçamento de 24 milhões de pixels / 8192 por lado. O recorte durante a transição reduz a superfície redesenhada mantendo a geometria. A densidade inicial volta ao terminar o fechamento; não se redimensiona o backing store a cada quadro.
-
-Câmera e abertura total do card compartilham uma transição de **400 ms**. A miniatura HTML é colocada dentro do card antes do primeiro quadro; imagem, borda e corpo viajam em um único contêiner. Não há imagem voando em uma camada separada nem transferência ao chegar. O contêiner usa escala uniforme para preservar as proporções; a altura da mídia é compensada em 33 quadros-chave preparados uma vez por seleção. O corpo se abre para baixo durante o percurso. A borda da miniatura se desfaz quando o corpo começa a abrir, e os cantos se acomodam continuamente até o formato final.
-
-O enquadramento final fica ancorado durante a abertura, evitando que a mudança de altura recentralize o card a cada quadro. Apenas um espaço de scrollbar realmente presente é reservado; medidas de conteúdo arredondadas não devem criar uma faixa artificial na imagem. Ao concluir, os estilos normais assumem sem mudar o pai, o tamanho ou a posição da imagem. O fechamento usa a camada de transformação para devolver a mesma miniatura ao mapa; captura escala, altura e cantos correntes para permitir interrupção da abertura. O botão externo some no início da saída. Imagem, título e ação mantêm seus destinos localizados. Modal nativo, foco, Escape, clique externo e interrupções por resize/movimento reduzido permanecem.
-
-Validação: 30 ciclos nos seis projetos em 1440, 384, 760, 761 e 844 px, incluindo hover antes de selecionar em desktop; 210 quadros amostrados conferiram identidade do elemento e permanência dentro da mídia. A diferença máxima da caixa inicial foi inferior a 0,003 px; não houve alteração da caixa ao encerrar a abertura. Quinze fechamentos interrompidos preservaram a caixa corrente, com diferença inferior a 0,016 px. O placeholder também foi conferido. Home/prévia PT/EN e os caminhos de recuperação passaram nas verificações de regressão. Capturas intermediárias desktop/mobile foram inspecionadas; a avaliação física e a percepção final do movimento dependem da revisão do usuário.
-
-Hover e foco em dispositivo com ponteiro fino ampliam a miniatura em 20%, sem mover o título. A miniatura pede resolução pequena, incluindo a ampliação de hover; a imagem maior só é montada na seleção. A pequena permanece visível até a maior carregar/decodificar e aparecer em 120 ms. Falha da maior conserva a pequena; imagem ausente/falha da miniatura conserva o placeholder. Fechar desmonta a camada maior, que pode aproveitar cache HTTP em nova abertura.
-
-## Do card para a página do projeto
-
-As capas do Atlas e do hero compartilham uma identidade por slug em components/projects/ProjectCoverTransition.tsx. O componente usa ViewTransition do React disponibilizado pelo App Router instalado, sem biblioteca adicional ou flag experimental. No desktop, o destino inclui a imagem, o degradê e os textos já sobrepostos no hero; no mobile, os textos abaixo da capa acompanham a entrada da página. A transformação dura --motion-project-cover (520 ms em styles/tokens.css); a saída do mapa/card dura 160 ms e a entrada do conteúdo usa 360 ms com 100 ms de atraso. Os pseudo-elementos de transição pertencem ao documento, por isso seus estilos ficam em styles/globals.css.
-
-Imagem, título e ação usam Next Link com hrefs localizados derivados do projeto selecionado e pré-carregamento da rota. A miniatura mantém sua árvore React original mesmo sendo movida para dentro do card. Por isso, o controlador recebe o clique real no DOM e entrega a navegação ao hook, que usa startTransition/router.push. Isso evita recarga completa especificamente no clique da imagem. Cliques modificados, nova aba e downloads conservam o comportamento do navegador; dados sem destino não disparam navegação.
-
-Hover, foco e início de toque preparam apenas a capa do card indicado, com getImageProps e os mesmos sizes renderizados por AtlasThumbnail. Ao selecionar, suas camadas são montadas antes do preparo do terreno e da animação. Depois de a capa do card carregar ou falhar, a cena prepara a página e a imagem maior com os sizes do hero; um clique explícito para navegar continua preparando imediatamente e reutiliza o mesmo preparo quando já iniciado. Enquanto aguarda, o card permanece visível, com aria-busy e indicação discreta de espera. Cada tentativa é limitada a 1,8 s. Falha/tempo excedido desativa o par de imagem nesta navegação e mantém uma entrada simples; movimento reduzido ou ausência da API pula a espera e a transformação. Fechar o card durante a preparação cancela a navegação ainda não enviada. Cliques repetidos não iniciam preparações simultâneas.
-
-A limpeza de layout libera o modal e a trava do body antes de medir/focar o destino. A limpeza passiva continua liberando os demais recursos da cena. Restaurar o scroll da Home na desmontagem sobrescreveria o enquadramento do detalhe; apenas o fechamento normal devolve a rolagem salva. Essa ordem também evita um deslocamento ao reaparecer a barra de rolagem no desktop. Não são mantidas cópias manuais da imagem entre rotas nem criada outra câmera de navegação.
-
-Verificação desta rodada: build de produção, TypeScript e lint; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, cobrindo os três links e teclado. Foram conferidos navegação no mesmo documento, capa pronta na captura, ausência de modal bloqueando o destino e estabilidade do hero até o fim, também com scrollbars visíveis. Casos adicionais cobriram voltar ao mapa, nova aba, ausência da API, movimento reduzido e carregamento lento de rota/imagem. Testes de falha/timeout da imagem e cancelamento durante a preparação passaram. A navegação de volta mantém o funcionamento normal do histórico; a transformação compartilhada é priorizada no percurso card → detalhe. Capturas intermediárias foram inspecionadas; não houve teste físico no S23 ou revisão em outros navegadores nesta rodada.
-
-A foto do card aceita clique e toque já durante a abertura: apenas a mídia recupera os eventos de ponteiro enquanto o restante do card mantém a proteção existente. A navegação aceita os estados opening e selected, sem exigir o término dos 400 ms. O preparo antecipado da capa, o bloqueio de cliques repetidos e o cancelamento por fechamento continuam ativos.
-
-Verificação da navegação antecipada: lint, TypeScript e build aprovados; 24 navegações nos seis projetos, PT/EN, desktop e mobile simulado, incluindo teclado. Foram exercitados cliques com a abertura mantida em quadros intermediários e um clique real com a foto em movimento; o cancelamento por Escape durante o preparo de uma capa lenta também passou, sem deixar modal ou scroll bloqueados.
-
-### Preparo antecipado da navegação
-
-Ao selecionar um projeto, useAtlasScene chama router.prefetch e prepara a capa responsiva do detalhe. O clique reutiliza a mesma promessa; não começa outro download enquanto ela estiver pendente. Uma mudança de largura/DPR exige novo preparo; falhas e timeout permitem nova tentativa. A navegação mantém o limite de espera de 1,8 s e o fallback visual existente. Somente o projeto selecionado é preparado. A pré-geração e a revalidação das páginas estão descritas no README da raiz.
-
-## Diagnóstico local
-
-Na prévia, use `?motion=1`, `?terrain=1` ou ambos. Esses controles alteram apenas estado local, sem salvar no Sanity; recarregar descarta os ajustes. Na recuperação estática, o painel de movimento é ocultado. A Home não expõe os painéis mesmo recebendo esses parâmetros.
-
-O antigo parâmetro `renderer` não seleciona mais implementações: Home e prévia usam WebGL, com recuperação automática. Dados `data-*` do Canvas permitem conferir renderizador, geometria e resolução; o custo de JavaScript registrado não inclui execução assíncrona na GPU ou apresentação.
-
-## Verificação e limites
-
-Validação desta consolidação: build de produção Next/Turbopack, TypeScript e lint completo aprovados; 72 aberturas/fechamentos de cards na Home PT/EN em seis configurações de viewport/DPR (1440×900 DPR 1/2, 384×844 DPR 3, 760×900, 761×900 e 844×390), com foco, links, enquadramento e retorno do relevo. Mais 12 ciclos conferiram a recuperação estática desktop/mobile e o retorno exato de seu raster. Testes com movimento amostraram a cobertura do terreno durante os seis cards desktop e três casos de borda mobile. Falha de inicialização, perda de contexto durante o card, fechamento antecipado, breakpoint, movimento reduzido, cinco controles e preservação de ajustes locais foram verificados. Capturas da Home desktop/mobile e da recuperação estática foram inspecionadas visualmente. A preparação das rotações foi comparada em 12.544 amostras, todas idênticas ao campo anterior. A configuração publicada usada na revisão contém seis projetos e três territórios; não houve escrita de conteúdo, migração, mudança de schema, implantação ou alteração do protótipo independente.
-
-A proteção geométrica anterior foi verificada em 3.744 combinações (desktop/mobile, três escalas, mouse/impulso fortes), eliminando os 910 casos com auto-interseção reproduzidos nesse conjunto. Comparações por transform feedback também verificaram as fórmulas de deslocamento. Esses resultados têm o alcance dos cenários testados, não são uma garantia para qualquer composição futura.
-
-Mobile em navegador de desktop usa viewport/DPR simulados. O S23 foi confirmado pelo usuário antes da migração para shaders; o novo padrão ainda requer revisão física, inclusive aquecimento, consumo e uso prolongado. Outros navegadores também precisam de avaliação. O posicionamento automático de projetos e rótulos permanece fora do escopo.
-## Limites entre geometria, cache e navegador
-
-`atlas-geometry.ts` é compartilhado pelo Atlas interativo e pelo gerador de fundos estáticos. Ele não importa controladores do navegador, React ou WebGL. O cache de amostras é opcional e fornecido pelo chamador; não existe um cache global de grades nesse módulo.
-
-`atlas-background-scene.ts` importa a geometria diretamente. Seu cache de cenas estáticas no servidor continua separado do estado de uma Home aberta. `AtlasMap.tsx` também obtém o posicionamento nesse módulo; a conexão com o navegador permanece em `useAtlasScene.ts` e `atlas-engine.ts`.
-
-### Contrato dos caches por cena
-
-| Estado | Dono | Validade e limite |
-| --- | --- | --- |
-| Grade de amostras | Cache de geometria | Uma grade Float32; a chave considera dimensões do mundo, perfil, IDs/categorias/posições/influências dos projetos, controles e regiões. Só reaproveita coordenadas cobertas pela grade válida. |
-| Curvas atuais | Cache de geometria | Uma entrada, identificada pela configuração e pelos limites efetivamente gerados. |
-| Curvas de repouso | Cache de geometria | Uma referência para o retorno do card. Pode ser a mesma entrada atual; não acumula entradas por projeto. |
-| Prova de faixa vazia | Cache de geometria | Uma chave da geometria atual mais os limites solicitados. Inclui a borda compartilhada; qualquer incerteza usa a geração normal. |
-| Leitor do campo de cores | Controlador do navegador | Uma função por configuração geométrica e ordem dos IDs dos territórios. Reutilizada entre recortes, substituída quando os dados mudam e liberada na desmontagem. |
-| Superfície preparada | Controlador do navegador | Configuração/limites efetivos, recorte, escala/deslocamento, resolução e área de respiro do texto. Notificações idênticas não repetem a preparação. |
-| Malha preparada | Controlador do navegador | Geometria, escala/deslocamento e respiro do texto. Recorte e densidade do raster atualizam a superfície sem reinicializar a malha ou as ondas. |
-
-O cache de geometria tem duas fases explícitas. `describe()` resolve a identidade e a cobertura sem construir curvas. Depois de medir a superfície e descartar uma notificação repetida, `prepare()` recupera ou constrói as curvas necessárias. Essa ordem evita transformar uma notificação de resize/fontes em trabalho redundante.
-
-`clear()` libera amostras, curvas atuais/de repouso e a prova de cobertura. Na desmontagem, o controlador também invalida suas duas assinaturas e o leitor de cores, encerra movimento/renderizador, desconecta o observador e remove os listeners. Os caches WeakMap de limites de deformação continuam vinculados à identidade e escala de cada contorno; não são uma lista permanente de projetos.
-
-### Proteção da organização e do comportamento
-
-- Os testes dos cálculos importam `atlas-geometry.ts`, sem mocks de WebGL ou movimento.
-- Testes de fronteira verificam que geometria, cache e fundo do servidor não carregam os controladores do navegador.
-- Testes do cache cobrem preparação repetida, retorno ao repouso, invalidação da prova, isolamento entre cenas e limpeza das referências.
-- As referências numéricas das curvas e as verificações no navegador protegem posições, geometria, cores, câmera e navegação durante reorganizações.
-- `tests/helpers/load-typescript.mjs` centraliza o carregamento dos módulos nos testes afetados, mantendo cache e mocks isolados por fixture.
-
-Verificação local: `npm run lint`, `npx tsc --noEmit`, `npm run build` e `node --test tests/*.test.mjs`. A documentação acima descreve responsabilidade e invalidação; mudanças visuais ou de desempenho devem ser medidas separadamente.
-
-## Compactação dos fundos e preparo de cores
-
-O serializador dos fundos mantém a mesma simplificação e as mesmas coordenadas arredondadas a 0,1 unidade. Ele compacta a sintaxe SVG com comandos relativos, sem trocar a forma por raster nem carregar o fundo depois no cliente. Comandos absolutos foram evitados para preservar também o acúmulo numérico de coordenadas do desenho anterior.
-
-O leitor de cores aceita uma saída temporária opcional, do tamanho da lista de categorias, preenchida e normalizada em cada chamada. O preparo da textura reutiliza essa saída e acumula RGB sem callbacks por pixel. Sem saída fornecida, cada chamada retorna um array independente; não existe estado temporário global nem novo cache. Testes protegem a igualdade numérica e a interpretação dos caminhos.
+Em 09/11/2026, a composição mobile registrada foi conferida em 18 perfis de navegador (PT/EN × 320/360/375/380/381/390/414/760/1440 px), sem sobreposição de caixas de projetos ou entre rótulos de território e projetos nos perfis mobile. A verificação usou dados publicados e movimento reduzido; não certifica composições futuras, animação em todo quadro, aparelho físico ou todos os navegadores.

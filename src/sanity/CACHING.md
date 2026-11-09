@@ -18,9 +18,11 @@ Exceptions:
 
 The Sanity client continues using useCdn=false. Next's server cache is the reuse layer; a cache miss reads the API rather than a potentially stale query CDN.
 
-The signed POST /api/sanity/revalidate endpoint is implemented; see WEBHOOK.md and the adjacent GROQ configuration files. No live subscription is used. Until the webhook is configured and activated, published changes rely on the one-hour time-based fallback (stale-while-revalidate on the next visit), rather than the former 60 seconds on cached pages. Already open browsers are not pushed content updates. Preview remains fresh per server request.
+The signed POST /api/sanity/revalidate endpoint is implemented; see [WEBHOOK.md](WEBHOOK.md), [filter](webhook-filter.groq) and [projection](webhook-projection.groq). No live subscription is used. The project's Railway webhook has been configured and validated; each new deployment/environment still needs its own matching endpoint and secret. If an event is missed or the webhook is disabled, published changes rely on the one-hour time-based fallback (stale-while-revalidate on a subsequent visit). Already open browsers are not pushed content updates. A webhook sent to production does not invalidate a local server. Preview remains fresh per server request.
 
 The webhook invalidates projects when a persistent video thumbnail changes on a file asset, as well as handling project/category/about/Atlas document changes. Transient thumbnail-processing claims are excluded by the filter.
+
+The query cache contains content data and asset references, not video/image bodies. Asset traffic and browser/CDN caching remain separate. Existing open tabs and previously prefetched client routes can require a reload after publication.
 
 Validate caching with next build / next start; development HMR does not model production caching reliably. Any future multi-instance deployment needs a cache/invalidation strategy shared across instances.
 

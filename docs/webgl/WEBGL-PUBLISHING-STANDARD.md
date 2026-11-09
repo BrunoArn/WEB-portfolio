@@ -1,17 +1,17 @@
 # Unity WebGL Publishing Standard
 
-Manual de publicação Unity WebGL do portfólio WEB-portfolio. Referência: POC Bloomancer, revisada em 19/10/2026 na branch `production`.
+Manual de publicação Unity WebGL do portfólio WEB-portfolio. Integração com o código revisada em **09/11/2026**. A referência de exportação e as respostas HTTP abaixo são registros históricos da POC Bloomancer de **19/10/2026**, não uma nova auditoria do R2 nem uma garantia do estado atual da infraestrutura.
 
 Este documento descreve a integração existente e o procedimento operacional para novas publicações. Comandos são instruções para o operador; nenhum upload, alteração de CMS ou configuração de infraestrutura foi executado ao elaborar este manual.
 
 **Como interpretar as evidências:**
 
 - **Inspecionado:** código ou arquivos locais lidos durante a elaboração.
-- **Verificado via HTTP:** resposta pública consultada nesta sessão, sem execução interativa do jogo.
+- **Verificado via HTTP:** resposta pública consultada na POC de 19/10/2026, sem execução interativa do jogo.
 - **Informado:** configuração ou teste relatado pelo usuário.
 - **Recomendado/pendente:** procedimento reutilizável ou validação futura, sem resultado de teste atribuído.
 
-**Limitação das fontes:** `WEBGL-R2-POC-REPORT.md` foi procurado na raiz e entre os arquivos do checkout, mas não está disponível neste estado do repositório. O histórico da auditoria anterior está disponível na conversa e foi usado como contexto, sem alegar releitura do arquivo ausente. Não há transcrição dos comandos originalmente executados na POC. A seção Wrangler reproduz o procedimento solicitado com os artefatos reais e a sintaxe oficial atual; não é uma transcrição certificada do terminal original. Bucket `portfolio-webgl` e opções do Editor são informações fornecidas pelo usuário; o painel Cloudflare e o projeto Unity não foram acessados.
+**Limitação das fontes:** `WEBGL-R2-POC-REPORT.md` foi procurado na raiz e entre os arquivos do checkout, mas não está disponível neste estado do repositório. O registro abaixo preserva as evidências da elaboração original; a conversa e artefatos locais externos não são pré-requisitos disponíveis em todo clone. Não há transcrição dos comandos originalmente executados na POC. A seção Wrangler reproduz o procedimento solicitado com os artefatos reais e a sintaxe oficial atual; não é uma transcrição certificada do terminal original. Bucket `portfolio-webgl` e opções do Editor são informações fornecidas pelo usuário; o painel Cloudflare e o projeto Unity não foram acessados.
 
 ## 1. Architecture Overview
 
@@ -42,8 +42,8 @@ As setas representam o fluxo de publicação e configuração. Os binários não
 | Template | `PortfolioResponsive` | Informado; HTML responsivo inspecionado |
 | Resolution | `960 × 600` | Informado e confirmado no canvas do HTML local |
 | Compression Format | `Brotli` | Informado; extensões `.br` e headers verificados |
-| Decompression Fallback | `Disabled` | Informado nesta tarefa; referências `.br` coerentes com descompressão nativa |
-| Data Caching | `Enabled` | Informado; persistência efetiva não testada nesta sessão |
+| Decompression Fallback | `Disabled` | Informado na POC; referências `.br` coerentes com descompressão nativa |
+| Data Caching | `Enabled` | Informado; persistência efetiva não testada na POC |
 | Code Optimization | `Disk Size` | Informado; Player Settings não acessado |
 | Development Build | `Disabled` | Informado; Player Settings não acessado |
 | Multithreading | `Disabled` | Informado; Player Settings não acessado |
@@ -224,15 +224,17 @@ As respostas incluíram ETag e Last-Modified; não apresentaram Cache-Control ex
 
 ## 7. ProjectPlayable Integration
 
-**Comportamento inspecionado, sem alteração da implementação:**
+**Comportamento atual do wrapper, revisado no código:**
 
-- **Sob demanda:** inicia com capa e botão; o iframe só existe depois de Play/Jogar.
+- **Desktop sob demanda:** inicia com capa e botão; o iframe só existe depois de Play/Jogar.
+- **Celular/touch-only:** até 760 px, ou com ponteiro primário coarse sem hover, a seção preserva a capa e mostra aviso para jogar no desktop e botão para copiar o link do projeto. Não monta o iframe. Ao entrar nessa condição com jogo ativo, desmonta-o. A decisão é por media query, não por detecção de sistema operacional.
+- **Cópia do link:** usa a origem e o caminho atuais, sem query/hash, acompanhando o domínio servido. Se Clipboard falhar (por exemplo em HTTP de rede local), mostra o link em um campo selecionável para cópia manual.
 - **Play/Close/Play:** fechar remove o iframe; reabrir cria um contexto novo. A partida em memória não é preservada pelo componente; saves dependem do jogo.
 - **Proporção:** `aspectRatio` usa `width / height` e o iframe preenche o contêiner. O template Unity precisa adaptar o canvas internamente; a proporção externa não corrige um template incompatível.
 - **PT/EN:** título da seção, título do iframe e controles vêm dos dicionários. Isso não traduz o conteúdo interno do jogo nem garante continuidade da partida ao trocar idioma.
 - **Sem playable:** sem objeto no Sanity, não há seção WebGL nem CTA de jogar. Objetos inválidos são erros, não equivalem à ausência.
 - **iframe:** recebe a URL do HTML e título com o projeto; usa `allow="fullscreen; gamepad"` e `allowFullScreen`. Isso permite recursos, mas não cria botão de fullscreen nem comprova suporte a gamepad.
-- **Foco:** ao iniciar, vai para o botão de fechar; ao fechar, retorna ao botão jogar. Há ajuste de scroll para o controle de fechar quando necessário. Testar a saída do canvas pelo teclado.
+- **Foco:** ao iniciar, vai para fechar; ao fechar, retorna a jogar, ou ao botão de copiar quando a política mobile se aplica. Há ajuste de scroll quando o controle ficaria oculto. Testar a saída do canvas pelo teclado.
 
 Não há protocolo de prontidão com o jogo, estado próprio de erro/timeout, sandbox ou referrerPolicy explícitos no componente atual. O HTML exportado inspecionado usa `alert` em falha de inicialização. Registrar falhas pela rede/console sem presumir que a interface do portfólio as detectará.
 
@@ -257,13 +259,13 @@ Usar o endpoint definitivo de produção quando disponível, não promover a URL
 
 O campo `source` atual é uma string obrigatória; o adapter exige string não vazia, mas não impõe HTTPS, host ou disponibilidade. Este padrão exige validação operacional de confiança e HTTPS. Não interpretar a aceitação do campo no Studio como aprovação de segurança.
 
-**Objetos incompletos:** tipo diferente, source vazio ou dimensões inválidas causam exceção em `adaptProject`. Como as listas usam `map(adaptProject)` sem isolamento individual, um documento inválido pode afetar listagens e páginas que consultam relacionados. Para projeto sem WebGL, deixar o objeto ausente/removido, não publicar um objeto parcial.
+**Objetos incompletos:** tipo diferente, source vazio ou dimensões inválidas causam exceção em `adaptProject` e podem impedir a renderização do detalhe correspondente. Listagem e relacionados usam `getProjectCards`/`adaptProjectCard`, cuja projeção não inclui `playable`; um erro exclusivo desse objeto não é validado nessas consultas leves. Outros campos obrigatórios inválidos dos cards ainda podem afetar suas listas. Para projeto sem WebGL, remover o objeto em vez de publicar dados parciais.
 
-Publicar somente depois do QA e confirmar o conteúdo na página real. A atualização e eventual revalidação/cache do deploy devem ser verificadas; este manual não afirma um prazo de propagação nem altera o CMS.
+Publicar somente depois do QA e confirmar a página real. A atualização dos dados passa pelo [webhook de cache](../../src/sanity/WEBHOOK.md), com [recuperação por tempo](../../src/sanity/CACHING.md). Isso não invalida o cache HTTP do R2, dados do loader Unity ou abas já abertas.
 
 ## 10. Production Considerations — Etapa 11
 
-Pendências para a Etapa 11, sem implementação nesta tarefa:
+Pendências de infraestrutura registradas para a Etapa 11. Esta revisão documental não as implementa nem certifica o estado dos painéis externos:
 
 | Tema | Decisão/validação pendente |
 | --- | --- |
@@ -299,7 +301,9 @@ Preencher por jogo e versão. Registrar data, responsável, URL, versão Unity, 
 - [ ] Cache: primeira carga, recarga/revalidação e nova versão sem mistura de artefatos; registrar se houve 304 ou cache local.
 - [ ] Navegadores e dispositivos oficialmente suportados testados e identificados.
 - [ ] Projeto sem playable não exibe seção ou CTA; nenhum objeto parcial publicado.
-- [ ] Produção usa o objeto Sanity correto, sem depender do override; URL anterior preservada para rollback.
+- [ ] Produção usa o objeto Sanity correto; URL anterior preservada para rollback.
+- [ ] Celular/touch-only mostra aviso e não carrega iframe; cópia funciona em HTTPS ou oferece campo de cópia manual.
+- [ ] Redimensionar ou trocar a condição de entrada encerra o jogo quando o aviso desktop passa a ser necessário.
 
 ## 12. Troubleshooting
 
@@ -314,7 +318,9 @@ Preencher por jogo e versão. Registrar data, responsável, URL, versão Unity, 
 | Falha de carregamento sem mensagem no portfólio | Consultar Console e Network do frame e abrir a URL isoladamente; verificar rede, HTTPS, memória disponível, erro de runtime e política de embedding. O wrapper não tem timeout/erro próprio. |
 | Template incompatível | Revalidar viewport, canvas, paths e APIs do template na versão Unity usada. `PortfolioResponsive` validado com Bloomancer não certifica templates diferentes. |
 | Jogo isolado funciona, iframe falha | Conferir CSP `frame-src` do pai, `frame-ancestors`/X-Frame-Options do documento incorporado e políticas/permissões efetivas. Avaliar também armazenamento, áudio e recursos dependentes de interação. |
-| Projeto/listagem falha após edição do CMS | Conferir se foi publicado um objeto playable incompleto. Completar os quatro campos ou remover o objeto quando não houver jogo. |
+| Detalhe falha após editar playable no CMS | Conferir os quatro campos do objeto. Completar ou remover quando não houver jogo. Para falha na listagem/relacionados, revisar os campos da projeção leve, que não inclui playable. |
+| Celular não mostra botão Jogar | Comportamento previsto para telas pequenas ou entrada coarse sem hover; a seção oferece acesso pelo desktop. |
+| Copiar link falha no celular pela rede local | Clipboard pode estar indisponível no HTTP local; usar o campo manual e validar novamente no HTTPS publicado. |
 
 ### Fontes consultadas e limites de validação
 
@@ -325,8 +331,8 @@ Fontes locais inspecionadas:
 - `src/content/adapters/project.ts`, `src/sanity/queries/project.ts` e `src/sanity/repositories/projects.ts`.
 - `src/app/[lang]/projects/[slug]/page.tsx`, que usa o playable publicado no Sanity.
 - Dicionários `src/i18n/dictionaries/pt.ts` e `en.ts`; contrato em `src/content/types/project.ts`.
-- `README.md`, `studio/README.md`, `.env.example`, `next.config.ts` e `AGENTS.md`. Os READMEs existentes são introdutórios e não descrevem um padrão WebGL; não havia diretório `docs` neste checkout.
-- Build em `C:\Dev\playable\8-bitty`: árvore, nomes, dimensões e HTML de entrada.
+- [README do site](../../README.md), [README do Studio](../../studio/README.md), `.env.example`, `next.config.ts` e `AGENTS.md`. A configuração de ambiente não possui override de playable.
+- Registro histórico da POC: build local então inspecionado em `C:\Dev\playable\8-bitty`. Esse diretório externo não faz parte do repositório e não é requisito para outros clones.
 - Skill `sanity-best-practices`, incluindo referência de schema, para revisão do contrato existente.
 
-As referências oficiais Cloudflare/Unity usadas estão vinculadas nas seções correspondentes. Nenhum comando Wrangler foi executado; sua disponibilidade e versão efetiva no ambiente de publicação não foram validadas. Não foram acessados Player Settings, painel Cloudflare, permissões administrativas ou dataset/Studio remoto. Não houve upload, execução de QA interativo nem teste de 304 nesta tarefa. Essas limitações não devem ser interpretadas como falhas observadas do jogo.
+As referências oficiais Cloudflare/Unity usadas estão vinculadas nas seções correspondentes. Nenhum comando Wrangler foi executado; sua disponibilidade e versão efetiva no ambiente de publicação não foram validadas. Não foram acessados Player Settings, painel Cloudflare, permissões administrativas ou dataset/Studio remoto. Na elaboração original não houve upload, novo QA interativo nem teste de 304. A revisão de 09/11/2026 conferiu a integração no código e as referências oficiais de R2/webhooks, sem executar Wrangler, reauditar os arquivos remotos ou repetir a POC. Essas limitações não devem ser interpretadas como falhas observadas do jogo.
