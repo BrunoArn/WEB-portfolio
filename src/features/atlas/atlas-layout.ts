@@ -22,8 +22,9 @@ export function getAtlasView(width: number, height: number, mobile: boolean) {
   // Mobile follows width with page scrolling; desktop fits the available window.
   const scale = mobile ? Math.min(1, width / world.width) : Math.min(width / world.width, height / world.height);
   const offsetX = (width - world.width * scale) / 2;
-  // Keep the composition anchored to the lower edge of the available window.
-  const offsetY = Math.max(0, height - world.height * scale);
+  // Mobile scrolls from the top; extra terrain below must not move its markers.
+  // Desktop keeps the composition anchored to the lower edge of the window.
+  const offsetY = mobile ? 0 : Math.max(0, height - world.height * scale);
   const guard = 48 / scale;
   const bounds: AtlasBounds = {
     left: Math.min(world.terrain.left, -offsetX / scale - guard),

@@ -183,11 +183,15 @@
 @media (max-width: 760px) {
   .root {
     height: auto;
+    margin-bottom: calc(0px - var(--shell-footer-reserve));
     display: block;
     --atlas-world-width: var(--atlas-mobile-width);
     --atlas-world-height: var(--atlas-mobile-height);
   }
   .viewport {
+    /* Extend only the terrain below the mobile world, behind the transparent Footer. */
+    box-sizing: content-box;
+    padding-bottom: var(--shell-footer-reserve);
     /* Keep terrain gestures in place while preserving native vertical scroll and pinch zoom. */
     touch-action: pan-y pinch-zoom;
     overscroll-behavior-x: none;
@@ -200,11 +204,12 @@
   .projectPlane {
     width: 100%;
     max-width: calc(var(--atlas-world-width) * 1px);
+    bottom: var(--shell-footer-reserve);
     left: 50%;
     transform: translateX(-50%);
   }
   .intro {
-    top: 3%;
+    top: calc((100% - var(--shell-footer-reserve)) * .03);
     left: 7%;
   }
   .title {

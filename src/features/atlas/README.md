@@ -57,6 +57,8 @@ Coordenadas normalizadas no conteúdo vêm das porcentagens do CMS. Terreno e ma
 
 O bloco de marcador tem largura-base explícita de 260 px, limitada pelas regras compactas: 210 px em desktop intermediário, 190 px no mobile, 176 px até 380 px e 130 px em desktop de pouca altura. Isso impede que âncoras próximas da borda comprimam o texto antes da transformação. A fonte não encolhe automaticamente para corrigir colisões.
 
+No mobile, a viewport reserva uma extensão de terreno equivalente a `--shell-footer-reserve`, e a raiz compensa essa reserva para o Footer transparente ficar sobre as curvas. O plano dos projetos permanece acima dessa extensão, com âncoras e escala preservadas; a câmera mobile é alinhada ao topo. A regra é local ao Atlas e não muda o Footer das páginas internas.
+
 O mapa usa `overflow-anchor: none` para que transformações da seleção não mudem a rolagem do documento. A viewport mobile usa `touch-action: pan-y pinch-zoom`; não se bloqueia o scroll com `preventDefault()` ou `touch-action: none`.
 
 Tokens globais e fontes ficam em `src/styles/tokens.css`, `globals.css` e no layout de idioma: Inter 900 nos títulos/marcadores, Geist em corpo e controles. Acento global âmbar suave; cores de categoria vêm do CMS. Regras de composição e câmera permanecem locais. O comportamento de Navbar/Footer está documentado no [mapa do código](../../../docs/CODE_ORGANIZATION.md).
