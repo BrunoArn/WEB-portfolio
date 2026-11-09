@@ -41,10 +41,8 @@ A build acessa o Sanity e pode precisar de rede para as fontes de `next/font`. T
 | Layout, tokens, dicionários e responsabilidades | [Organização do código](docs/CODE_ORGANIZATION.md) |
 | Geometria, câmera, interação e renderização | [Atlas](src/features/atlas/README.md) |
 | Edição de projetos, territórios e topografia | [Atlas no Studio](studio/ATLAS.md) |
-| Valores publicados registrados em 09/11/2026 | [Composição do Atlas](studio/ATLAS-COMPOSITION.md) |
-| Dependências, tags e recuperação do cache | [Cache](src/sanity/CACHING.md) |
-| Configuração, assinatura e diagnóstico da invalidação | [Webhook](src/sanity/WEBHOOK.md) |
-| Upload de vídeo e geração única de poster | [Thumbnails](studio/VIDEO-THUMBNAILS.md) |
+| Cache, tags, configuração e diagnóstico da invalidação | [Cache e webhook](src/sanity/WEBHOOK.md) |
+| Upload de vídeo e geração única de poster | [Studio — thumbnails](studio/README.md#thumbnails) |
 | Exportação Unity, R2 e player | [Publicação WebGL](docs/webgl/WEBGL-PUBLISHING-STANDARD.md) |
 
 ## Idioma inicial

@@ -2,7 +2,7 @@
 
 Os dados publicados controlam a Home, a prévia e os fundos das páginas internas. Projetos definem posição, influência e território principal; categorias definem cor e nome do território; `atlas-settings` reúne os controles gerais e as massas de suporte. O site não distribui pontos nem evita colisões automaticamente.
 
-O [guia técnico do Atlas](../src/features/atlas/README.md) descreve renderização e interação. Os valores publicados consultados em **09/11/2026** ficam em [ATLAS-COMPOSITION.md](ATLAS-COMPOSITION.md), separados destas instruções. O Sanity é a fonte de verdade após novas edições; tabelas no Git não atualizam o CMS.
+O [guia técnico do Atlas](../src/features/atlas/README.md) descreve renderização e interação. As posições, influências e regiões atuais são consultadas no próprio Sanity; não mantemos uma segunda tabela de coordenadas no Git. Os padrões do código são fallbacks, não uma cópia da composição publicada.
 
 ## Abrir e editar
 
@@ -54,7 +54,7 @@ Uma lista ausente usa as oito regiões de referência em `shared/atlas-compositi
 
 Publicar conteúdo no Sanity altera o dataset independentemente de commit, push, PR ou deploy. Mudanças em schema/componentes do Studio dependem do código atualizado do Studio; alterações do frontend dependem do deploy do site. São operações distintas.
 
-A Home e os fundos usam cache de uma hora como recuperação e invalidação assinada por webhook. A prévia publicada é fresca por requisição. O webhook enviado ao Railway não invalida seu servidor local. Recarregue abas após publicar; não há atualização ao vivo. Consulte [cache](../src/sanity/CACHING.md) e [webhook](../src/sanity/WEBHOOK.md).
+A Home e os fundos usam cache de uma hora como recuperação e invalidação assinada por webhook. A prévia publicada é fresca por requisição. O webhook enviado ao Railway não invalida seu servidor local. Recarregue abas após publicar; não há atualização ao vivo. Consulte [cache e webhook](../src/sanity/WEBHOOK.md).
 
 ## Conferência e fontes
 

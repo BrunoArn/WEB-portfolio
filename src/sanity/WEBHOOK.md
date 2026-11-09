@@ -1,8 +1,29 @@
-# Webhook de atualização do conteúdo
+# Cache e webhook do Sanity
 
 ## Estado atual
 
 A rota `POST /api/sanity/revalidate` está implementada. O webhook do projeto já foi configurado e validado com a implantação Railway; isso não certifica a configuração de outro ambiente ou uma entrega futura. Para receber eventos, a rota deve estar publicada no endereço cadastrado e usar o mesmo segredo do Sanity. Sem SANITY_REVALIDATE_SECRET, responde 503 e não invalida nada. A política de uma hora continua como recuperação. Não há atualização automática de abas já abertas.
+
+## Cache
+
+As consultas usam a política de `cache.ts`: `force-cache`, recuperação por tempo de uma hora e tags por dependência. Os resultados brutos contêm PT/EN; os adaptadores localizam depois da consulta, permitindo compartilhar a mesma entrada de dados.
+
+| Consulta | Tags |
+| --- | --- |
+| Atlas: Home e fundos | sanity:atlas, sanity:projects, sanity:categories |
+| Projetos: listagem, detalhe e relacionados | sanity:projects, sanity:categories |
+| Categorias | sanity:categories |
+| About | sanity:about |
+
+Home e fundos usam a mesma consulta/opções de Atlas. Invalidar projetos/categorias alcança os consumidores dependentes; topografia pode invalidar apenas Atlas. Regenerar o fundo de About não exige invalidar sua consulta textual independente. O cliente usa `useCdn=false`: o cache do Next reutiliza dados e uma falta de cache consulta a API do Sanity.
+
+Exceções: `/[lang]/atlas-preview` busca dados publicados com `no-store`, sem ler rascunhos. `generateStaticParams` consulta slugs publicados sem cache persistente; novos slugs podem renderizar em runtime com `dynamicParams=true`.
+
+Listagem e relacionados compartilham `getProjectCards` e sua projeção leve; apenas o detalhe consulta galeria, playable e demais campos completos. Ambas as projeções usam as tags de projetos/categorias. O resumo opcional localizado aparece apenas na listagem, sem emprestar outro idioma quando vazio/ausente.
+
+Se um evento for perdido ou o webhook estiver desativado, o prazo de uma hora permite recuperação com stale-while-revalidate em visita posterior; não é atualização instantânea garantida ao completar o prazo. Assets de imagem/vídeo não ficam dentro desse cache de consultas: tráfego e cache HTTP/CDN dos arquivos são separados. Abas abertas ou rotas já antecipadas podem exigir reload.
+
+Valide cache com `npm run build` e `npm run start`; HMR não reproduz a política de produção. Várias réplicas exigem estratégia compartilhada de cache/invalidação.
 
 ## Configurar ou transferir para outro ambiente
 

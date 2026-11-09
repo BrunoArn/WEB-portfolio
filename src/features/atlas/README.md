@@ -2,7 +2,7 @@
 
 O Atlas é a Home em `/pt` e `/en`. `/pt/atlas-preview` e `/en/atlas-preview` usam o mesmo componente e os mesmos controladores, com `noindex`, dados publicados frescos e painéis opcionais. A Home usa o cache compartilhado do Sanity. A prévia não lê rascunhos.
 
-Para edição no CMS, consulte [Atlas no Studio](../../../studio/ATLAS.md). A [composição registrada em 09/11/2026](../../../studio/ATLAS-COMPOSITION.md) é uma fotografia dos dados publicados, não configuração executável.
+Para edição no CMS, consulte [Atlas no Studio](../../../studio/ATLAS.md). Posições, influências e massas publicadas são consultadas no próprio Sanity; referências de código em `shared/` são apenas fallbacks.
 
 ## Onde alterar
 
@@ -119,4 +119,4 @@ Comandos na raiz: `npm run lint`, `npx tsc --noEmit`, `node --test tests/*.test.
 
 Ao alterar composição/interação, conferir PT/EN, larguras de 320, 360, 390, 760/761 px e desktop, títulos longos, nomes dos territórios, limites da página, entrada, abertura/fechamento, teclado, scroll, movimento reduzido e fallback sem WebGL. Não há prevenção automática de sobreposição: novos projetos, textos e posições exigem revisão visual. Comprovar ganhos de desempenho por medição separada.
 
-Em 09/11/2026, a composição mobile registrada foi conferida em 18 perfis de navegador (PT/EN × 320/360/375/380/381/390/414/760/1440 px), sem sobreposição de caixas de projetos ou entre rótulos de território e projetos nos perfis mobile. A verificação usou dados publicados e movimento reduzido; não certifica composições futuras, animação em todo quadro, aparelho físico ou todos os navegadores.
+Em 09/11/2026, a composição mobile publicada foi conferida em 18 perfis de navegador (PT/EN × 320/360/375/380/381/390/414/760/1440 px), sem sobreposição de caixas de projetos ou entre rótulos de território e projetos nos perfis mobile. A verificação usou dados publicados e movimento reduzido; não certifica composições futuras, animação em todo quadro, aparelho físico ou todos os navegadores.

@@ -261,7 +261,7 @@ O campo `source` atual é uma string obrigatória; o adapter exige string não v
 
 **Objetos incompletos:** tipo diferente, source vazio ou dimensões inválidas causam exceção em `adaptProject` e podem impedir a renderização do detalhe correspondente. Listagem e relacionados usam `getProjectCards`/`adaptProjectCard`, cuja projeção não inclui `playable`; um erro exclusivo desse objeto não é validado nessas consultas leves. Outros campos obrigatórios inválidos dos cards ainda podem afetar suas listas. Para projeto sem WebGL, remover o objeto em vez de publicar dados parciais.
 
-Publicar somente depois do QA e confirmar a página real. A atualização dos dados passa pelo [webhook de cache](../../src/sanity/WEBHOOK.md), com [recuperação por tempo](../../src/sanity/CACHING.md). Isso não invalida o cache HTTP do R2, dados do loader Unity ou abas já abertas.
+Publicar somente depois do QA e confirmar a página real. A atualização dos dados passa pelo [webhook de cache](../../src/sanity/WEBHOOK.md), com [recuperação por tempo](../../src/sanity/WEBHOOK.md#cache). Isso não invalida o cache HTTP do R2, dados do loader Unity ou abas já abertas.
 
 ## 10. Production Considerations — Etapa 11
 
