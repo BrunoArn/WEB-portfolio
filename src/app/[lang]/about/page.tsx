@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
@@ -29,7 +30,11 @@ export async function generateMetadata({
 
     const dictionary = await getDictionary(lang);
 
+    if (!(await getAbout(lang))) notFound();
+    const hasTranslation = await hasLocalizedPage(() => getAbout(otherLocale(lang)));
+
     return {
+        ...getPublicAlternates(lang, { route: "about" }, hasTranslation),
         title: dictionary.navigation.about,
         description: dictionary.metadata.about.description,
     };

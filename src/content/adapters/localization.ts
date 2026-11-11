@@ -16,6 +16,8 @@ export function resolveOptionalLocalizedValue(
     : undefined;
 }
 
+export class MissingLocalizedValueError extends Error {}
+
 export function resolveLocalizedValue(
   value: LocalizedValue | null | undefined,
   language: ContentLanguage,
@@ -26,7 +28,7 @@ export function resolveLocalizedValue(
     typeof localizedValue !== "string" ||
     localizedValue.trim().length === 0
   ) {
-    throw new Error(
+    throw new MissingLocalizedValueError(
       `Missing localized value for language "${language}".`,
     );
   }

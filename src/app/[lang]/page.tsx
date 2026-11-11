@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPublicAlternates } from "@/seo/international";
 import { notFound } from "next/navigation";
 
 import { AtlasMap } from "@/features/atlas/AtlasMap";
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   if (!isLocale(lang)) notFound();
   const dictionary = await getDictionary(lang);
   return {
+    ...getPublicAlternates(lang, { route: "home" }),
     title: { absolute: dictionary.metadata.home.title },
     description: dictionary.metadata.home.description,
   };

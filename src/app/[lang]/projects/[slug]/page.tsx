@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { accentStyle } from "@/styles/accent";
 
 import { Container } from "@/components/layout/Container";
@@ -46,8 +47,13 @@ export async function generateMetadata({
         notFound();
     }
 
+    const hasTranslation = await hasLocalizedPage(() =>
+        getProjectBySlug(project.slug, otherLocale(lang)),
+    );
+
     return {
         // Custom SEO titles are complete editorial titles; only fallbacks use the layout brand.
+        ...getPublicAlternates(lang, { route: "project", slug: project.slug }, hasTranslation),
         title: project.seo?.title ? { absolute: project.seo.title } : project.title,
         description: project.seo?.description ?? project.description,
     };
