@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
 
@@ -33,10 +34,15 @@ export async function generateMetadata({
     if (!(await getAbout(lang))) notFound();
     const hasTranslation = await hasLocalizedPage(() => getAbout(otherLocale(lang)));
 
-    return {
+    const metadata = {
         ...getPublicAlternates(lang, { route: "about" }, hasTranslation),
         title: dictionary.navigation.about,
         description: dictionary.metadata.about.description,
+    };
+
+    return {
+        ...metadata,
+        ...getSocialMetadata(metadata, lang, "about", dictionary.site.name),
     };
 }
 

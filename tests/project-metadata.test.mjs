@@ -10,6 +10,7 @@ const {adaptProject}=load(file('src/content/adapters/project.ts'));
 const dictionaries=Object.fromEntries(['pt','en'].map(locale=>[locale,load(file('src/i18n/dictionaries/'+locale+'.ts')).default]));
 const localeConfig=load(file('src/i18n/config.ts'));
 const seo=load(file('src/seo/international.ts'));
+const social=load(file('src/seo/social.ts'));
 const fixture=()=>({
  _id:'fixture',title:{pt:'Projeto principal',en:'Main project'},description:{pt:'Descrição principal.',en:'Main description.'},
  slug:{current:'fixture'},year:2026,role:{pt:'Programação',en:'Programming'},status:'released',featured:false,order:0,
@@ -25,6 +26,7 @@ function pageMetadata(route,project=fixture(),getAbout=async()=>({})){
   '@/i18n/get-dictionary':{getDictionary:async locale=>dictionaries[locale]},
   '@/sanity/repositories/projects':{getProjectBySlug:async(slug,locale)=>slug==='missing'?null:adaptProject(project,locale)},
   '@/seo/international':seo,
+  '@/seo/social':social,
   '@/sanity/repositories/about':{getAbout},
   'next/navigation':{notFound:()=>{throw new Error('TEST_NOT_FOUND');}},
   'next/font/google':{Geist:()=>({variable:'geist'}),Inter:()=>({variable:'inter'})},
@@ -138,6 +140,64 @@ test('Metadata API emits reciprocal URLs and skips unavailable translations',asy
   const preview=await pageMetadata('src/app/[lang]/atlas-preview/page.tsx')({params:Promise.resolve({lang:'pt'})});
   assert.equal(preview.robots.index,false);
   assert.equal(preview.alternates,undefined);
+ }finally{
+  if(previous===undefined)delete process.env.SEO_CANONICAL_ORIGIN;
+  else process.env.SEO_CANONICAL_ORIGIN=previous;
+ }
+});
+
+test('Social metadata uses canonical URLs and prefers the original localized cover',()=>{
+ const page={
+  alternates:{canonical:'https://portfolio.example/pt/projects/fixture'},
+  title:{absolute:'Título editorial'},
+  description:'Resumo editorial.',
+ };
+ const cover={
+  id:'fixture',type:'image',
+  src:'https://cdn.sanity.io/images/project/production/fixture-1600x900.png',
+  width:1600,height:900,alt:'Capa do projeto',
+ };
+ const metadata=social.getSocialMetadata(page,'pt','projects','Bruno Arnaud',cover);
+ assert.equal(metadata.openGraph.locale,'pt_BR');
+ assert.equal(metadata.openGraph.type,'website');
+ assert.equal(metadata.openGraph.url,page.alternates.canonical);
+ assert.equal(metadata.openGraph.title,page.title.absolute);
+ assert.equal(metadata.openGraph.description,page.description);
+ assert.deepEqual(metadata.openGraph.images,[{url:cover.src,alt:cover.alt,width:1600,height:900}]);
+ assert.equal(metadata.twitter.card,'summary_large_image');
+ assert.equal(metadata.twitter.title,page.title.absolute);
+ assert.deepEqual(metadata.twitter.images,metadata.openGraph.images);
+
+ for(const src of ['', 'http://cdn.sanity.io/images/example.png', 'https:cdn.sanity.io/images/example.png',
+  'https://cdn.sanity.io.example/images/example.png',cover.src+'?w=1200',
+  'https://user@cdn.sanity.io/images/example.png','/cover.png']){
+  const {openGraph,twitter}=social.getSocialMetadata(page,'pt','projects','Bruno Arnaud',{...cover,src});
+  assert.equal(openGraph.images[0].url,'https://portfolio.example/api/og/institutional/pt/projects');
+  assert.equal(openGraph.images[0].width,1200);
+  assert.equal(openGraph.images[0].height,630);
+  assert.deepEqual(twitter.images,openGraph.images);
+ }
+ assert.deepEqual(social.getSocialMetadata({...page,alternates:undefined},'pt','projects','Bruno Arnaud',cover),{});
+});
+
+test('Public metadata maps every institutional page and locale to its own social image',async()=>{
+ const origin='https://portfolio.example';
+ const previous=process.env.SEO_CANONICAL_ORIGIN;
+ process.env.SEO_CANONICAL_ORIGIN=origin;
+ try{
+  for(const [page,route] of [['home','src/app/[lang]/page.tsx'],['projects','src/app/[lang]/projects/page.tsx'],['about','src/app/[lang]/about/page.tsx']]){
+   for(const lang of ['pt','en']){
+    const metadata=await pageMetadata(route)({params:Promise.resolve({lang})});
+    const {openGraph,twitter}=metadata;
+    assert.equal(openGraph.url,metadata.alternates.canonical);
+    assert.equal(openGraph.locale,lang==='pt'?'pt_BR':'en_US');
+    assert.equal(openGraph.title,typeof metadata.title==='string'?metadata.title+' | Bruno Arnaud':metadata.title.absolute);
+    assert.equal(openGraph.description,metadata.description);
+    assert.equal(openGraph.images[0].url,origin+'/api/og/institutional/'+lang+'/'+page);
+    assert.equal(twitter.card,'summary_large_image');
+    assert.deepEqual(twitter.images,openGraph.images);
+   }
+  }
  }finally{
   if(previous===undefined)delete process.env.SEO_CANONICAL_ORIGIN;
   else process.env.SEO_CANONICAL_ORIGIN=previous;

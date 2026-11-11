@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates } from "@/seo/international";
 import { notFound } from "next/navigation";
 
@@ -16,10 +17,15 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const dictionary = await getDictionary(lang);
-  return {
+  const metadata = {
     ...getPublicAlternates(lang, { route: "home" }),
     title: { absolute: dictionary.metadata.home.title },
     description: dictionary.metadata.home.description,
+  };
+
+  return {
+    ...metadata,
+    ...getSocialMetadata(metadata, lang, "home", dictionary.site.name),
   };
 }
 

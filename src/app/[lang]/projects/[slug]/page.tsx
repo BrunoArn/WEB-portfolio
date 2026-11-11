@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { accentStyle } from "@/styles/accent";
 
@@ -51,11 +52,17 @@ export async function generateMetadata({
         getProjectBySlug(project.slug, otherLocale(lang)),
     );
 
-    return {
+    const dictionary = await getDictionary(lang);
+    const metadata = {
         // Custom SEO titles are complete editorial titles; only fallbacks use the layout brand.
         ...getPublicAlternates(lang, { route: "project", slug: project.slug }, hasTranslation),
         title: project.seo?.title ? { absolute: project.seo.title } : project.title,
         description: project.seo?.description ?? project.description,
+    };
+
+    return {
+        ...metadata,
+        ...getSocialMetadata(metadata, lang, "projects", dictionary.site.name, project.cover),
     };
 }
 

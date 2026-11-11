@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates } from "@/seo/international";
 import { notFound } from "next/navigation";
 
@@ -28,10 +29,15 @@ export async function generateMetadata({
 
 
 
-    return {
+    const metadata = {
         ...getPublicAlternates(lang, { route: "projects" }),
         title: dictionary.navigation.projects,
         description: dictionary.projects.description,
+    };
+
+    return {
+        ...metadata,
+        ...getSocialMetadata(metadata, lang, "projects", dictionary.site.name),
     };
 }
 
