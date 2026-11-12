@@ -18,13 +18,22 @@ const fixture=()=>({
  cover:{_type:'projectImage',alt:{pt:'Capa principal',en:'Main cover'},image:{asset:{_id:'image-fixture',url:'https://cdn.sanity.io/fixture.png',metadata:{dimensions:{width:1600,height:900}}}}},
 });
 
-function pageMetadata(route,project=fixture(),getAbout=async()=>({})){
+function pageMetadata(route,project=fixture(),getAbout=async()=>({}),repositories={}){
  const filename=file(route);const overrides={};
  for(const match of readFileSync(filename,'utf8').matchAll(/(?:from\s*|import\s*)["'](@\/[^"']+)["']/g))overrides[match[1]]={};
  Object.assign(overrides,{
   '@/i18n/config':localeConfig,
   '@/i18n/get-dictionary':{getDictionary:async locale=>dictionaries[locale]},
-  '@/sanity/repositories/projects':{getProjectBySlug:async(slug,locale)=>slug==='missing'?null:adaptProject(project,locale)},
+  '@/sanity/repositories/categories':{hasRenderableCategories:async()=>true},
+  '@/sanity/repositories/projects':{
+   getProjectBySlug:async(slug,locale)=>slug==='missing'?null:adaptProject(project,locale),
+   hasRenderableProjectCards:async()=>true,
+   hasRenderableProjectAlternate:async(slug,locale)=>{
+    if(slug==='missing')return false;
+    try{adaptProject(project,locale);return true;}catch{return false;}
+   },
+  },
+  ...repositories,
   '@/seo/international':seo,
   '@/seo/social':social,
   '@/sanity/repositories/about':{getAbout},
@@ -202,4 +211,89 @@ test('Public metadata maps every institutional page and locale to its own social
   if(previous===undefined)delete process.env.SEO_CANONICAL_ORIGIN;
   else process.env.SEO_CANONICAL_ORIGIN=previous;
  }
+});
+
+test('Projects hreflang agrees with the sitemap for missing translations and shared dependencies',async(t)=>{
+ const origin='https://portfolio.example';
+ const previous=process.env.SEO_CANONICAL_ORIGIN;
+ t.after(()=>{if(previous===undefined)delete process.env.SEO_CANONICAL_ORIGIN;else process.env.SEO_CANONICAL_ORIGIN=previous;});
+ process.env.SEO_CANONICAL_ORIGIN=origin;
+ const listingRoute='src/app/[lang]/projects/page.tsx';
+ const detailRoute='src/app/[lang]/projects/[slug]/page.tsx';
+ const project=fixture();
+ const category=project.categories[0];
+ const badCategory={...category,name:{pt:'Jogos'}};
+ const related={...fixture(),slug:{current:'related'},title:{pt:'Relacionado'}};
+ const cacheOptions=load(file('src/sanity/cache.ts'));
+ const {createSitemap}=load(file('src/seo/sitemap.ts'));
+
+ for(const {items,categories,listingEn,detailEn,ptSlug} of [
+  {items:[project],categories:[category],listingEn:true,detailEn:true,ptSlug:'fixture'},
+  {items:[{...project,description:{pt:'Descricao'}}],categories:[category],listingEn:true,detailEn:false,ptSlug:'fixture'},
+  {items:[project],categories:[category,badCategory],listingEn:false,detailEn:true,ptSlug:'fixture'},
+  {items:[project,related],categories:[category],listingEn:false,detailEn:false,ptSlug:'fixture'},
+  {items:[{...project,slug:{current:'renamed'}}],categories:[category],listingEn:true,detailEn:true,ptSlug:'renamed'},
+ ]){
+  const {load:loadRepo}=createTypeScriptLoader({overrides:{
+   '@/content/adapters/project':load(file('src/content/adapters/project.ts')),
+   '@/content/adapters/category':load(file('src/content/adapters/category.ts')),
+   '@/content/adapters/about':load(file('src/content/adapters/about.ts')),
+   '@/i18n/config':localeConfig,
+   '@/sanity/cache':cacheOptions,
+   '@/sanity/queries/project':load(file('src/sanity/queries/project.ts')),
+   '@/sanity/queries/about':load(file('src/sanity/queries/about.ts')),
+   '@/sanity/repositories/categories':{categoriesQuery:'[]'},
+   '@/sanity/client':{sanityClient:{fetch:async(query,params)=>{
+    if(params.slug)return items.find((item)=>item.slug.current===params.slug)??null;
+    return query.includes('summary')?items:categories;
+   }}},
+  }});
+  const projects=loadRepo(file('src/sanity/repositories/projects.ts'));
+  const categoryRepo=loadRepo(file('src/sanity/repositories/categories.ts'));
+  const {getSitemapAvailability}=loadRepo(file('src/sanity/repositories/sitemap.ts'));
+  const repos={'@/sanity/repositories/projects':projects,'@/sanity/repositories/categories':categoryRepo};
+  const listing=pageMetadata(listingRoute,project,undefined,repos);
+  const detail=pageMetadata(detailRoute,project,undefined,repos);
+  const xml=createSitemap(origin,getSitemapAvailability({sitemapProjects:items,categories,about:null}));
+  for(const [generate,suffix,alternate] of [[listing,'/projects',listingEn],[detail,'/projects/'+ptSlug,detailEn]]){
+   const args=(lang)=>({params:Promise.resolve({lang,slug:ptSlug})});
+   const {alternates}=await generate(args('pt'));
+   assert.equal(alternates.canonical,origin+'/pt'+suffix);
+   assert.equal(alternates.languages.en,alternate?origin+'/en'+suffix:undefined);
+   assert.deepEqual(alternates.languages,xml.find((entry)=>entry.url===alternates.canonical).alternates.languages);
+   if(alternate){
+    const en=await generate(args('en'));
+    assert.equal(en.alternates.canonical,origin+'/en'+suffix);
+    assert.deepEqual(en.alternates.languages,alternates.languages);
+   }
+  }
+  if(!listingEn){
+   const render=categories.includes(badCategory)?categoryRepo.getCategories:projects.getProjectCards;
+   await assert.rejects(render('en'),/Missing localized value/);
+  }
+  if(ptSlug==='renamed'){
+   assert.ok(!xml.some(({url})=>url.endsWith('/fixture')));
+   await assert.rejects(detail({params:Promise.resolve({lang:'pt',slug:'fixture'})}),/TEST_NOT_FOUND/);
+  }
+ }
+});
+
+test('Metadata propagates Sanity read errors while a missing origin skips alternate reads',async(t)=>{
+ const error=new Error('Sanity unavailable');
+ const {load:loadRepo}=createTypeScriptLoader({overrides:{
+  '@/content/adapters/category':load(file('src/content/adapters/category.ts')),
+  '@/sanity/cache':load(file('src/sanity/cache.ts')),
+  '@/sanity/client':{sanityClient:{fetch:async()=>{throw error;}}},
+ }});
+ const categories=loadRepo(file('src/sanity/repositories/categories.ts'));
+ const listing=pageMetadata('src/app/[lang]/projects/page.tsx',fixture(),undefined,{
+  '@/sanity/repositories/categories':categories,
+ });
+ const input={params:Promise.resolve({lang:'pt'})};
+ const previous=process.env.SEO_CANONICAL_ORIGIN;
+ t.after(()=>{if(previous===undefined)delete process.env.SEO_CANONICAL_ORIGIN;else process.env.SEO_CANONICAL_ORIGIN=previous;});
+ process.env.SEO_CANONICAL_ORIGIN='https://portfolio.example';
+ await assert.rejects(listing(input),error);
+ process.env.SEO_CANONICAL_ORIGIN='';
+ assert.equal((await listing(input)).alternates,undefined);
 });

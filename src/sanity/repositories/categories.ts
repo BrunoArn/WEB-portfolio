@@ -2,6 +2,8 @@ import type { Category } from "@/content/types/category";
 import type { ContentLanguage } from "@/content/adapters/localization";
 import type { SanityCategory } from "@/sanity/types/category";
 
+import { cache } from "react";
+import { canRenderCategories } from "../../content/adapters/availability";
 import { adaptCategory } from "@/content/adapters/category";
 import { sanityClient } from "@/sanity/client";
 import { sanityCacheOptions } from "@/sanity/cache";
@@ -16,14 +18,18 @@ export const categoriesQuery = `
   }
 `;
 
+const loadCategories = cache(() =>
+    sanityClient.fetch<SanityCategory[]>(categoriesQuery, {}, sanityCacheOptions("categories")),
+);
+
+export async function hasRenderableCategories(language: ContentLanguage): Promise<boolean> {
+    return canRenderCategories(await loadCategories(), language);
+}
+
 export async function getCategories(
     language: ContentLanguage,
 ): Promise<Category[]> {
-    const categories = await sanityClient.fetch<SanityCategory[]>(
-        categoriesQuery,
-        {},
-        sanityCacheOptions("categories"),
-    );
+    const categories = await loadCategories();
 
     return categories.map((category) =>
         adaptCategory(category, language),

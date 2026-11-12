@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getSocialMetadata } from "@/seo/social";
-import { getPublicAlternates } from "@/seo/international";
+import { getCanonicalOrigin, getPublicAlternates, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
@@ -8,8 +8,8 @@ import { AtlasBackground } from "@/features/atlas/AtlasBackground";
 import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
-import { getCategories } from "@/sanity/repositories/categories";
-import { getProjectCards } from "@/sanity/repositories/projects";
+import { getCategories, hasRenderableCategories } from "@/sanity/repositories/categories";
+import { getProjectCards, hasRenderableProjectCards } from "@/sanity/repositories/projects";
 import { ProjectsListing } from "@/features/projects/ProjectsListing";
 
 type ProjectsPageProps = {
@@ -26,11 +26,14 @@ export async function generateMetadata({
     }
 
     const dictionary = await getDictionary(lang);
-
-
+    const origin = getCanonicalOrigin(process.env.SEO_CANONICAL_ORIGIN);
+    const alternate = otherLocale(lang);
+    const hasTranslation = origin
+        ? (await Promise.all([hasRenderableCategories(alternate), hasRenderableProjectCards(alternate)])).every(Boolean)
+        : false;
 
     const metadata = {
-        ...getPublicAlternates(lang, { route: "projects" }),
+        ...getPublicAlternates(lang, { route: "projects" }, hasTranslation, origin),
         title: dictionary.navigation.projects,
         description: dictionary.projects.description,
     };

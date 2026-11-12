@@ -4,12 +4,12 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/seo/JsonLd";
 import { getProjectJsonLd } from "@/seo/structured-data";
 import { getSocialMetadata } from "@/seo/social";
-import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
+import { getCanonicalOrigin, getPublicAlternates, otherLocale } from "@/seo/international";
 import { accentStyle } from "@/styles/accent";
 
 import { Container } from "@/components/layout/Container";
 import { isLocale } from "@/i18n/config";
-import { getProjectBySlug, getProjectCards, getProjectSlugs } from "@/sanity/repositories/projects";
+import { getProjectBySlug, getProjectCards, getProjectSlugs, hasRenderableProjectAlternate } from "@/sanity/repositories/projects";
 import { ProjectHero } from "@/features/project-detail/ProjectHero";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { ProjectAbout } from "@/features/project-detail/ProjectAbout";
@@ -50,14 +50,13 @@ export async function generateMetadata({
         notFound();
     }
 
-    const hasTranslation = await hasLocalizedPage(() =>
-        getProjectBySlug(project.slug, otherLocale(lang)),
-    );
+    const origin = getCanonicalOrigin(process.env.SEO_CANONICAL_ORIGIN);
+    const hasTranslation = origin ? await hasRenderableProjectAlternate(project.slug, otherLocale(lang)) : false;
 
     const dictionary = await getDictionary(lang);
     const metadata = {
         // Custom SEO titles are complete editorial titles; only fallbacks use the layout brand.
-        ...getPublicAlternates(lang, { route: "project", slug: project.slug }, hasTranslation),
+        ...getPublicAlternates(lang, { route: "project", slug: project.slug }, hasTranslation, origin),
         title: project.seo?.title ? { absolute: project.seo.title } : project.title,
         description: project.seo?.description ?? project.description,
     };

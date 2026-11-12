@@ -1,6 +1,6 @@
 import { adaptAbout } from "@/content/adapters/about";
-import { adaptCategory } from "@/content/adapters/category";
-import { adaptProject, adaptProjectCard } from "@/content/adapters/project";
+import { canRenderCategories, canRenderProjectCards, isRenderable } from "../../content/adapters/availability";
+import { adaptProject } from "@/content/adapters/project";
 import { locales, type Locale } from "@/i18n/config";
 import { sanityCacheOptions } from "@/sanity/cache";
 import { sanityClient } from "@/sanity/client";
@@ -25,23 +25,12 @@ export type SitemapInventory = {
     categories: SanityCategory[];
 };
 
-// Only synchronous adapter failures describe unavailable page content.
-// Query failures must reach the route so it never serves a partial inventory as a success.
-function isRenderable(adapt: () => unknown): boolean {
-    try {
-        adapt();
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 export function getSitemapAvailability({ sitemapProjects, about, categories }: SitemapInventory) {
     const cardsAvailable = locales.filter((locale) =>
-        sitemapProjects.every((project) => isRenderable(() => adaptProjectCard(project, locale))),
+        canRenderProjectCards(sitemapProjects, locale),
     );
     const projectLists = cardsAvailable.filter((locale) =>
-        categories.every((category) => isRenderable(() => adaptCategory(category, locale))),
+        canRenderCategories(categories, locale),
     );
     const aboutLocales = locales.filter((locale) =>
         about !== null && isRenderable(() => adaptAbout(about, locale)),
