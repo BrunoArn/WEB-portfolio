@@ -6,7 +6,7 @@ import { adaptCategory } from "@/content/adapters/category";
 import { sanityClient } from "@/sanity/client";
 import { sanityCacheOptions } from "@/sanity/cache";
 
-const categoriesQuery = `
+export const categoriesQuery = `
   *[_type == "category"] | order(order asc) {
     _id,
     name,
