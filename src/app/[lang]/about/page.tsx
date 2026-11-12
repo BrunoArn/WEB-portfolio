@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/seo/JsonLd";
+import { getProfileJsonLd } from "@/seo/structured-data";
 import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
@@ -65,6 +67,7 @@ export default async function AboutPage({
 
     return (
         <main className={`${backgroundStyles.page} pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)`}>
+            <JsonLd data={getProfileJsonLd(lang, dictionary.navigation.about, about)} />
             <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">

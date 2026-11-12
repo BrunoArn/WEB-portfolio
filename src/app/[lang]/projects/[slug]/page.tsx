@@ -1,6 +1,8 @@
 import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { JsonLd } from "@/seo/JsonLd";
+import { getProjectJsonLd } from "@/seo/structured-data";
 import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { accentStyle } from "@/styles/accent";
@@ -112,6 +114,7 @@ export default async function ProjectPage({
     return (
         <ViewTransition default="none" enter="project-page-enter">
             <main data-project-detail className={backgroundStyles.page} style={accentStyle(project.accentColor)}>
+                <JsonLd data={getProjectJsonLd(lang, dictionary.site.name, project)} />
                 <AtlasBackground
                     projectSlug={project.slug}
                     locale={lang}

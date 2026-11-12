@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/seo/JsonLd";
+import { getWebsiteJsonLd } from "@/seo/structured-data";
 import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates } from "@/seo/international";
 import { notFound } from "next/navigation";
@@ -38,5 +40,10 @@ export default async function HomePage({ params }: HomePageProps) {
 
   const [dictionary, data] = await Promise.all([getDictionary(lang), getAtlasData()]);
   const content = adaptAtlasContent(data, lang, dictionary.atlas.content);
-  return <AtlasMap locale={lang} labels={dictionary.atlas} content={content} />;
+  return (
+    <>
+      <JsonLd data={getWebsiteJsonLd(dictionary.site.name)} />
+      <AtlasMap locale={lang} labels={dictionary.atlas} content={content} />
+    </>
+  );
 }
