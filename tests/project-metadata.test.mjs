@@ -18,7 +18,7 @@ const fixture=()=>({
  cover:{_type:'projectImage',alt:{pt:'Capa principal',en:'Main cover'},image:{asset:{_id:'image-fixture',url:'https://cdn.sanity.io/fixture.png',metadata:{dimensions:{width:1600,height:900}}}}},
 });
 
-function pageMetadata(route,project=fixture(),getAbout=async()=>({}),repositories={}){
+function pageMetadata(route,project=fixture(),getAbout=async()=>({introduction:'About introduction.'}),repositories={}){
  const filename=file(route);const overrides={};
  for(const match of readFileSync(filename,'utf8').matchAll(/(?:from\s*|import\s*)["'](@\/[^"']+)["']/g))overrides[match[1]]={};
  Object.assign(overrides,{
@@ -36,6 +36,7 @@ function pageMetadata(route,project=fixture(),getAbout=async()=>({}),repositorie
   ...repositories,
   '@/seo/international':seo,
   '@/seo/social':social,
+  '@/seo/about':load(file('src/seo/about.ts')),
   '@/sanity/repositories/about':{getAbout},
   'next/navigation':{notFound:()=>{throw new Error('TEST_NOT_FOUND');}},
   'next/font/google':{Geist:()=>({variable:'geist'}),Inter:()=>({variable:'inter'})},
@@ -89,7 +90,7 @@ for(const locale of ['pt','en']){
   const projects=await pageMetadata('src/app/[lang]/projects/page.tsx')({params});
   assert.deepEqual({title:projects.title,description:projects.description},{title:dictionary.navigation.projects,description:dictionary.projects.description});
   const about=await pageMetadata('src/app/[lang]/about/page.tsx')({params});
-  assert.deepEqual({title:about.title,description:about.description},{title:dictionary.navigation.about,description:dictionary.metadata.about.description});
+  assert.deepEqual({title:about.title,description:about.description},{title:dictionary.navigation.about,description:'About introduction.'});
   const layout=await pageMetadata('src/app/[lang]/layout.tsx')({params});
   assert.equal(layout.title.template,'%s | Bruno Arnaud');assert.equal(layout.description,dictionary.site.description);
   assert.notEqual(home.description,projects.description);assert.notEqual(about.description,projects.description);
@@ -143,7 +144,7 @@ test('Metadata API emits reciprocal URLs and skips unavailable translations',asy
   });
   const metadata=await generate({params:Promise.resolve({lang:'pt',slug:'fixture'})});
   assert.deepEqual(metadata.alternates.languages,{pt:origin+'/pt/projects/fixture'});
-  const about=pageMetadata('src/app/[lang]/about/page.tsx',fixture(),async(lang)=>lang==='pt'?{}:null);
+  const about=pageMetadata('src/app/[lang]/about/page.tsx',fixture(),async(lang)=>lang==='pt'?{introduction:'About introduction.'}:null);
   assert.deepEqual((await about({params:Promise.resolve({lang:'pt'})})).alternates.languages,{pt:origin+'/pt/about'});
   await assert.rejects(about({params:Promise.resolve({lang:'en'})}),/TEST_NOT_FOUND/);
   const preview=await pageMetadata('src/app/[lang]/atlas-preview/page.tsx')({params:Promise.resolve({lang:'pt'})});

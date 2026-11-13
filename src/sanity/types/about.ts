@@ -54,6 +54,10 @@ export interface SanityAbout {
     name: string;
     headline: LocalizedValue;
     introduction: LocalizedValue;
+    seo?: {
+        title?: Partial<LocalizedValue> | null;
+        description?: Partial<LocalizedValue> | null;
+    } | null;
 
     experience: SanityAboutExperience[];
     education: SanityAboutEducation[];

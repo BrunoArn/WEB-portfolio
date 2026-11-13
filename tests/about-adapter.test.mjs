@@ -65,6 +65,7 @@ for (const lang of ["pt", "en"]) {
         assert.deepEqual(adaptAbout(base, lang), {
             name: "QA Name", email: "qa@example.com", headline: base.headline[lang],
             introduction: base.introduction[lang],
+            seo: {title: undefined, description: undefined},
             experience: [{ id: "exp", role: base.experience[0].role[lang], organization: "Org",
                 startYear: 2020, endYear: 2025, isCurrent: false, description: base.experience[0].description[lang] }],
             education: [{ id: "edu", degree: base.education[0].degree[lang], institution: "College",
