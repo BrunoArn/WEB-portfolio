@@ -6,6 +6,7 @@ export const aboutQuery = `
     name,
     headline,
     introduction,
+    seo{title, description},
 
     "experience": coalesce(
       experience[]{

@@ -40,6 +40,7 @@ export interface About {
     name: string;
     headline: string;
     introduction: string;
+    seo?: { title?: string; description?: string };
 
     experience: AboutExperience[];
     education: AboutEducation[];

@@ -20,6 +20,7 @@ import type {
 
 import {
     resolveLocalizedValue,
+    resolveOptionalLocalizedValue,
     type ContentLanguage,
 } from "./localization";
 
@@ -201,6 +202,10 @@ export function adaptAbout(
         name: about.name,
         headline: resolveLocalizedValue(about.headline, language),
         introduction: resolveLocalizedValue(about.introduction, language),
+        seo: {
+            title: resolveOptionalLocalizedValue(about.seo?.title, language),
+            description: resolveOptionalLocalizedValue(about.seo?.description, language),
+        },
 
         experience: collectionEntries(about.experience, "experience").map((entry) =>
             adaptExperience(entry, language),

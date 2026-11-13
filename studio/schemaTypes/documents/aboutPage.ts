@@ -7,6 +7,35 @@ export const aboutPage = defineType({
 
     fields: [
         defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'object',
+            description: 'Optional search and social metadata. Empty fields fall back to the About content.',
+            options: {collapsible: true, collapsed: false},
+            fields: [
+                defineField({
+                    name: 'title',
+                    title: 'SEO Title',
+                    type: 'localizedString',
+                    description: 'Complete editorial title, including the name when desired. No suffix is added.',
+                    validation: (rule) => rule.custom((value: {pt?: string; en?: string} | undefined) =>
+                        !value || [value.pt, value.en].every((text) => !text || text.trim().length <= 70)
+                            ? true : 'Prefer SEO titles of up to 70 characters per language.'
+                    ).warning(),
+                }),
+                defineField({
+                    name: 'description',
+                    title: 'SEO Description',
+                    type: 'localizedText',
+                    description: 'A concise summary for search and social previews, separate from the visible introduction.',
+                    validation: (rule) => rule.custom((value: {pt?: string; en?: string} | undefined) =>
+                        !value || [value.pt, value.en].every((text) => !text || text.trim().length <= 160)
+                            ? true : 'Prefer SEO descriptions of up to 160 characters per language.'
+                    ).warning(),
+                }),
+            ],
+        }),
+        defineField({
             name: 'name',
             title: 'Professional Name',
             type: 'string',

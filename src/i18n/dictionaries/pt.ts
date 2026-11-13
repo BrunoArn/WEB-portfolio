@@ -10,9 +10,6 @@ const pt = {
       title: site.name + " | Desenvolvimento de jogos, Unity e VR/XR",
       description: "Portfólio de Bruno Arnaud: desenvolvimento de jogos em Unity e C#, experiências VR/XR e projetos interativos.",
     },
-    about: {
-      description: "Trajetória de Bruno Arnaud: formação em Design de Mídia Digital na PUC-Rio e experiência profissional desde 2020 com Unity, C# e VR/XR.",
-    },
   },
   navigation: {
     menu: "MENU",

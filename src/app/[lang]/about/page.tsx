@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/seo/JsonLd";
 import { getProfileJsonLd } from "@/seo/structured-data";
+import { summarizeAboutIntroduction } from "@/seo/about";
 import { getSocialMetadata } from "@/seo/social";
 import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
@@ -33,13 +34,14 @@ export async function generateMetadata({
 
     const dictionary = await getDictionary(lang);
 
-    if (!(await getAbout(lang))) notFound();
+    const about = await getAbout(lang);
+    if (!about) notFound();
     const hasTranslation = await hasLocalizedPage(() => getAbout(otherLocale(lang)));
 
     const metadata = {
         ...getPublicAlternates(lang, { route: "about" }, hasTranslation),
-        title: dictionary.navigation.about,
-        description: dictionary.metadata.about.description,
+        title: about.seo?.title ? { absolute: about.seo.title } : dictionary.navigation.about,
+        description: about.seo?.description ?? summarizeAboutIntroduction(about.introduction),
     };
 
     return {
