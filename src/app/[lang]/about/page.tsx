@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/seo/JsonLd";
+import { getProfileJsonLd } from "@/seo/structured-data";
+import { getSocialMetadata } from "@/seo/social";
+import { getPublicAlternates, hasLocalizedPage, otherLocale } from "@/seo/international";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/layout/Container";
@@ -29,8 +33,18 @@ export async function generateMetadata({
 
     const dictionary = await getDictionary(lang);
 
-    return {
+    if (!(await getAbout(lang))) notFound();
+    const hasTranslation = await hasLocalizedPage(() => getAbout(otherLocale(lang)));
+
+    const metadata = {
+        ...getPublicAlternates(lang, { route: "about" }, hasTranslation),
         title: dictionary.navigation.about,
+        description: dictionary.metadata.about.description,
+    };
+
+    return {
+        ...metadata,
+        ...getSocialMetadata(metadata, lang, "about", dictionary.site.name),
     };
 }
 
@@ -53,6 +67,7 @@ export default async function AboutPage({
 
     return (
         <main className={`${backgroundStyles.page} pb-(--section-spacing-mobile) md:pb-(--section-spacing-desktop)`}>
+            <JsonLd data={getProfileJsonLd(lang, dictionary.navigation.about, about)} />
             <AtlasBackground locale={lang} labels={dictionary.atlas} />
             <Container>
                 <section className="py-(--section-spacing-mobile) md:py-(--section-spacing-desktop)">

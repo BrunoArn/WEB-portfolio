@@ -5,6 +5,19 @@ export interface LocalizedValue {
 
 export type ContentLanguage = keyof LocalizedValue;
 
+/** Optional editorial overrides never borrow another language or invalidate a page. */
+export function resolveOptionalLocalizedValue(
+  value: Partial<LocalizedValue> | null | undefined,
+  language: ContentLanguage,
+): string | undefined {
+  const localizedValue = value?.[language];
+  return typeof localizedValue === "string" && localizedValue.trim()
+    ? localizedValue.trim()
+    : undefined;
+}
+
+export class MissingLocalizedValueError extends Error {}
+
 export function resolveLocalizedValue(
   value: LocalizedValue | null | undefined,
   language: ContentLanguage,
@@ -15,7 +28,7 @@ export function resolveLocalizedValue(
     typeof localizedValue !== "string" ||
     localizedValue.trim().length === 0
   ) {
-    throw new Error(
+    throw new MissingLocalizedValueError(
       `Missing localized value for language "${language}".`,
     );
   }

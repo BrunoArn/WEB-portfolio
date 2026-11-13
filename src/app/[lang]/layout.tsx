@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getIndexingMetadata } from "@/seo/international";
 import { siteLinks } from "@/config/site";
 import { notFound } from "next/navigation";
 import { Geist, Inter } from "next/font/google";
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
       default: dictionary.site.name,
       template: "%s | " + dictionary.site.name,
     },
+    ...getIndexingMetadata(),
     description: dictionary.site.description,
   };
 }

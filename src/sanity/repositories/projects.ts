@@ -2,6 +2,8 @@ import type { Project, ProjectCardData } from "@/content/types/project";
 import type { ContentLanguage } from "@/content/adapters/localization";
 import type { SanityProject, SanityProjectCard } from "@/sanity/types/project";
 
+import { cache } from "react";
+import { canRenderProjectCards, isRenderable } from "../../content/adapters/availability";
 import { adaptProject, adaptProjectCard } from "@/content/adapters/project";
 import { sanityClient } from "@/sanity/client";
 import { sanityCacheOptions } from "@/sanity/cache";
@@ -27,14 +29,18 @@ const projectCardsQuery = `
   }
 `;
 
+const loadProjectCards = cache(() =>
+    sanityClient.fetch<SanityProjectCard[]>(projectCardsQuery, {}, projectFetchOptions),
+);
+
+export async function hasRenderableProjectCards(language: ContentLanguage): Promise<boolean> {
+    return canRenderProjectCards(await loadProjectCards(), language);
+}
+
 export async function getProjectCards(
     language: ContentLanguage,
 ): Promise<ProjectCardData[]> {
-    const projects = await sanityClient.fetch<SanityProjectCard[]>(
-        projectCardsQuery,
-        {},
-        projectFetchOptions,
-    );
+    const projects = await loadProjectCards();
 
     return projects.map((project) =>
         adaptProjectCard(project, language),
@@ -47,15 +53,22 @@ const projectBySlugQuery = `
   }
 `;
 
+const loadProjectBySlug = cache((slug: string) =>
+    sanityClient.fetch<SanityProject | null>(projectBySlugQuery, { slug }, projectFetchOptions),
+);
+
+export async function hasRenderableProjectAlternate(slug: string, language: ContentLanguage): Promise<boolean> {
+    const project = await loadProjectBySlug(slug);
+    if (!project || !isRenderable(() => adaptProject(project, language))) return false;
+
+    return hasRenderableProjectCards(language);
+}
+
 export async function getProjectBySlug(
     slug: string,
     language: ContentLanguage,
 ): Promise<Project | null> {
-    const project = await sanityClient.fetch<SanityProject | null>(
-        projectBySlugQuery,
-        { slug },
-        projectFetchOptions,
-    );
+    const project = await loadProjectBySlug(slug);
 
     return project
         ? adaptProject(project, language)

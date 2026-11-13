@@ -5,6 +5,15 @@ const site = {
 
 const en = {
   site,
+  metadata: {
+    home: {
+      title: site.name + " | Game Development, Unity & VR/XR",
+      description: "Bruno Arnaud's portfolio: Unity and C# game development, VR/XR experiences and interactive projects.",
+    },
+    about: {
+      description: "Bruno Arnaud's background: Digital Media Design at PUC-Rio and professional experience since 2020 with Unity, C# and VR/XR.",
+    },
+  },
   navigation: {
     menu: "MENU",
     close: "CLOSE",

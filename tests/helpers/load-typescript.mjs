@@ -15,7 +15,7 @@ export function createTypeScriptLoader({globals,overrides={}}={}){
   if(Object.hasOwn(overrides,filename))return overrides[filename];
   if(modules.has(filename))return modules.get(filename).exports;
   const loaded={exports:{}};modules.set(filename,loaded);
-  const source=ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+  const source=ts.transpileModule(readFileSync(filename,'utf8'),{fileName:filename,compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   const localRequire=id=>{
    if(Object.hasOwn(overrides,id))return overrides[id];
    if(id.startsWith('.'))return load(resolve(dirname(filename),extname(id)?id:id+'.ts'));
