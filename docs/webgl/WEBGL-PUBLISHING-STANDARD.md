@@ -58,6 +58,8 @@ Versão do Unity, resolução, proporção e nomes de arquivos são específicos
 
 Mudanças de versão do Editor, template, compressão, fallback ou threading exigem nova validação. A entrega nativa Brotli requer headers correspondentes; WebAssembly usa `application/wasm`. Não misturar artefatos de builds diferentes. Referência: [Unity 6000.3 — Deploy a Web application](https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-deploying.html).
 
+**Template versionado (consolidação de 24/11/2026):** fonte reutilizável, contrato de teclado e instalação em [unity/README.md](../../unity/README.md). Bloomancer, Hungry Worm e 2D RPG passaram em validação local e integrada PT/EN em Chrome/Edge; consultar os [resultados e limites](../../poc/webgl-keyboard-html/README.md). A publicação e a validação no destino remoto continuam separadas; esta consolidação não cria versões nem atualiza jogos automaticamente.
+
 ## 3. Cloudflare R2 Structure
 
 Bucket informado: `portfolio-webgl`. Estrutura atual da POC, corroborada pelo build local e pelas URLs consultadas:
@@ -79,11 +81,32 @@ portfolio-webgl
 
 R2 usa chaves de objetos; as pastas representam prefixos. Preservar exatamente maiúsculas/minúsculas e nomes, incluindo `Games`, `Bloomancer`, `Build` e `TemplateData`. Usar `/` nas chaves remotas. O nome comercial Bloomancer não exige renomear arquivos compilados `8-bitty.*`.
 
-**Convenção reutilizável recomendada:** `Games/<NomeEstavelDoProjeto>/v<N>/`. Escolher um nome estável e manter sua capitalização. Publicar versões completas em prefixos novos, como `v2`, `v3`; nunca substituir parcialmente arquivos de uma versão já referenciada pelo CMS.
+**Convenção reutilizável recomendada:** `Games/<NomeEstavelDoProjeto>/v<N>/`. Escolher um nome estável e manter sua capitalização. Publicar novos builds Unity completos em prefixos novos, como `v2`, `v3`. A correção exclusivamente HTML de teclado da Etapa 12.6.1 é a exceção aprovada descrita abaixo; ela não substitui loader ou binários.
 
 Para uma nova versão: exportar, enviar todos os arquivos ao novo prefixo, validar a execução independente e integrada e só então atualizar `playable.source`. Publicar o `index.html` por último reduz a exposição de uma entrada incompleta; a troca de versão no CMS é o ponto de ativação editorial, não uma operação atômica de upload.
 
-**Rollback:** restaurar no Sanity a URL da versão anterior já validada e suas dimensões, caso tenham mudado; confirmar a atualização na página publicada. Manter as versões anteriores disponíveis enquanto forem necessárias para rollback ou ainda houver referências. Não depender de sobrescrever `v1` nem de apagar objetos para voltar uma versão.
+**Rollback de build completo:** restaurar no Sanity a URL da versão anterior já validada e suas dimensões, caso tenham mudado; confirmar a atualização na página publicada. Manter as versões anteriores disponíveis enquanto forem necessárias para rollback ou ainda houver referências. O rollback da correção HTML na mesma v1 segue o procedimento específico abaixo.
+
+### Correção atual de teclado — somente index.html na v1
+
+Decisão aprovada para a Etapa 12.6.1: substituir **somente o index.html** dos três jogos nos objetos existentes, sem criar v2, recompilar, alterar Build/ ou trocar URLs no Sanity:
+
+| Jogo | Chave do objeto no bucket portfolio-webgl | Candidata local |
+| --- | --- | --- |
+| Bloomancer | `Games/Bloomancer/v1/index.html` | `poc/webgl-keyboard-html/bloomancer.html` |
+| Hungry Worm | `Games/HungryWorm/v1/index.html` | `poc/webgl-keyboard-html/hungry-worm.html` |
+| 2D RPG Project | `Games/2DRPGProject/v1/index.html` | `poc/webgl-keyboard-html/2d-rpg.html` |
+
+Procedimento manual, a executar somente na publicação autorizada:
+
+1. **Antes do primeiro upload, fazer backup dos três HTMLs efetivamente publicados no R2**, por leitura dos objetos da conta/bucket corretos, sem depender da cópia local do export nem de resposta possivelmente antiga da CDN. Guardar os corpos originais e registrar chave, data, SHA-256 e metadados de cada objeto. Conferir a integridade do backup e os hashes de uma segunda leitura dos objetos; se divergirem, interromper e investigar. ETag não deve ser tratado como SHA-256.
+2. Comparar cada original remoto com a candidata local, conferir o diff aprovado e registrar também o SHA-256 candidato. Se houver diferenças além do canvas/listener esperado ou incompatibilidade com os recursos publicados, interromper para revisão; não sobrescrever com base somente no teste local.
+3. Substituir um HTML por vez na **mesma chave v1**, preservando os metadados HTTP configurados no objeto: Content-Type, Cache-Control e, quando existentes, Content-Encoding, Content-Disposition, Content-Language e Expires. Não inferir valores pelo nome do arquivo nem aplicar compressão nova. Registrar ETag/Last-Modified para diagnóstico; esses valores são regenerados pela escrita, não restaurados manualmente como se fossem metadados configuráveis.
+4. Após cada substituição, conferir o corpo servido e seu hash (considerando eventual compressão HTTP), status e headers. Abrir o jogo isoladamente e no ProjectPlayable PT/EN; validar Tab/Shift+Tab, controles próprios, retorno à mesma instância, ESC e fechar/reabrir antes de prosseguir ao próximo jogo.
+5. Verificar cache do navegador e da CDN nas URLs existentes. Confirmar que o HTML atualizado chega também em uma recarga normal, não apenas com cache desativado. Se ainda houver HTML antigo em cache, invalidar/purgar as URLs de index.html afetadas conforme a configuração efetiva e repetir a conferência. Não invalidar ou reenviar binários sem necessidade; o webhook Sanity não invalida esse HTML.
+6. Em caso de regressão, restaurar **o HTML original remoto do backup** na mesma chave, com seus metadados HTTP, conferir o hash restaurado e tratar novamente o cache do HTML. Repetir o QA e interromper a sequência de atualização até revisar a causa. O rollback desta correção não exige trocar a URL no CMS.
+
+Esta seção altera o procedimento, não registra uploads executados. Para novos builds Unity completos, continuam válidos os diretórios versionados e o fluxo de upload integral abaixo.
 
 ## 4. Upload Procedure — Wrangler
 
@@ -314,7 +337,7 @@ Preencher por jogo e versão. Registrar data, responsável, URL, versão Unity, 
 | Arquivos 404 | Comparar URL requisitada com chave remota: prefixo, versão, capitalização, nome completo e subpastas. Confirmar upload remoto e acesso público. |
 | URLs relativas incorretas | Abrir o HTML e conferir `Build/...`, `StreamingAssets` e outros caminhos. Manter a árvore relativa original; caminhos absolutos começando por `/` apontam para a raiz do host, não para a pasta da versão. |
 | Canvas com proporção errada | Comparar `width/height` do CMS com o build e conferir CSS/viewport do template. O aspectRatio do wrapper não controla sozinho o canvas interno. |
-| Conteúdo antigo/cache inesperado | Confirmar URL e versão do CMS, ETag e origem da resposta. Testar sem cache e, em perfil de QA, sem dados persistidos do loader. Publicar nova versão em prefixo novo; não misturar loader novo com binários antigos. |
+| Conteúdo antigo/cache inesperado | Confirmar URL e versão do CMS, ETag e origem da resposta. Testar sem cache e, em perfil de QA, sem dados persistidos do loader. Para build completo, publicar nova versão em prefixo novo; para a correção HTML da Etapa 12.6.1, conferir corpo/hash e invalidar somente o HTML conforme a seção 3. Não misturar loader novo com binários antigos. |
 | Falha de carregamento sem mensagem no portfólio | Consultar Console e Network do frame e abrir a URL isoladamente; verificar rede, HTTPS, memória disponível, erro de runtime e política de embedding. O wrapper não tem timeout/erro próprio. |
 | Template incompatível | Revalidar viewport, canvas, paths e APIs do template na versão Unity usada. `PortfolioResponsive` validado com Bloomancer não certifica templates diferentes. |
 | Jogo isolado funciona, iframe falha | Conferir CSP `frame-src` do pai, `frame-ancestors`/X-Frame-Options do documento incorporado e políticas/permissões efetivas. Avaliar também armazenamento, áudio e recursos dependentes de interação. |

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Bloomancer keyboard POC — local harness</title>
+<style>
+  body { max-width: 1000px; margin: 16px auto; padding: 0 16px; font: 16px system-ui; color: #eef; background: #151923; }
+  h1 { font-size: 22px; margin: 12px 0; }
+  p { margin: 8px 0; }
+  nav { display: flex; gap: 16px; margin: 12px 0; }
+  a { color: #9de; }
+  button { font: inherit; padding: 8px 12px; }
+  :focus-visible { outline: 3px solid #f9c76b; outline-offset: 3px; }
+  #slot { margin: 12px 0; width: 960px; max-width: 100%; aspect-ratio: 960 / 600; background: #000; }
+  iframe { display: block; width: 100%; height: 100%; border: 0; }
+</style>
+<h1>Bloomancer keyboard POC — local harness</h1>
+<p>This is not the portfolio. The game uses a separate local HTTP origin.</p>
+<nav><a href="?variant=original">Original baseline</a><a href="?variant=poc">HTML-only POC</a></nav>
+<p id="variant"></p>
+<p>POC: Tab leaves the canvas forwards; Shift+Tab leaves backwards. Other game keys are unchanged.</p>
+<button id="toggle" type="button">Play</button>
+<div id="slot"></div>
+<button id="after" type="button">Control after the game</button>
+<p id="status" role="status">No game mounted.</p>
+<script>
+  const variant = new URLSearchParams(location.search).get('variant') === 'original' ? 'original' : 'poc';
+  document.querySelector('#variant').textContent = 'Variant: ' + variant;
+  const toggle = document.querySelector('#toggle');
+  const slot = document.querySelector('#slot');
+  toggle.addEventListener('click', () => {
+    if (slot.firstChild) {
+      slot.replaceChildren();
+      toggle.textContent = 'Play';
+      document.querySelector('#status').textContent = 'Game removed.';
+    } else {
+      const frame = document.createElement('iframe');
+      const gameOrigin = new URL(location.href);
+      gameOrigin.port = String(Number(location.port) + 1);
+      frame.src = new URL(variant === 'poc' ? '/poc/bloomancer.html' : '/original/index.html', gameOrigin).href;
+      frame.title = 'Bloomancer local keyboard ' + variant;
+      frame.allow = 'fullscreen; gamepad';
+      frame.allowFullscreen = true;
+      slot.append(frame);
+      toggle.textContent = 'Close game';
+      document.querySelector('#status').textContent = 'Game mounted. Focus initially stays on Close game.';
+    }
+    toggle.focus();
+  });
+  document.querySelector('#after').addEventListener('click', () => {
+    document.querySelector('#status').textContent = 'External control activated.';
+  });
+</script>
+</html>
