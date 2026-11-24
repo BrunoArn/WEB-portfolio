@@ -62,7 +62,7 @@ O [índice de validação](../poc/webgl-keyboard-html/README.md) reúne fontes, 
 
 Os projetos Hungry Worm e RPG selecionam o mesmo template externo. Não foi encontrado conflito de Tab nos comandos inspecionados ou exercitados. Isso não certifica todos os menus, builds futuros, navegadores ou acessibilidade completa do jogo.
 
-Para atualizar os exports existentes após aprovação da publicação: usar a candidata correspondente e preservar seus nomes, dimensões e recursos. Não substituir o HTML de um jogo pelo export de outro. O pequeno diff HTML não exige recompilar os binários. A publicação futura precisa de destino versionado completo, QA de headers/URL e manutenção de v1 para rollback. Nenhuma nova versão foi criada nesta missão.
+Para a correção atual de teclado, a decisão aprovada é atualizar somente o `index.html` dos três jogos na v1 existente, usando a candidata correspondente, sem recompilar ou alterar recursos. Antes de qualquer upload, fazer backup dos três HTMLs efetivamente publicados no R2 e conferir seus hashes; cópias locais dos exports não substituem esse backup. Preservar os metadados HTTP, validar cada jogo, verificar cache e invalidar o HTML quando necessário e restaurar o original remoto em caso de regressão. Seguir o [procedimento específico da seção 3](../docs/webgl/WEBGL-PUBLISHING-STANDARD.md#3-cloudflare-r2-structure). Novos builds Unity completos continuam em novos diretórios versionados.
 
 ## Testes desta padronização
 
@@ -86,6 +86,6 @@ O HTML materializado do template foi testado no harness; não se repetiu a integ
 
 Revisar os commits da consolidação e os relatórios antes de abrir PR quando autorizado. O backup externo preserva capturas, resultados brutos e alterações preexistentes do Studio; esses artefatos não entram no Git. Não há mudança de aplicação Next.js nem referência automática a estes HTMLs.
 
-A futura exportação normal pelo Editor deve certificar o processamento Unity do template-fonte. Definir o QA adicional dos navegadores/dispositivos suportados. Para publicar os exports atuais, seguir o procedimento versionado somente após autorização; não sobrescrever v1, não criar v2 durante a consolidação e não trocar URLs do CMS antecipadamente.
+A futura exportação normal pelo Editor deve certificar o processamento Unity do template-fonte. Definir o QA adicional dos navegadores/dispositivos suportados. Para a correção HTML atual, seguir o procedimento de backup, substituição de index.html na v1, validação, cache e rollback somente após autorização de publicação. Não criar v2 nem trocar URLs do CMS para essa correção. Novos builds completos seguem o fluxo de versionamento.
 
 Originais externos, HTMLs/recursos dos três builds e alterações preexistentes do Studio foram preservados. Não foram alterados production, R2, Sanity ou Railway.
