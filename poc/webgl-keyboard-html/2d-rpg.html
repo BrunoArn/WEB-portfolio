@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity Web Player | 2D RPG</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no" />
+
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    body {
+      position: relative;
+    }
+
+    #unity-canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="unity-canvas" width=960 height=600 tabindex="0" aria-label="2D RPG"
+    style="background: #231F20"></canvas>
+  <script>
+    // Let the browser move focus across the iframe boundary.
+    // Capture before Unity handles Tab; keep the native default action intact.
+    window.addEventListener("keydown", function allowNativeTab(event) {
+      if (event.key !== "Tab" || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
+      const active = document.activeElement;
+      const canvas = document.getElementById("unity-canvas");
+      if (active !== canvas && active !== document.body && active !== document.documentElement) return;
+      event.stopImmediatePropagation();
+    }, true);
+  </script>
+  <script src="Build/2D-RPG.loader.js"></script>
+  <script>
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      arguments: [],
+      dataUrl: "Build/2D-RPG.data.br",
+      frameworkUrl: "Build/2D-RPG.framework.js.br",
+        codeUrl: "Build/2D-RPG.wasm.br",
+        streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "2D RPG",
+      productVersion: "1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }).then((unityInstance) => {
+      }).catch((message) => {
+        alert(message);
+      });
+  </script>
+</body>
+
+</html>

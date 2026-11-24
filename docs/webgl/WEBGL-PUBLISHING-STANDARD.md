@@ -58,6 +58,8 @@ Versão do Unity, resolução, proporção e nomes de arquivos são específicos
 
 Mudanças de versão do Editor, template, compressão, fallback ou threading exigem nova validação. A entrega nativa Brotli requer headers correspondentes; WebAssembly usa `application/wasm`. Não misturar artefatos de builds diferentes. Referência: [Unity 6000.3 — Deploy a Web application](https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-deploying.html).
 
+**Template versionado (consolidação de 24/11/2026):** fonte reutilizável, contrato de teclado e instalação em [unity/README.md](../../unity/README.md). Bloomancer, Hungry Worm e 2D RPG passaram em validação local e integrada PT/EN em Chrome/Edge; consultar os [resultados e limites](../../poc/webgl-keyboard-html/README.md). A publicação e a validação no destino remoto continuam separadas; esta consolidação não cria versões nem atualiza jogos automaticamente.
+
 ## 3. Cloudflare R2 Structure
 
 Bucket informado: `portfolio-webgl`. Estrutura atual da POC, corroborada pelo build local e pelas URLs consultadas:
