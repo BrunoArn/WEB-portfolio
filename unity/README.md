@@ -58,7 +58,7 @@ Referência: [Unity 6000.3 — Web templates](https://docs.unity.com/en-us/engin
 | Hungry Worm | `Hungry-Worm.*`, 960×640 | Espaço e mouse esquerdo | PASS no harness e ProjectPlayable PT/EN em Chrome/Edge |
 | 2D RPG | `2D-RPG.*`, 960×600 | WASD, ataque, dash, slots 1–5 | PASS funcional no harness e ProjectPlayable PT/EN em Chrome/Edge; timeout de GIF repetido sem erro |
 
-O [índice de validação](../poc/webgl-keyboard-html/README.md) reúne fontes, resultados e limitações. Os três HTMLs candidatos estão versionados como fontes, sem binários. Todos conservam o mesmo listener do template; os originais externos continuam intactos. O Bloomancer histórico mantém a identificação acessível da primeira POC; futuras exportações seguem PRODUCT_NAME deste template.
+O [índice histórico de validação](https://github.com/BrunoArn/WEB-portfolio/blob/620566f67df52ae175cb9deb5598b93d7c9e7b83/poc/webgl-keyboard-html/README.md) preserva fontes, resultados e limitações dos três jogos. A pasta temporária da POC foi removida do checkout; os HTMLs e relatórios continuam disponíveis no histórico do Git. O template oficial permanece em unity/WebGLTemplates/PortfolioResponsive e usa PRODUCT_NAME na identificação acessível.
 
 Os projetos Hungry Worm e RPG selecionam o mesmo template externo. Não foi encontrado conflito de Tab nos comandos inspecionados ou exercitados. Isso não certifica todos os menus, builds futuros, navegadores ou acessibilidade completa do jogo.
 
@@ -69,10 +69,10 @@ Para a correção atual de teclado, a decisão aprovada é atualizar somente o `
 Com Node disponível, sem instalação de dependências:
 
 ```powershell
-node --test unity/tests/template.test.mjs unity/tests/exported-html.test.mjs
+node --test unity/tests/template.test.mjs
 ```
 
-O teste de template cobre: estrutura e ordem de scripts; oito combinações de condicionais; nome acessível com aspas/ampersand/ângulos; matriz de eventos verificando o escopo do listener e preservação da ação padrão. Os caminhos relativos e a sintaxe dos scripts materializados foram conferidos. Mais três testes verificam cada HTML candidato contra o listener padrão e reconstituem seu original em memória para conferir o SHA-256, detectando alterações indevidas de layout, inicialização ou caminhos. O teste de condicionais é uma simulação local das diretivas usadas aqui, não uma exportação pelo Editor.
+O teste de template cobre: estrutura e ordem de scripts; oito combinações de condicionais; nome acessível com aspas/ampersand/ângulos; matriz de eventos verificando o escopo do listener e preservação da ação padrão. Os caminhos relativos e a sintaxe dos scripts materializados foram conferidos. As verificações dos HTMLs candidatos e os hashes originais estão registrados no histórico da POC; o teste que dependia daqueles arquivos temporários foi removido junto com eles. O teste de condicionais é uma simulação local das diretivas usadas aqui, não uma exportação pelo Editor.
 
 Para QA de navegador, o teste pode escrever HTML materializado mediante `UNITY_TEMPLATE_QA_PROFILE` (caminho de JSON com valores do export real) e `UNITY_TEMPLATE_QA_HTML` (destino externo ao template). É um recurso de QA, sem implementação no runtime. A materialização desta rodada usou os nomes e dimensões do Bloomancer existente; nenhum arquivo `.wasm`, `.data.br`, framework ou loader foi alterado.
 
