@@ -127,6 +127,7 @@ export function mountAtlasMotion(canvas: HTMLCanvasElement, viewport: HTMLElemen
             advanceAtlasPointer(line, pointerX, pointerY, over, speed, settings.pressure * (touchInput ? atlasTouchReference.pressureGain : 1), dt, unit, settings.mouseRadius, false, touchInput ? "touch" : "mouse");
     }
     const acceptsInput = () => active() && settings.pressure > 0 && visible && !document.hidden &&
+        viewport.dataset?.panDragging === undefined &&
         canvas.closest<HTMLElement>("[data-atlas-preview]")?.dataset.selection === "idle";
     // Inverse raster crop, world offset, profile scale and current camera.
     // Both input types use exactly the same screen-to-world transform.

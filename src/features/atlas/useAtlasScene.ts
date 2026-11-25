@@ -10,6 +10,7 @@ import { atlasMotionReference } from "./atlas-motion-settings";
 import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain } from "./atlas-engine";
 import { mountAtlasInteraction } from "./atlas-interaction";
+import { mountAtlasPan } from "./atlas-pan";
 import { mountAtlasEntrance } from "./atlas-entrance";
 type AtlasSceneOptions = {
     locale: Locale;
@@ -138,6 +139,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             if (!ready) flushSync(() => setShareCover(false));
             startTransition(() => router.push(href));
         };
+        const pan = mountAtlasPan(root.current, viewport.current, world.current, projectPlane.current, intro.current);
         const terrain = mountAtlasTerrain(
             canvas.current,
             viewport.current,
@@ -151,6 +153,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
                 staticFallback: webglFailed,
                 entrance: !entranceFinished.current,
                 onReady: () => entrance?.start(),
+                onProjection: pan.update,
                 onFallback: () => {
                     if (!cancelled) setWebglFailed(true);
                 },
@@ -174,6 +177,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
                 morph: morph.current,
             },
             terrain,
+            pan,
             content.projects,
             missingDescription,
             selectProject,
@@ -186,6 +190,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             entrance?.dispose();
             interaction.dispose();
             if (releaseSceneNavigation.current === interaction.releaseForNavigation) releaseSceneNavigation.current = null;
+            pan.dispose();
             terrain.dispose();
             terrainController.current = null;
         };

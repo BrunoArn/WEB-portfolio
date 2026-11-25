@@ -797,3 +797,86 @@
     text-align: left;
   }
 }
+/* Temporary controls for the adaptive camera proof. */
+.panControls {
+  display: none;
+}
+.root[data-selection="idle"] .viewport:is([data-pan-x], [data-pan-y]) {
+  cursor: grab;
+}
+.viewport:is([data-pan-x], [data-pan-y]) {
+  overflow: clip;
+}
+.viewport[data-pan-x] {
+  touch-action: pan-y pinch-zoom;
+}
+.viewport[data-pan-y] {
+  touch-action: pan-x pinch-zoom;
+}
+.viewport[data-pan-x][data-pan-y] {
+  touch-action: pinch-zoom;
+}
+.root[data-selection="idle"] .viewport[data-pan-dragging],
+.root[data-selection="idle"] .viewport[data-pan-dragging] * {
+  cursor: grabbing;
+  user-select: none;
+}
+.root[data-selection="idle"] .viewport:is([data-pan-x], [data-pan-y]) .panControls {
+  position: absolute;
+  inset: var(--atlas-pan-top, 0px) 0 var(--atlas-pan-bottom, 0px);
+  z-index: 3;
+  display: block;
+  pointer-events: none;
+}
+.viewport:is([data-pan-x], [data-pan-y]) .intro {
+  text-shadow: 0 1px 6px var(--atlas-background), 0 0 16px var(--atlas-background);
+}
+.viewport:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.panControls button {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  pointer-events: auto;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+}
+.panControls button[aria-disabled="true"] {
+  opacity: .5;
+  cursor: default;
+}
+.panControls button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.panControls button:is([data-pan-direction="left"], [data-pan-direction="right"]) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.panControls button[data-pan-direction="left"] { left: var(--space-8); }
+.panControls button[data-pan-direction="right"] { right: var(--space-8); }
+.panControls button:is([data-pan-direction="up"], [data-pan-direction="down"]) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.panControls button[data-pan-direction="up"] { top: 0; }
+.panControls button[data-pan-direction="down"] { bottom: 0; }
+.panHint {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-label);
+  text-shadow: 0 1px 6px var(--atlas-background), 0 0 12px var(--atlas-background);
+}
+.viewport[data-pan-y] .panHint {
+  bottom: var(--space-48);
+}

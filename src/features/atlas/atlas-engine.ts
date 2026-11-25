@@ -5,7 +5,8 @@ import { createAtlasGeometryCache } from "./atlas-geometry-cache";
 import { positionAtlasProjects, ribbonOutline } from "./atlas-geometry";
 import { createAtlasColorField } from "./atlas-field";
 import { writeAtlasColor } from "./atlas-color";
-import { getAtlasView, type AtlasBounds } from "./atlas-layout";
+import { getAtlasAdaptiveView, getAtlasView, type AtlasBounds } from "./atlas-layout";
+import type { AtlasPoint2D } from "./atlas-camera";
 import { resolveAtlasTerrainSettings, type AtlasTerrainSettings } from "../../../shared/atlas-terrain-settings";
 import type { AtlasMotionSettings } from "./atlas-motion-settings";
 import type { AtlasAnchor, AtlasTerritory } from "./atlas-types";
@@ -15,6 +16,7 @@ type TerrainOptions = {
   onFallback: () => void;
   entrance?: boolean;
   onReady?: () => void;
+  onProjection?: (view: ReturnType<typeof getAtlasView>, frame: DOMRect) => { domain: AtlasBounds; position: AtlasPoint2D };
 };
 
 type PreparedTerrain = {
@@ -101,6 +103,8 @@ export function mountAtlasTerrain(
   let disposed = false;
   let frame = 0;
   let projectedPlane: string | undefined;
+  let projectionKey: string | undefined;
+  let exploration: ReturnType<NonNullable<TerrainOptions["onProjection"]>> | undefined;
   let extension: AtlasBounds | undefined;
   let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
@@ -114,9 +118,29 @@ export function mountAtlasTerrain(
     if (!w || !h) return;
     const mobile = media.matches;
     const positioned = positionAtlasProjects(projects, mobile);
-    const view = getAtlasView(w, h, mobile);
+    const view = options.onProjection ? getAtlasAdaptiveView(w, h, mobile, window.innerHeight) : getAtlasView(w, h, mobile);
     const { world, scale, offsetX, offsetY, projectedWidth, projectedHeight } = view;
-    const domain = extension ?? { left: 0, top: 0, right: w, bottom: h };
+    const text = intro.getBoundingClientRect();
+    const planeKey = [offsetX, offsetY, projectedWidth, projectedHeight].join(",");
+    if (planeKey !== projectedPlane) {
+      Object.assign(projectPlane.style, {
+        left: offsetX + "px",
+        top: offsetY + "px",
+        width: projectedWidth + "px",
+        height: projectedHeight + "px",
+      });
+      projectPlane.dataset.projected = "true";
+      projectedPlane = planeKey;
+    }
+    const layoutKey = [w, h, window.innerWidth, window.innerHeight, planeKey, text.width, text.height].join(",");
+    if (options.onProjection && projectionKey !== layoutKey) {
+      const selected = viewport.closest("[data-atlas-preview]")?.getAttribute("data-selection");
+      if (selected === "idle") {
+        exploration = options.onProjection(view, rectangle);
+        projectionKey = layoutKey;
+      }
+    }
+    const domain = extension ?? exploration?.domain ?? { left: 0, top: 0, right: w, bottom: h };
     const screen = rasterCrop ?? domain;
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
     const requestedBounds = {
@@ -130,9 +154,9 @@ export function mountAtlasTerrain(
     const { bounds, key } = plan;
     const raster = atlasRasterResolution(width, height, window.devicePixelRatio || 1, rasterZoom);
     const dpr = raster.ratio;
-    const text = intro.getBoundingClientRect();
-    const cx = (text.left - rectangle.left + text.width / 2 - offsetX) / scale / world.width;
-    const cy = (text.top - rectangle.top + text.height / 2 - offsetY) / scale / world.height;
+    // The clearing is baked at the layout position. Pan itself only translates the world.
+    const cx = (text.left - rectangle.left + text.width / 2 - offsetX - (exploration?.position.x ?? 0)) / scale / world.width;
+    const cy = (text.top - rectangle.top + text.height / 2 - offsetY - (exploration?.position.y ?? 0)) / scale / world.height;
     const sx = (text.width / 2 + 28) / scale / world.width;
     const sy = (text.height / 2 + 26) / scale / world.height;
     const surfaceKey = JSON.stringify([key, screen, scale, offsetX, offsetY, raster, rasterZoom, cx, cy, sx, sy]);
@@ -196,17 +220,6 @@ export function mountAtlasTerrain(
     }
 
     render();
-    const planeKey = [offsetX, offsetY, projectedWidth, projectedHeight].join(",");
-    if (planeKey !== projectedPlane) {
-      Object.assign(projectPlane.style, {
-        left: offsetX + "px",
-        top: offsetY + "px",
-        width: projectedWidth + "px",
-        height: projectedHeight + "px",
-      });
-      projectPlane.dataset.projected = "true";
-      projectedPlane = planeKey;
-    }
     canvas.dataset.rasterZoom = String(rasterZoom);
     canvas.dataset.rasterRatio = String(dpr);
     canvas.dataset.rasterLimited = String(raster.limited);
@@ -241,7 +254,10 @@ export function mountAtlasTerrain(
 
   return {
     entranceAt(x: number, y: number) {
-      return gpu?.arrivalAt(x, y) ?? 0;
+      if (!gpu) return 0;
+      const frame = viewport.getBoundingClientRect(), surface = canvas.getBoundingClientRect();
+      return gpu.arrivalAt((frame.left + x * frame.width - surface.left) / surface.width,
+        (frame.top + y * frame.height - surface.top) / surface.height);
     },
     setReveal(progress: number) {
       revealProgress = Math.max(0, Math.min(1, progress));

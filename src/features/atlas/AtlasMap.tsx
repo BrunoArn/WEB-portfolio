@@ -12,6 +12,7 @@ import { AtlasThumbnail, atlasCardImageSizes } from "./AtlasThumbnail";
 import { prepareProjectCover } from "@/components/projects/ProjectCoverTransition";
 import { positionAtlasProjects } from "./atlas-geometry";
 import { atlasWorlds } from "./atlas-layout";
+import { atlasPanDirections } from "./atlas-camera";
 import type { AtlasContent } from "./atlas-types";
 import { useAtlasScene } from "./useAtlasScene";
 import styles from "./AtlasMap.module.css";
@@ -23,6 +24,8 @@ type AtlasMapProps = {
     showTerrainControls?: boolean;
     showMotionControls?: boolean;
 };
+
+const panArrows = { left: "←", right: "→", up: "↑", down: "↓" };
 
 const worldDimensions = {
     "--atlas-desktop-width": atlasWorlds.desktop.width,
@@ -83,7 +86,7 @@ export function AtlasMap({
                     <style>{`[data-atlas-preview] :is([data-atlas-project],[data-atlas-territory]){opacity:1!important;visibility:visible!important}`}</style>
                 </noscript>
 
-                <div className={styles.viewport} ref={viewport}>
+                <div className={styles.viewport} ref={viewport} role="region" aria-label={text.pan.region}>
                     <div className={styles.world} ref={world}>
                         <canvas
                             key={webglFailed ? "static" : "webgl"}
@@ -171,6 +174,14 @@ export function AtlasMap({
                             </IntentLink>
                         </h1>
                         <p className={styles.description}>{text.description}</p>
+                    </div>
+                    <div className={styles.panControls}>
+                        {atlasPanDirections.map(direction => (
+                            <button key={direction} type="button" data-pan-direction={direction} aria-label={text.pan[direction]} hidden>
+                                <span aria-hidden="true">{panArrows[direction]}</span>
+                            </button>
+                        ))}
+                        <p className={styles.panHint}>{text.pan.hint}</p>
                     </div>
                 </div>
 
