@@ -19,6 +19,7 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
   const controls = new Map(atlasPanDirections.map(direction => [
     direction, root.querySelector<HTMLButtonElement>(`[data-pan-direction="${direction}"]`)!,
   ]));
+  const descriptionId = root.querySelector("[data-pan-description]")?.id;
   let position = neutralAtlasPan;
   let limits = { minX: 0, maxX: 0, minY: 0, maxY: 0 };
   let metrics: { view: AtlasView; frame: DOMRect; safe: AtlasBounds } | undefined;
@@ -50,15 +51,20 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
       else button.setAttribute("aria-disabled", "true");
     }
   }
-  function apply(next: Point) {
-    position = clampAtlasPan(next, limits);
+  function apply(next: Point, deliberate = false) {
+    const clamped = clampAtlasPan(next, limits);
+    if (deliberate && !suspended && (clamped.x !== position.x || clamped.y !== position.y) &&
+      !viewport.hasAttribute("data-pan-learned")) {
+      viewport.setAttribute("data-pan-learned", "");
+    }
+    position = clamped;
     if (!suspended) world.style.transform = atlasCameraTransform(position);
     syncControls();
   }
   function flush() {
     cancelAnimationFrame(frameId);
     frameId = 0;
-    if (pending) apply(pending);
+    if (pending) apply(pending, true);
     pending = undefined;
   }
   function queue(next: Point) {
@@ -130,7 +136,7 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
     const x = metrics.frame.width * .33, y = metrics.frame.height * .33;
     const dx = direction === "left" ? x : direction === "right" ? -x : 0;
     const dy = direction === "up" ? y : direction === "down" ? -y : 0;
-    apply({ x: position.x + dx, y: position.y + dy });
+    apply({ x: position.x + dx, y: position.y + dy }, true);
   }
   function wheel(event: WheelEvent) {
     if (!available() || gesture || !metrics || !event.cancelable || event.ctrlKey || event.metaKey) return;
@@ -208,6 +214,8 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
       }
       const wasActive = active();
       limits = atlasPanLimits(view, area, safe, content);
+      if (active() && descriptionId) viewport.setAttribute("aria-describedby", descriptionId);
+      else viewport.removeAttribute("aria-describedby");
       const old = metrics;
       metrics = { view, frame, safe };
       const next = !active() ? neutralAtlasPan : !wasActive || !old

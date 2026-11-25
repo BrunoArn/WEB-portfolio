@@ -25,8 +25,6 @@ type AtlasMapProps = {
     showMotionControls?: boolean;
 };
 
-const panArrows = { left: "←", right: "→", up: "↑", down: "↓" };
-
 const worldDimensions = {
     "--atlas-desktop-width": atlasWorlds.desktop.width,
     "--atlas-desktop-height": atlasWorlds.desktop.height,
@@ -43,6 +41,7 @@ export function AtlasMap({
     showMotionControls = false,
 }: AtlasMapProps) {
     const dialogId = useId();
+    const panDescriptionId = useId();
     const preparedCardCover = useRef<string | null>(null);
     function prepareCardCover(src: string | undefined) {
         if (!src) return;
@@ -178,11 +177,12 @@ export function AtlasMap({
                     <div className={styles.panControls}>
                         {atlasPanDirections.map(direction => (
                             <button key={direction} type="button" data-pan-direction={direction} aria-label={text.pan[direction]} hidden>
-                                <span aria-hidden="true">{panArrows[direction]}</span>
+                                <span className={styles.panArrow} aria-hidden="true" />
                             </button>
                         ))}
-                        <p className={styles.panHint}>{text.pan.hint}</p>
+                        <p className={styles.panHint} data-pan-hint aria-hidden="true">{text.pan.hint}</p>
                     </div>
+                    <span hidden id={panDescriptionId} data-pan-description>{text.pan.keyboardHint}</span>
                 </div>
 
                 {/* React supplies localized link URLs. The interaction controller fills card copy
