@@ -348,8 +348,18 @@
 .root[data-selection="closing"] .project[data-selected] .trigger {
   visibility: hidden;
 }
-.intro, .project, .territory {
+.intro, .territory {
   transition: opacity .14s;
+}
+.project {
+  transition: opacity var(--motion-ui), visibility 0s;
+}
+.root[data-selection]:not([data-selection="idle"]) .project:not([data-selected]) {
+  pointer-events: none;
+}
+/* The card fades out in 140ms; reveal the markers during the camera return. */
+.root[data-selection="closing"] .project:not([data-selected]) {
+  transition-delay: var(--motion-fast), var(--motion-fast);
 }
 .root[data-selection]:not([data-selection="idle"]) .world {
   will-change: transform;
@@ -358,7 +368,10 @@
   opacity: 0;
 }
 .root:is([data-selection="opening"], [data-selection="selected"]) .project:not([data-selected]) {
-  opacity: .35;
+  opacity: 0;
+  visibility: hidden;
+  /* Keep visibility until the fade ends; the modal already makes the map inert. */
+  transition-delay: 0s, var(--motion-ui);
 }
 .root:is([data-selection="opening"], [data-selection="selected"]) .territory {
   opacity: .3;
