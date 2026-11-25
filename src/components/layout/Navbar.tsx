@@ -3,6 +3,8 @@
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import type { Locale } from "@/i18n/config";
 import { getNavigationState } from "@/components/navigation/navigation-state";
+import { AtlasReturnLink } from "./AtlasReturnLink";
+import returnStyles from "./AtlasReturnLink.module.css";
 import styles from "./Navbar.module.css";
 
 import { IntentLink } from "@/components/navigation/IntentLink";
@@ -11,6 +13,9 @@ import { usePathname } from "next/navigation";
 type NavbarProps = {
     currentLocale: Locale;
     labels: {
+        backToAtlas: string;
+        backToAtlasAriaLabel: string;
+        atlas: string;
         home: string;
         projects: string;
         about: string;
@@ -20,7 +25,7 @@ type NavbarProps = {
 export function Navbar({ labels, currentLocale }: NavbarProps) {
     const pathname = usePathname();
 
-    const { homePath, projectsPath, aboutPath, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
+    const { homePath, projectsPath, aboutPath, isProjectDetail, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
         getNavigationState(pathname, currentLocale);
 
     const navLinkClass = (isActive: boolean) =>
@@ -73,6 +78,11 @@ export function Navbar({ labels, currentLocale }: NavbarProps) {
 
                 <LocaleSwitcher currentLocale={currentLocale} />
             </nav>
+            {isProjectDetail && (
+                <div className={returnStyles.desktopRegion}>
+                    <AtlasReturnLink href={homePath} label={labels.backToAtlas} compactLabel={labels.atlas} accessibleLabel={labels.backToAtlasAriaLabel} />
+                </div>
+            )}
         </header>
     );
 }

@@ -18,6 +18,7 @@ import { ProjectMediaPreview } from "@/features/project-detail/ProjectMediaPrevi
 import { ProjectPlayable } from "@/features/project-detail/ProjectPlayable";
 import { RelatedProjects } from "@/features/project-detail/RelatedProjects";
 import { AtlasBackground } from "@/features/atlas/AtlasBackground";
+import returnStyles from "@/components/layout/AtlasReturnLink.module.css";
 import backgroundStyles from "@/features/atlas/AtlasBackground.module.css";
 
 // Prebuild existing projects; new published slugs can still render on demand.
@@ -112,7 +113,7 @@ export default async function ProjectPage({
 
     return (
         <ViewTransition default="none" enter="project-page-enter">
-            <main data-project-detail className={backgroundStyles.page} style={accentStyle(project.accentColor)}>
+            <main data-project-detail className={`${backgroundStyles.page} ${returnStyles.contentReserve}`} style={accentStyle(project.accentColor)}>
                 <JsonLd data={getProjectJsonLd(lang, dictionary.site.name, project)} />
                 <AtlasBackground
                     projectSlug={project.slug}

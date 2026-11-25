@@ -1,0 +1,116 @@
+.link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    width: max-content;
+    max-width: 100%;
+    min-width: calc(var(--space-40) + var(--space-4));
+    min-height: calc(var(--space-40) + var(--space-4));
+    padding: var(--space-8) var(--space-16);
+    border: 1px solid color-mix(in srgb, var(--color-accent-default) 45%, transparent);
+    border-radius: var(--radius-control);
+    background: color-mix(in srgb, var(--color-surface) 50%, var(--color-background));
+    color: var(--color-accent-default);
+    font-family: var(--font-family-interface);
+    font-size: calc((var(--font-size-body) + var(--font-size-label)) / 2);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-label);
+    text-align: center;
+    text-shadow: none;
+    transition: background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast);
+}
+
+.link svg { flex: none; }
+.fullLabel, .compactLabel { min-width: 0; overflow-wrap: anywhere; }
+.compactLabel { display: none; }
+.link:hover {
+    background: color-mix(in srgb, var(--color-accent-default) 12%, var(--color-background));
+    border-color: color-mix(in srgb, var(--color-accent-default) 80%, transparent);
+}
+.link:active {
+    background: var(--color-accent-default);
+    border-color: var(--color-accent-default);
+    color: var(--color-background);
+}
+.link:focus-visible { outline: 2px solid var(--color-accent-default); outline-offset: 4px; }
+
+/* The page marker excludes invalid slugs as well as every non-detail route. */
+.desktopRegion, .mobileSlot { display: none; }
+.desktopRegion, .contentReserve {
+    /* Grow the reserved row with enlarged text, without a resize listener. */
+    --return-row-height: max(var(--space-48), calc((var(--font-size-body) + var(--font-size-label)) / 2 * var(--line-height-label) + 2 * var(--space-8) + 2px));
+}
+
+@media (width < 48rem) {
+    :global(body):has(:global(main[data-project-detail])) .mobileSlot {
+        display: block;
+        flex: 1;
+        min-width: calc(var(--space-40) + var(--space-4));
+        container: atlas-return-slot / inline-size;
+        font-size: calc((var(--font-size-body) + var(--font-size-label)) / 2);
+    }
+    @container atlas-return-slot (width < 8em) {
+        .fullLabel { display: none; }
+    }
+}
+
+@media (min-width: 48rem) {
+    :global(body):has(:global(main[data-project-detail])) .desktopRegion {
+        display: flex;
+        align-items: center;
+        height: var(--return-row-height);
+        padding-inline: var(--layout-content-inset);
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 1379px) {
+    .contentReserve { padding-top: var(--return-row-height); }
+    /* Keep the game anchor below the added row and the existing header fade. */
+    .contentReserve :global(#playable) {
+        scroll-margin-top: calc(var(--shell-header-offset) + var(--return-row-height) + var(--space-32) + var(--space-8));
+    }
+}
+
+@media (min-width: 1380px) {
+    :global(body):has(:global(main[data-project-detail])) .desktopRegion {
+        position: fixed;
+        top: calc(var(--shell-header-offset) + var(--space-32));
+        right: calc(50% + var(--layout-max-width) / 2 - var(--layout-margin-desktop) + var(--space-12));
+        height: auto;
+        max-width: calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop) - 2 * var(--space-12));
+        padding: 0;
+    }
+    .desktopRegion .link {
+        flex-direction: column;
+        gap: var(--space-4);
+        width: var(--space-56);
+        min-width: min(var(--space-56), 100%);
+        min-height: var(--space-56);
+        padding: var(--space-8);
+        font-size: var(--font-size-label);
+    }
+    .desktopRegion .fullLabel { display: none; }
+    .desktopRegion .compactLabel { display: inline; }
+}
+
+/* Short labels fit beside the unchanged content container from this width. */
+@media (min-width: 1480px) {
+    :global(body):has(:global(main[data-project-detail])) .desktopRegion {
+        right: calc(50% + var(--layout-max-width) / 2 - var(--layout-margin-desktop) + var(--space-16));
+        max-width: calc((100% - var(--layout-max-width)) / 2 + var(--layout-margin-desktop) - 2 * var(--space-16));
+    }
+    .desktopRegion .link {
+        flex-direction: row;
+        gap: var(--space-8);
+        width: max-content;
+        min-width: calc(var(--space-40) + var(--space-4));
+        min-height: calc(var(--space-40) + var(--space-4));
+        padding: var(--space-8) var(--space-16);
+        font-size: calc((var(--font-size-body) + var(--font-size-label)) / 2);
+    }
+    .desktopRegion .fullLabel { display: inline; }
+    .desktopRegion .compactLabel { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { .link { transition: none; } }

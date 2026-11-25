@@ -44,3 +44,9 @@
 .panel nav {
   padding-bottom: max(var(--space-24), env(safe-area-inset-bottom));
 }
+
+/* This new control has a larger target than the existing shell links. */
+.header [data-atlas-return] {
+  min-height: calc(var(--space-40) + var(--space-4));
+  min-width: calc(var(--space-40) + var(--space-4));
+}

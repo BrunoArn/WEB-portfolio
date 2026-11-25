@@ -12,6 +12,9 @@ const en = {
     },
   },
   navigation: {
+    backToAtlas: "Back",
+    backToAtlasAriaLabel: "Back to Atlas",
+    atlas: "Back",
     menu: "MENU",
     close: "CLOSE",
     home: "Home",

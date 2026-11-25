@@ -6,7 +6,10 @@ export function getNavigationState(pathname: string, locale: Locale) {
     const projectsPath = homePath + "/projects";
     const aboutPath = homePath + "/about";
     const isHomeActive = pathname === homePath;
+    const detailSlug = pathname.startsWith(projectsPath + "/")
+        ? pathname.slice(projectsPath.length + 1).replace(/\/$/, "") : "";
     return {
+        isProjectDetail: detailSlug.length > 0 && !detailSlug.includes("/"),
         homePath,
         projectsPath,
         aboutPath,
