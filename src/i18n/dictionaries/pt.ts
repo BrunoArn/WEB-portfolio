@@ -27,6 +27,7 @@ const pt = {
     title: site.name,
     description: "Um território de jogos, interfaces e experiências interativas.",
     projects: "Projetos do Atlas",
+    pan: { region: "Mapa do Atlas", hint: "Arraste para explorar o mapa", keyboardHint: "Com o mapa em foco, use as setas do teclado para explorar.", left: "Explorar à esquerda", right: "Explorar à direita", up: "Explorar acima", down: "Explorar abaixo" },
     unavailable: "Miniatura indisponível",
     close: "Voltar ao mapa",
     contentNote: "Descrição indisponível.",

@@ -27,6 +27,7 @@ const en = {
     title: site.name,
     description: "A landscape of games, interfaces and interactive experiences.",
     projects: "Atlas projects",
+    pan: { region: "Atlas map", hint: "Drag to explore the map", keyboardHint: "When the map has focus, use the arrow keys to explore.", left: "Explore to the left", right: "Explore to the right", up: "Explore above", down: "Explore below" },
     unavailable: "Thumbnail unavailable",
     close: "Back to map",
     contentNote: "Description unavailable.",

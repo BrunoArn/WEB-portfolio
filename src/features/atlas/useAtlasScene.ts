@@ -10,6 +10,7 @@ import { atlasMotionReference } from "./atlas-motion-settings";
 import { atlasMobileQuery } from "./atlas-composition";
 import { mountAtlasTerrain } from "./atlas-engine";
 import { mountAtlasInteraction } from "./atlas-interaction";
+import { mountAtlasPan } from "./atlas-pan";
 import { mountAtlasEntrance } from "./atlas-entrance";
 type AtlasSceneOptions = {
     locale: Locale;
@@ -59,6 +60,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     const canvas = useRef<HTMLCanvasElement>(null);
     const viewport = useRef<HTMLDivElement>(null);
     const intro = useRef<HTMLDivElement>(null);
+    const projectPlane = useRef<HTMLDivElement>(null);
     const mobile = useSyncExternalStore(subscribeToLayout, getLayout, getServerLayout);
     // View transitions capture the destination before passive cleanup runs. Release
     // the outgoing modal and its body lock during layout cleanup, before the new
@@ -66,7 +68,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     useLayoutEffect(() => () => { releaseSceneNavigation.current?.(); }, []);
     // Own the lifetime of the terrain, entrance and camera together.
     useEffect(() => {
-        if (!canvas.current || !viewport.current || !intro.current)
+        if (!canvas.current || !viewport.current || !projectPlane.current || !intro.current)
             return;
         if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current)
             return;
@@ -137,9 +139,11 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             if (!ready) flushSync(() => setShareCover(false));
             startTransition(() => router.push(href));
         };
+        const pan = mountAtlasPan(root.current, viewport.current, world.current, projectPlane.current, intro.current);
         const terrain = mountAtlasTerrain(
             canvas.current,
             viewport.current,
+            projectPlane.current,
             intro.current,
             content.projects,
             content.territories,
@@ -149,6 +153,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
                 staticFallback: webglFailed,
                 entrance: !entranceFinished.current,
                 onReady: () => entrance?.start(),
+                onProjection: pan.update,
                 onFallback: () => {
                     if (!cancelled) setWebglFailed(true);
                 },
@@ -172,6 +177,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
                 morph: morph.current,
             },
             terrain,
+            pan,
             content.projects,
             missingDescription,
             selectProject,
@@ -184,6 +190,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
             entrance?.dispose();
             interaction.dispose();
             if (releaseSceneNavigation.current === interaction.releaseForNavigation) releaseSceneNavigation.current = null;
+            pan.dispose();
             terrain.dispose();
             terrainController.current = null;
         };
@@ -217,7 +224,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         setOverride({ source: content.terrain, value: { ...settings, [mobile ? "mobile" : "desktop"]: { ...atlasTerrainReference } } });
     }
     return {
-        refs: { root, canvas, viewport, intro, world, dialog, panel, media, morph },
+        refs: { root, canvas, viewport, projectPlane, intro, world, dialog, panel, media, morph },
         selectedProjectId, webglFailed, mobile, shareCover, navigating,
         onCoverSettled: (id: string) => prepareCardNavigation.current(id),
         motionSettings, setMotionSettings,

@@ -1,3 +1,5 @@
+import { atlasCameraTransform, atlasSelectionDomain, atlasSelectionPosition, type AtlasPoint2D } from "./atlas-camera";
+import type { mountAtlasPan } from "./atlas-pan";
 import { atlasMobileQuery } from "./atlas-composition";
 import type { AtlasProject } from "./atlas-types";
 import type { mountAtlasTerrain } from "./atlas-engine";
@@ -11,7 +13,7 @@ type Elements = {
     morph: HTMLElement;
 };
 /** One opening timeline for the camera, thumbnail and card; scoped to this map. */
-export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void, onNavigateProject: (href: string) => void) {
+export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<typeof mountAtlasTerrain>, pan: ReturnType<typeof mountAtlasPan>, projects: readonly AtlasProject[], missingDescription: string, onSelectionChange: (id: string | null) => void, onNavigateProject: (href: string) => void) {
     const { root, viewport, world, dialog, panel, media, morph } = elements;
     const cardFrame = panel.parentElement!;
     const closeButton = dialog.querySelector<HTMLButtonElement>("[data-atlas-close]")!;
@@ -28,6 +30,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         padding: string;
         scroll: number;
         frameHeight: string;
+        camera: AtlasPoint2D;
     } | undefined;
     const stop = () => {
         animations.forEach(animation => animation.cancel());
@@ -64,7 +67,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
             image.style.opacity = getComputedStyle(image).opacity;
         });
         stop();
-        world.style.transform = "";
+        world.style.transform = atlasCameraTransform(state.camera);
         state.slot.append(state.thumb);
         state.thumb.removeAttribute("style");
         state.item.removeAttribute("data-selected");
@@ -75,10 +78,11 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         cardFrame.style.height = state.frameHeight;
         selection = undefined;
         onSelectionChange(null);
-        terrain.extend();
         if (restoreScroll) window.scrollTo({ top: state.scroll, behavior: "instant" });
         if (focus && state.trigger.isConnected)
             state.trigger.focus({ preventScroll: true });
+        pan.resume(state.camera);
+        terrain.extend();
     }
     async function open(trigger: HTMLButtonElement) {
         if (selection || disposed)
@@ -88,12 +92,13 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         if (!project)
             return;
         const thumb = item.querySelector<HTMLElement>("[role=img]")!, slot = thumb.parentElement!;
+        const saved = pan.pause();
         const from = thumb.getBoundingClientRect(), id = ++epoch;
         const sourceScale = from.width / thumb.offsetWidth;
         const sourceBorder = parseFloat(getComputedStyle(thumb).borderTopWidth) * sourceScale;
         const icon = thumb.querySelector("svg");
         const iconFrom = icon?.getBoundingClientRect();
-        selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY, frameHeight: cardFrame.style.height };
+        selection = { item, trigger, thumb, slot, overflow: document.body.style.overflow, padding: document.body.style.paddingRight, scroll: window.scrollY, frameHeight: cardFrame.style.height, camera: saved };
         onSelectionChange(project.id);
         dialog.querySelector("[data-atlas-title]")!.textContent = project.title;
         dialog.querySelector("[data-atlas-category]")!.textContent = project.categoryLabel;
@@ -118,15 +123,15 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         const zoom = layout.matches ? 1.65 : 1.85;
         const point = { x: from.left + from.width / 2 - frame.left, y: from.top + from.height / 2 - frame.top };
         const cx = target.left + target.width / 2 - frame.left, cy = target.top + target.height / 2 - frame.top;
-        const tx = cx - zoom * point.x, ty = cy - zoom * point.y;
-        // Inverse-camera corner extrema occur at the transition endpoints because scale
-        // and translation share the same interpolation. Include both plus a guard.
-        terrain.extend({ left: Math.floor(Math.min(0, -tx / zoom) - 24), top: Math.floor(Math.min(0, -ty / zoom) - 24), right: Math.ceil(Math.max(frame.width, (frame.width - tx) / zoom) + 24), bottom: Math.ceil(Math.max(frame.height, (frame.height - ty) / zoom) + 24) }, zoom);
+        const destination = atlasSelectionPosition(point, { x: cx, y: cy }, saved, zoom);
+        const { x: tx, y: ty } = destination;
+        // Scale and translation share their interpolation, so inverse corners stay inside the endpoint union.
+        terrain.extend(atlasSelectionDomain(frame.width, frame.height, saved, destination, zoom), zoom);
         terrain.pulse(project.id);
         root.dataset.selection = "opening";
         item.dataset.selected = "true";
         trigger.setAttribute("aria-expanded", "true");
-        const camera = `translate(${tx}px,${ty}px) scale(${zoom})`;
+        const camera = atlasCameraTransform(destination, zoom);
         world.style.transform = camera;
         closeButton.focus({ preventScroll: true });
         // Keep the full terrain domain, but stop repainting pixels outside the remaining
@@ -185,7 +190,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         cardFrame.style.height = card.height + "px";
         media.append(thumb);
         await Promise.all([
-            animate(world, [{ transform: "none" }, { transform: camera }]),
+            animate(world, [{ transform: atlasCameraTransform(saved) }, { transform: camera }]),
             animate(panel, cardFrames),
             animate(media, mediaFrames),
             animate(thumb, [
@@ -232,6 +237,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         const radius = getComputedStyle(state.thumb).borderRadius.replace(/[\d.]+px/g, value =>
             (parseFloat(value) * thumbnailScale) + "px");
         const camera = getComputedStyle(world).transform;
+        const restingCamera = atlasCameraTransform(state.camera);
         const panelStyle = getComputedStyle(panel);
         const panelOpacity = panelStyle.opacity;
         const panelHeight = panelStyle.height;
@@ -243,7 +249,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         const panelTransform = panelStyle.transform, panelOrigin = panelStyle.transformOrigin;
         stop();
         terrain.crop();
-        world.style.transform = "none";
+        world.style.transform = restingCamera;
         const target = state.slot.getBoundingClientRect();
         world.style.transform = camera;
         root.dataset.selection = "closing";
@@ -256,7 +262,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
                 animate(image, [{ opacity: getComputedStyle(image).opacity }, { opacity: 0 }], 240, 40))
             : [];
 
-        world.style.transform = "none";
+        world.style.transform = restingCamera;
         const frozenCard = {
             height: panelHeight,
             borderRadius: panelRadius,
@@ -269,7 +275,7 @@ export function mountAtlasInteraction(elements: Elements, terrain: ReturnType<ty
         await Promise.all([
             motion,
             ...coverFade,
-            animate(world, [{ transform: camera }, { transform: "none" }]),
+            animate(world, [{ transform: camera }, { transform: restingCamera }]),
             animate(panel, [
                 { ...frozenCard, opacity: panelOpacity },
                 { ...frozenCard, opacity: 0 },

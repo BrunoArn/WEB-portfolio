@@ -12,6 +12,7 @@ import { AtlasThumbnail, atlasCardImageSizes } from "./AtlasThumbnail";
 import { prepareProjectCover } from "@/components/projects/ProjectCoverTransition";
 import { positionAtlasProjects } from "./atlas-geometry";
 import { atlasWorlds } from "./atlas-layout";
+import { atlasPanDirections } from "./atlas-camera";
 import type { AtlasContent } from "./atlas-types";
 import { useAtlasScene } from "./useAtlasScene";
 import styles from "./AtlasMap.module.css";
@@ -40,6 +41,7 @@ export function AtlasMap({
     showMotionControls = false,
 }: AtlasMapProps) {
     const dialogId = useId();
+    const panDescriptionId = useId();
     const preparedCardCover = useRef<string | null>(null);
     function prepareCardCover(src: string | undefined) {
         if (!src) return;
@@ -64,7 +66,7 @@ export function AtlasMap({
         motionSettings,
         setMotionSettings,
     } = useAtlasScene({ locale, content, missingDescription: text.contentNote });
-    const { root, canvas, viewport, intro, world, dialog, panel, media, morph } = refs;
+    const { root, canvas, viewport, projectPlane, intro, world, dialog, panel, media, morph } = refs;
     const positionedProjects = positionAtlasProjects(content.projects, mobile);
     const selectedProject = content.projects.find(project => project.id === selectedProjectId);
     const projectHref = selectedProject?.href ?? "#";
@@ -83,7 +85,7 @@ export function AtlasMap({
                     <style>{`[data-atlas-preview] :is([data-atlas-project],[data-atlas-territory]){opacity:1!important;visibility:visible!important}`}</style>
                 </noscript>
 
-                <div className={styles.viewport} ref={viewport}>
+                <div className={styles.viewport} ref={viewport} role="region" aria-label={text.pan.region}>
                     <div className={styles.world} ref={world}>
                         <canvas
                             key={webglFailed ? "static" : "webgl"}
@@ -91,7 +93,7 @@ export function AtlasMap({
                             ref={canvas}
                             aria-hidden="true"
                         />
-                        <div className={styles.projectPlane}>
+                        <div className={styles.projectPlane} ref={projectPlane}>
                             <ul className={styles.projects} aria-label={text.projects}>
                                 {positionedProjects.map(project => {
                                     const left = mobile ? project.x > .5 : project.left;
@@ -123,24 +125,25 @@ export function AtlasMap({
                                                 aria-haspopup="dialog"
                                                 aria-expanded="false"
                                                 aria-controls={dialogId}
-                                            />
-                                            <span className={styles.thumbSlot} data-atlas-thumb-slot>
-                                                <AtlasThumbnail
-                                                    image={project.image}
-                                                    markerImage={project.markerImage}
-                                                    slug={project.placement}
-                                                    shareCover={shareCover}
-                                                    onCoverSettled={() => onCoverSettled(project.id)}
-                                                    unavailable={text.unavailable}
-                                                    selected={selectedProjectId === project.id}
-                                                />
-                                            </span>
-                                            <span className={styles.label}>
-                                                <span className={styles.projectTitle}>{project.title}</span>
-                                                <small className={styles.projectMeta}>
-                                                    {project.categoryLabel}{project.year ? ` · ${project.year}` : ""}
-                                                </small>
-                                            </span>
+                                            >
+                                                <span className={styles.thumbSlot} data-atlas-thumb-slot>
+                                                    <AtlasThumbnail
+                                                        image={project.image}
+                                                        markerImage={project.markerImage}
+                                                        slug={project.placement}
+                                                        shareCover={shareCover}
+                                                        onCoverSettled={() => onCoverSettled(project.id)}
+                                                        unavailable={text.unavailable}
+                                                        selected={selectedProjectId === project.id}
+                                                    />
+                                                </span>
+                                                <span className={styles.label}>
+                                                    <span className={styles.projectTitle}>{project.title}</span>
+                                                    <small className={styles.projectMeta}>
+                                                        <span>{project.categoryLabel}{project.year ? ` · ${project.year}` : ""}</span>
+                                                    </small>
+                                                </span>
+                                            </button>
                                         </li>
                                     );
                                 })}
@@ -172,6 +175,15 @@ export function AtlasMap({
                         </h1>
                         <p className={styles.description}>{text.description}</p>
                     </div>
+                    <div className={styles.panControls}>
+                        {atlasPanDirections.map(direction => (
+                            <button key={direction} type="button" data-pan-direction={direction} aria-label={text.pan[direction]} hidden>
+                                <span className={styles.panArrow} aria-hidden="true" />
+                            </button>
+                        ))}
+                        <p className={styles.panHint} data-pan-hint aria-hidden="true">{text.pan.hint}</p>
+                    </div>
+                    <span hidden id={panDescriptionId} data-pan-description>{text.pan.keyboardHint}</span>
                 </div>
 
                 {/* React supplies localized link URLs. The interaction controller fills card copy

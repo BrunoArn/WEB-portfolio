@@ -42,6 +42,7 @@
   container-type: size;
   overflow: hidden;
 }
+/* Fallback placement until the terrain reports its projection, including noscript. */
 .projectPlane {
   position: absolute;
   left: 50%;
@@ -49,6 +50,11 @@
   width: min(100cqw, calc(100cqh * var(--atlas-world-width) / var(--atlas-world-height)));
   aspect-ratio: var(--atlas-world-width) / var(--atlas-world-height);
   transform: translateX(-50%);
+}
+.projectPlane[data-projected] {
+  bottom: auto;
+  max-width: none;
+  transform: none;
 }
 .canvas {
   position: absolute;
@@ -104,11 +110,12 @@
   align-items: center;
   gap: 13px;
   transform: translate(-27px, -50%);
-  /* Prevent edge anchors from shrinking labels before translation. */
-  width: 260px;
+  /* Size against content instead of the space left at the anchor. */
+  width: max-content;
   max-width: 260px;
   isolation: isolate;
   margin: 0;
+  pointer-events: none;
 }
 .project::before {
   content: "";
@@ -217,7 +224,6 @@
     margin: 0 0 var(--space-16);
   }
   .project {
-    width: 190px;
     max-width: 190px;
     gap: 10px;
     transform: translate(-23px, -50%);
@@ -260,7 +266,6 @@
     margin: 0;
   }
   .project {
-    width: 130px;
     max-width: 130px;
     gap: var(--space-8);
     transform: translate(-12px, -50%);
@@ -318,21 +323,45 @@
   transform-origin: 0 0;
 }
 .thumbSlot {
+  position: relative;
   display: block;
   flex: none;
   width: 54px;
   height: 54px;
 }
 .trigger {
-  position: absolute;
-  z-index: 2;
-  inset: -7px;
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: inherit;
+  align-items: center;
+  gap: inherit;
+  margin: -7px;
+  padding: 7px;
   border: 0;
   border-radius: var(--radius-large);
   background: transparent;
-  padding: 0;
-  cursor: pointer;
   color: inherit;
+  text-align: inherit;
+  /* Wrapped lines and thumbnails are hit targets; the empty box between them is not. */
+  pointer-events: none;
+}
+.trigger :is(.projectTitle, .projectMeta > span) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.thumbSlot::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 1;
+}
+.root[data-selection]:not([data-selection="idle"]) .trigger :is(.projectTitle, .projectMeta > span),
+.root[data-selection]:not([data-selection="idle"]) .thumbSlot::before {
+  pointer-events: none;
 }
 .trigger:focus-visible {
   outline: 2px solid var(--atlas-tone);
@@ -658,8 +687,8 @@
   transition: transform 160ms cubic-bezier(.2,.7,.2,1);
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .root[data-selection="idle"] .project:hover > .thumbSlot,
-  .root[data-selection="idle"] .trigger:focus-visible + .thumbSlot {
+  .root[data-selection="idle"] .trigger:hover > .thumbSlot,
+  .root[data-selection="idle"] .trigger:focus-visible > .thumbSlot {
     transform: scale(1.2);
   }
 }
@@ -790,4 +819,124 @@
     transform: translate(-12px, -50%);
     text-align: left;
   }
+}
+.panControls {
+  display: none;
+}
+.root[data-selection="idle"] .viewport:is([data-pan-x], [data-pan-y]) {
+  cursor: grab;
+}
+.viewport:is([data-pan-x], [data-pan-y]) {
+  overflow: clip;
+}
+.viewport[data-pan-x] {
+  touch-action: pan-y pinch-zoom;
+}
+.viewport[data-pan-y] {
+  touch-action: pan-x pinch-zoom;
+}
+.viewport[data-pan-x][data-pan-y] {
+  touch-action: pinch-zoom;
+}
+.root[data-selection="idle"] .viewport[data-pan-dragging],
+.root[data-selection="idle"] .viewport[data-pan-dragging] * {
+  cursor: grabbing;
+  user-select: none;
+}
+.root[data-selection="idle"] .viewport:is([data-pan-x], [data-pan-y]) .panControls {
+  position: absolute;
+  inset: var(--atlas-pan-top, 0px) 0 var(--atlas-pan-bottom, 0px);
+  z-index: 3;
+  display: block;
+  pointer-events: none;
+}
+.viewport:is([data-pan-x], [data-pan-y]) .intro {
+  text-shadow: 0 1px 6px var(--atlas-background), 0 0 16px var(--atlas-background);
+}
+.viewport:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.panControls button {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  pointer-events: auto;
+  cursor: pointer;
+  color: var(--color-accent-default);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-control);
+}
+.panControls button:not([hidden]) {
+  display: grid;
+  place-items: center;
+}
+.panArrow {
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  opacity: .88;
+  filter: drop-shadow(0 1px 2px var(--atlas-background));
+  transition: opacity var(--motion-fast) ease-out;
+}
+[data-pan-direction="left"] .panArrow { transform: rotate(-135deg); }
+[data-pan-direction="right"] .panArrow { transform: rotate(45deg); }
+[data-pan-direction="up"] .panArrow { transform: rotate(-45deg); }
+[data-pan-direction="down"] .panArrow { transform: rotate(135deg); }
+.panControls button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.panControls button:focus-visible .panArrow {
+  opacity: 1;
+}
+@media (hover: hover) {
+  .panControls button:not([aria-disabled="true"]):hover .panArrow {
+    opacity: 1;
+  }
+}
+.panControls button:not([aria-disabled="true"]):active .panArrow {
+  opacity: .7;
+}
+.panControls button[aria-disabled="true"] {
+  cursor: default;
+}
+.panControls button[aria-disabled="true"] .panArrow {
+  opacity: .42;
+}
+.panControls button:is([data-pan-direction="left"], [data-pan-direction="right"]) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.panControls button[data-pan-direction="left"] { left: var(--space-8); }
+.panControls button[data-pan-direction="right"] { right: var(--space-8); }
+.panControls button:is([data-pan-direction="up"], [data-pan-direction="down"]) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.panControls button[data-pan-direction="up"] { top: 0; }
+.panControls button[data-pan-direction="down"] { bottom: 0; }
+.panHint {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-label);
+  text-shadow: 0 1px 6px var(--atlas-background), 0 0 12px var(--atlas-background);
+  pointer-events: none;
+  transition: opacity var(--motion-ui) ease-out;
+}
+.viewport[data-pan-y] .panHint {
+  bottom: var(--space-48);
+}
+.viewport[data-pan-learned] .panHint {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .panHint, .panArrow { transition: none; }
 }
