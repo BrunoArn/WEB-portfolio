@@ -59,6 +59,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     const canvas = useRef<HTMLCanvasElement>(null);
     const viewport = useRef<HTMLDivElement>(null);
     const intro = useRef<HTMLDivElement>(null);
+    const projectPlane = useRef<HTMLDivElement>(null);
     const mobile = useSyncExternalStore(subscribeToLayout, getLayout, getServerLayout);
     // View transitions capture the destination before passive cleanup runs. Release
     // the outgoing modal and its body lock during layout cleanup, before the new
@@ -66,7 +67,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
     useLayoutEffect(() => () => { releaseSceneNavigation.current?.(); }, []);
     // Own the lifetime of the terrain, entrance and camera together.
     useEffect(() => {
-        if (!canvas.current || !viewport.current || !intro.current)
+        if (!canvas.current || !viewport.current || !projectPlane.current || !intro.current)
             return;
         if (!root.current || !world.current || !dialog.current || !panel.current || !media.current || !morph.current)
             return;
@@ -140,6 +141,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         const terrain = mountAtlasTerrain(
             canvas.current,
             viewport.current,
+            projectPlane.current,
             intro.current,
             content.projects,
             content.territories,
@@ -217,7 +219,7 @@ export function useAtlasScene({ locale, content, missingDescription }: AtlasScen
         setOverride({ source: content.terrain, value: { ...settings, [mobile ? "mobile" : "desktop"]: { ...atlasTerrainReference } } });
     }
     return {
-        refs: { root, canvas, viewport, intro, world, dialog, panel, media, morph },
+        refs: { root, canvas, viewport, projectPlane, intro, world, dialog, panel, media, morph },
         selectedProjectId, webglFailed, mobile, shareCover, navigating,
         onCoverSettled: (id: string) => prepareCardNavigation.current(id),
         motionSettings, setMotionSettings,

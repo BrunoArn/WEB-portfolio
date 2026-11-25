@@ -42,6 +42,7 @@
   container-type: size;
   overflow: hidden;
 }
+/* Fallback placement until the terrain reports its projection, including noscript. */
 .projectPlane {
   position: absolute;
   left: 50%;
@@ -49,6 +50,11 @@
   width: min(100cqw, calc(100cqh * var(--atlas-world-width) / var(--atlas-world-height)));
   aspect-ratio: var(--atlas-world-width) / var(--atlas-world-height);
   transform: translateX(-50%);
+}
+.projectPlane[data-projected] {
+  bottom: auto;
+  max-width: none;
+  transform: none;
 }
 .canvas {
   position: absolute;

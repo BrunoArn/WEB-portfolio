@@ -8,6 +8,7 @@ function fixture(){
  const calls={prepare:0,surface:0,configure:0,screens:[],disposed:0,colorFields:0},frames=new Map();let next=0;
  const rectangle={left:0,top:0,width:100,height:100},text={left:20,top:10,width:60,height:30};
  const canvas={style:{},dataset:{}},viewport={getBoundingClientRect:()=>rectangle},intro={getBoundingClientRect:()=>text};
+ const projectPlane={style:{},dataset:{}};
  const gpu={prepare:()=>calls.prepare++,updateSurface:()=>calls.surface++,paint(){},dispose:()=>calls.disposed++};
  const motion={configure:()=>calls.configure++,setScreen:(...args)=>calls.screens.push(args),prepare:()=>({}),isRunning:()=>false,set(){},pulse(){},dispose(){}};
  const projects=[],territories=[{id:'one',color:'#aabbcc'}];
@@ -17,7 +18,7 @@ function fixture(){
   './atlas-raster':{atlasRasterResolution:(w,h,dpr)=>({ratio:dpr,pixelWidth:Math.ceil(w*dpr),pixelHeight:Math.ceil(h*dpr),limited:false})},
   './atlas-motion':{mountAtlasMotion:()=>motion},
   '../../../shared/atlas-terrain-settings':{resolveAtlasTerrainSettings:value=>value},
-  './atlas-layout':{getAtlasView:()=>({world:{width:100,height:100},scale:1,offsetX:0,offsetY:0,bounds:{left:-200,top:-200,right:400,bottom:400}})},
+  './atlas-layout':{getAtlasView:()=>({world:{width:100,height:100},scale:1,offsetX:0,offsetY:0,projectedWidth:100,projectedHeight:100,bounds:{left:-200,top:-200,right:400,bottom:400}})},
   './atlas-field':{createAtlasField:()=>((x,y)=>Math.exp(-((x-.5)**2+(y-.5)**2)*3)+.8*Math.exp(-((x-4.5)**2+(y-.5)**2)*3)),createAtlasColorField:()=>{calls.colorFields++;return()=>[1]}},
  };
  const filename=fileURLToPath(new URL('../src/features/atlas/atlas-engine.ts',import.meta.url));
@@ -28,7 +29,7 @@ function fixture(){
   ResizeObserver:class {observe(){}disconnect(){}},requestAnimationFrame:fn=>{frames.set(++next,fn);return next},cancelAnimationFrame:id=>frames.delete(id),
  };
  const {load}=createTypeScriptLoader({overrides,globals});
- const controller=load(filename).mountAtlasTerrain(canvas,viewport,intro,projects,territories,'mobile',settings,{staticFallback:false,entrance:true});
+ const controller=load(filename).mountAtlasTerrain(canvas,viewport,projectPlane,intro,projects,territories,'mobile',settings,{staticFallback:false,entrance:true});
  const flush=()=>{const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());};flush();
  return {calls,canvas,controller,flush,text,settings,territories};
 }

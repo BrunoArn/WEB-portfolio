@@ -64,7 +64,7 @@ export function AtlasMap({
         motionSettings,
         setMotionSettings,
     } = useAtlasScene({ locale, content, missingDescription: text.contentNote });
-    const { root, canvas, viewport, intro, world, dialog, panel, media, morph } = refs;
+    const { root, canvas, viewport, projectPlane, intro, world, dialog, panel, media, morph } = refs;
     const positionedProjects = positionAtlasProjects(content.projects, mobile);
     const selectedProject = content.projects.find(project => project.id === selectedProjectId);
     const projectHref = selectedProject?.href ?? "#";
@@ -91,7 +91,7 @@ export function AtlasMap({
                             ref={canvas}
                             aria-hidden="true"
                         />
-                        <div className={styles.projectPlane}>
+                        <div className={styles.projectPlane} ref={projectPlane}>
                             <ul className={styles.projects} aria-label={text.projects}>
                                 {positionedProjects.map(project => {
                                     const left = mobile ? project.x > .5 : project.left;

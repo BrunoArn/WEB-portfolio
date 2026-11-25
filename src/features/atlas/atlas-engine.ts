@@ -62,6 +62,7 @@ function createAtlasColorMap({ weightsAt, width, height, screen, view, territori
 export function mountAtlasTerrain(
   canvas: HTMLCanvasElement,
   viewport: HTMLElement,
+  projectPlane: HTMLElement,
   intro: HTMLElement,
   projects: readonly AtlasAnchor[],
   territories: readonly AtlasTerritory[],
@@ -99,6 +100,7 @@ export function mountAtlasTerrain(
   const prepared: PreparedTerrain = { surfaceKey: "", meshKey: "" };
   let disposed = false;
   let frame = 0;
+  let projectedPlane: string | undefined;
   let extension: AtlasBounds | undefined;
   let rasterCrop: AtlasBounds | undefined;
   let rasterZoom = 1;
@@ -113,7 +115,7 @@ export function mountAtlasTerrain(
     const mobile = media.matches;
     const positioned = positionAtlasProjects(projects, mobile);
     const view = getAtlasView(w, h, mobile);
-    const { world, scale, offsetX, offsetY } = view;
+    const { world, scale, offsetX, offsetY, projectedWidth, projectedHeight } = view;
     const domain = extension ?? { left: 0, top: 0, right: w, bottom: h };
     const screen = rasterCrop ?? domain;
     const width = screen.right - screen.left, height = screen.bottom - screen.top;
@@ -194,6 +196,17 @@ export function mountAtlasTerrain(
     }
 
     render();
+    const planeKey = [offsetX, offsetY, projectedWidth, projectedHeight].join(",");
+    if (planeKey !== projectedPlane) {
+      Object.assign(projectPlane.style, {
+        left: offsetX + "px",
+        top: offsetY + "px",
+        width: projectedWidth + "px",
+        height: projectedHeight + "px",
+      });
+      projectPlane.dataset.projected = "true";
+      projectedPlane = planeKey;
+    }
     canvas.dataset.rasterZoom = String(rasterZoom);
     canvas.dataset.rasterRatio = String(dpr);
     canvas.dataset.rasterLimited = String(raster.limited);
