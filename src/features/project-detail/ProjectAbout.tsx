@@ -1,4 +1,5 @@
 import type { Project } from "@/content/types/project";
+import styles from "./ProjectAbout.module.css";
 
 type ProjectAboutProps = {
     project: Project;
@@ -10,7 +11,7 @@ export function ProjectAbout({
     title,
 }: ProjectAboutProps) {
     return (
-        <section>
+        <section className={styles.reading}>
             <h2 className="font-heading text-(length:--font-size-section-mobile) font-black leading-(--line-height-title) text-app-text-primary md:text-(length:--font-size-section-desktop)">
                 {title}
             </h2>

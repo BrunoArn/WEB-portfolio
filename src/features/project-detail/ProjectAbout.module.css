@@ -1,0 +1,57 @@
+.reading {
+  --reading-feather-inline: var(--layout-margin-mobile);
+  --reading-feather-block: var(--space-24);
+  position: relative;
+  /* Grid's default stretch must not tie this decoration to the Info card height. */
+  align-self: start;
+  /* Keep the negative decorative layer behind this section's text only. */
+  isolation: isolate;
+}
+
+@supports (mask-composite: intersect) {
+  .reading::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--reading-feather-block)) calc(-1 * var(--reading-feather-inline));
+    z-index: -1;
+    pointer-events: none;
+    background: var(--color-background);
+    opacity: .8;
+    /* Two feathered axes also cover words in the corners of a long text block. */
+    mask-image:
+      linear-gradient(
+        to right,
+        transparent,
+        rgb(0 0 0 / .12) calc(var(--reading-feather-inline) * .25),
+        rgb(0 0 0 / .5) calc(var(--reading-feather-inline) * .5),
+        rgb(0 0 0 / .88) calc(var(--reading-feather-inline) * .75),
+        #000 var(--reading-feather-inline),
+        #000 calc(100% - var(--reading-feather-inline)),
+        rgb(0 0 0 / .88) calc(100% - var(--reading-feather-inline) * .75),
+        rgb(0 0 0 / .5) calc(100% - var(--reading-feather-inline) * .5),
+        rgb(0 0 0 / .12) calc(100% - var(--reading-feather-inline) * .25),
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        transparent,
+        rgb(0 0 0 / .12) calc(var(--reading-feather-block) * .25),
+        rgb(0 0 0 / .5) calc(var(--reading-feather-block) * .5),
+        rgb(0 0 0 / .88) calc(var(--reading-feather-block) * .75),
+        #000 var(--reading-feather-block),
+        #000 calc(100% - var(--reading-feather-block)),
+        rgb(0 0 0 / .88) calc(100% - var(--reading-feather-block) * .75),
+        rgb(0 0 0 / .5) calc(100% - var(--reading-feather-block) * .5),
+        rgb(0 0 0 / .12) calc(100% - var(--reading-feather-block) * .25),
+        transparent
+      );
+    mask-composite: intersect;
+  }
+}
+
+@media (min-width: 48rem) {
+  .reading {
+    --reading-feather-inline: var(--space-32);
+    --reading-feather-block: var(--space-32);
+  }
+}
