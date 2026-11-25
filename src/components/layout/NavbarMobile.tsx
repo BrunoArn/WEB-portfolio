@@ -13,6 +13,8 @@ import { Container } from "@/components/layout/Container";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import type { Locale } from "@/i18n/config";
 import { getNavigationState } from "@/components/navigation/navigation-state";
+import { AtlasReturnLink } from "./AtlasReturnLink";
+import returnStyles from "./AtlasReturnLink.module.css";
 import styles from "./NavbarMobile.module.css";
 
 type NavbarMobileProps = {
@@ -26,6 +28,9 @@ type NavbarMobileProps = {
     labels: {
         menu: string;
         close: string;
+        backToAtlas: string;
+        backToAtlasAriaLabel: string;
+        atlas: string;
         home: string;
         projects: string;
         about: string;
@@ -46,7 +51,7 @@ export function NavbarMobile({
 
     const pathname = usePathname();
 
-    const { homePath, projectsPath, aboutPath, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
+    const { homePath, projectsPath, aboutPath, isProjectDetail, isHomeActive, isAtlasPage, isProjectsActive, isAboutActive } =
         getNavigationState(pathname, currentLocale);
 
     const mobileNavLinkClass = (isActive: boolean) =>
@@ -224,6 +229,11 @@ export function NavbarMobile({
             >
                 <Container>
                     <div className="flex h-(--shell-header-offset) items-center justify-end gap-(--space-24) font-interface">
+                        {!isOpen && isProjectDetail && (
+                            <div className={returnStyles.mobileSlot}>
+                                <AtlasReturnLink href={homePath} label={labels.backToAtlas} compactLabel={labels.atlas} accessibleLabel={labels.backToAtlasAriaLabel} />
+                            </div>
+                        )}
                         <LocaleSwitcher currentLocale={currentLocale} onNavigate={handleInternalNavigation} />
                         <button
                             ref={menuButtonRef}

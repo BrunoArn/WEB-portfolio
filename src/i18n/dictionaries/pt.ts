@@ -12,6 +12,9 @@ const pt = {
     },
   },
   navigation: {
+    backToAtlas: "Voltar",
+    backToAtlasAriaLabel: "Voltar ao Atlas",
+    atlas: "Voltar",
     menu: "MENU",
     close: "FECHAR",
     home: "Início",

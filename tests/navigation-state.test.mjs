@@ -20,3 +20,14 @@ for(const locale of ['pt','en']) {
         assert.equal(state.homePath,'/'+locale);assert.equal(state.projectsPath,'/'+locale+'/projects');assert.equal(state.aboutPath,'/'+locale+'/about');
     });
 }
+
+for (const locale of ['pt', 'en']) {
+    test('Atlas return is available only on a single project route: ' + locale, () => {
+        for (const suffix of ['/projects/bloomancer', '/projects/bloomancer/']) {
+            assert.equal(getNavigationState('/' + locale + suffix, locale).isProjectDetail, true);
+        }
+        for (const suffix of ['', '/projects', '/projects/', '/about', '/atlas-preview', '/projects-other/example', '/projects/bloomancer/extra']) {
+            assert.equal(getNavigationState('/' + locale + suffix, locale).isProjectDetail, false);
+        }
+    });
+}
