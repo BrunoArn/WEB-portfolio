@@ -125,24 +125,25 @@ export function AtlasMap({
                                                 aria-haspopup="dialog"
                                                 aria-expanded="false"
                                                 aria-controls={dialogId}
-                                            />
-                                            <span className={styles.thumbSlot} data-atlas-thumb-slot>
-                                                <AtlasThumbnail
-                                                    image={project.image}
-                                                    markerImage={project.markerImage}
-                                                    slug={project.placement}
-                                                    shareCover={shareCover}
-                                                    onCoverSettled={() => onCoverSettled(project.id)}
-                                                    unavailable={text.unavailable}
-                                                    selected={selectedProjectId === project.id}
-                                                />
-                                            </span>
-                                            <span className={styles.label}>
-                                                <span className={styles.projectTitle}>{project.title}</span>
-                                                <small className={styles.projectMeta}>
-                                                    {project.categoryLabel}{project.year ? ` · ${project.year}` : ""}
-                                                </small>
-                                            </span>
+                                            >
+                                                <span className={styles.thumbSlot} data-atlas-thumb-slot>
+                                                    <AtlasThumbnail
+                                                        image={project.image}
+                                                        markerImage={project.markerImage}
+                                                        slug={project.placement}
+                                                        shareCover={shareCover}
+                                                        onCoverSettled={() => onCoverSettled(project.id)}
+                                                        unavailable={text.unavailable}
+                                                        selected={selectedProjectId === project.id}
+                                                    />
+                                                </span>
+                                                <span className={styles.label}>
+                                                    <span className={styles.projectTitle}>{project.title}</span>
+                                                    <small className={styles.projectMeta}>
+                                                        <span>{project.categoryLabel}{project.year ? ` · ${project.year}` : ""}</span>
+                                                    </small>
+                                                </span>
+                                            </button>
                                         </li>
                                     );
                                 })}

@@ -110,11 +110,12 @@
   align-items: center;
   gap: 13px;
   transform: translate(-27px, -50%);
-  /* Prevent edge anchors from shrinking labels before translation. */
-  width: 260px;
+  /* Size against content instead of the space left at the anchor. */
+  width: max-content;
   max-width: 260px;
   isolation: isolate;
   margin: 0;
+  pointer-events: none;
 }
 .project::before {
   content: "";
@@ -223,7 +224,6 @@
     margin: 0 0 var(--space-16);
   }
   .project {
-    width: 190px;
     max-width: 190px;
     gap: 10px;
     transform: translate(-23px, -50%);
@@ -266,7 +266,6 @@
     margin: 0;
   }
   .project {
-    width: 130px;
     max-width: 130px;
     gap: var(--space-8);
     transform: translate(-12px, -50%);
@@ -324,21 +323,45 @@
   transform-origin: 0 0;
 }
 .thumbSlot {
+  position: relative;
   display: block;
   flex: none;
   width: 54px;
   height: 54px;
 }
 .trigger {
-  position: absolute;
-  z-index: 2;
-  inset: -7px;
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: inherit;
+  align-items: center;
+  gap: inherit;
+  margin: -7px;
+  padding: 7px;
   border: 0;
   border-radius: var(--radius-large);
   background: transparent;
-  padding: 0;
-  cursor: pointer;
   color: inherit;
+  text-align: inherit;
+  /* Wrapped lines and thumbnails are hit targets; the empty box between them is not. */
+  pointer-events: none;
+}
+.trigger :is(.projectTitle, .projectMeta > span) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.thumbSlot::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 1;
+}
+.root[data-selection]:not([data-selection="idle"]) .trigger :is(.projectTitle, .projectMeta > span),
+.root[data-selection]:not([data-selection="idle"]) .thumbSlot::before {
+  pointer-events: none;
 }
 .trigger:focus-visible {
   outline: 2px solid var(--atlas-tone);
@@ -664,8 +687,8 @@
   transition: transform 160ms cubic-bezier(.2,.7,.2,1);
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .root[data-selection="idle"] .project:hover > .thumbSlot,
-  .root[data-selection="idle"] .trigger:focus-visible + .thumbSlot {
+  .root[data-selection="idle"] .trigger:hover > .thumbSlot,
+  .root[data-selection="idle"] .trigger:focus-visible > .thumbSlot {
     transform: scale(1.2);
   }
 }
