@@ -1,4 +1,4 @@
-import { atlasCameraTransform, atlasPanDirections, atlasPanDomain, atlasPanLimits, clampAtlasPan, neutralAtlasPan, revealAtlasMarker, type AtlasPanDirection, type AtlasPoint2D } from "./atlas-camera";
+import { atlasCameraTransform, atlasPanDirections, atlasPanDomain, atlasPanLimits, clampAtlasPan, isAtlasMarkerVisible, neutralAtlasPan, revealAtlasMarker, type AtlasPanDirection, type AtlasPoint2D } from "./atlas-camera";
 import type { AtlasBounds, getAtlasAdaptiveView } from "./atlas-layout";
 
 const threshold = 7;
@@ -149,21 +149,24 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
     const direction = atlasPanDirections.find(dir => event.key.toLowerCase() === "arrow" + dir);
     if (direction && possible(direction)) { event.preventDefault(); step(direction); }
   }
-  function reveal(event: FocusEvent) {
-    const target = event.target as HTMLElement;
-    if (!available() || !metrics || !target.matches("[data-atlas-trigger]:focus-visible")) return;
+  function revealMarker(target: Element | null, visibleArea?: AtlasBounds) {
+    if (!available() || !metrics || !target?.matches("[data-atlas-trigger]:focus-visible") || !plane.contains(target)) return;
     flush();
     const frame = viewport.getBoundingClientRect();
     const thumb = target.parentElement?.querySelector("[data-atlas-thumb-slot]")?.getBoundingClientRect();
     if (!thumb) return;
-    const obstacles = [bounds(intro.getBoundingClientRect(), frame, neutralAtlasPan, 8)];
-    for (const button of controls.values()) {
-      const rect = button.getBoundingClientRect();
-      if (rect.width && rect.height) obstacles.push(bounds(rect, frame, neutralAtlasPan, 4));
-    }
-    apply(revealAtlasMarker(position, bounds(target.getBoundingClientRect(), frame, neutralAtlasPan, 8),
-      bounds(thumb, frame, neutralAtlasPan, 5), metrics.safe, obstacles, limits));
+    const marker = bounds(target.getBoundingClientRect(), frame, neutralAtlasPan, 8);
+    const title = intro.getBoundingClientRect();
+    const arrows = Array.from(controls.values(), button => button.getBoundingClientRect())
+      .filter(rect => rect.width && rect.height);
+    if (visibleArea && isAtlasMarkerVisible(marker, visibleArea, [title, ...arrows].map(rect => bounds(rect, frame)))) return;
+
+    const obstacles = [bounds(title, frame, neutralAtlasPan, 8),
+      ...arrows.map(rect => bounds(rect, frame, neutralAtlasPan, 4))];
+    const next = revealAtlasMarker(position, marker, bounds(thumb, frame, neutralAtlasPan, 5), metrics.safe, obstacles, limits);
+    if (next.x !== position.x || next.y !== position.y) apply(next);
   }
+  const reveal = (event: FocusEvent) => revealMarker(event.target as Element);
   const focusOut = () => queueMicrotask(syncControls);
 
   viewport.addEventListener("pointerdown", down);
@@ -217,7 +220,10 @@ export function mountAtlasPan(root: HTMLElement, viewport: HTMLElement, world: H
       viewport.style.setProperty("--atlas-pan-top", Math.max(headerBottom + clearance, clearance) + "px");
       viewport.style.setProperty("--atlas-pan-bottom", footerHeight + clearance + "px");
       apply(next);
-      return { position, domain: atlasPanDomain(frame.width, frame.height, limits) };
+      // Keep the terrain's clearing anchored to the viewport layout, as with focus-driven pan.
+      const layoutPosition = position;
+      if (old) revealMarker(document.activeElement, { ...area, top: headerBottom, bottom: area.bottom - footerHeight });
+      return { position: layoutPosition, domain: atlasPanDomain(frame.width, frame.height, limits) };
     },
     pause() {
       cancelGesture();

@@ -55,6 +55,17 @@ export function atlasSelectionDomain(width: number, height: number, pan: AtlasPo
   };
 }
 
+function intersectionArea(a: AtlasBounds, b: AtlasBounds) {
+  return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+    Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+}
+
+export function isAtlasMarkerVisible(marker: AtlasBounds, area: AtlasBounds, obstacles: readonly AtlasBounds[]) {
+  return marker.left >= area.left && marker.right <= area.right &&
+    marker.top >= area.top && marker.bottom <= area.bottom &&
+    obstacles.every(obstacle => intersectionArea(marker, obstacle) === 0);
+}
+
 export function revealAtlasMarker(position: AtlasPoint2D, marker: AtlasBounds, thumb: AtlasBounds, safe: AtlasBounds, obstacles: readonly AtlasBounds[], limits: AtlasPanLimits) {
   const fit = (start: number, end: number, low: number, high: number) => {
     if (start < low) return low - start;
@@ -72,15 +83,12 @@ export function revealAtlasMarker(position: AtlasPoint2D, marker: AtlasBounds, t
     }
   }
   const candidates = xs.flatMap(x => ys.map(y => clampAtlasPan({ x, y }, limits)));
-  const space = (a: AtlasBounds, b: AtlasBounds) =>
-    Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
-    Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
   const score = ({ x, y }: AtlasPoint2D) => {
     const dx = x - position.x, dy = y - position.y;
     const visible = (item: AtlasBounds) => {
       const moved = { left: item.left + dx, right: item.right + dx, top: item.top + dy, bottom: item.bottom + dy };
-      const covered = obstacles.reduce((sum, obstacle) => sum + space(moved, obstacle), 0);
-      return Math.max(0, space(moved, safe) - covered) / space(item, item);
+      const covered = obstacles.reduce((sum, obstacle) => sum + intersectionArea(moved, obstacle), 0);
+      return Math.max(0, intersectionArea(moved, safe) - covered) / intersectionArea(item, item);
     };
     return 2 * visible(thumb) + visible(marker);
   };
